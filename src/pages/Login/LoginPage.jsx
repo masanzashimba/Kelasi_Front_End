@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Mail,
   Lock,
@@ -5,26 +6,123 @@ import {
   GraduationCap,
   AlertCircle,
 } from "lucide-react";
-import { useLoginForm } from "../../hooks";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import Input from "../../components/ui/Input/Input";
 import Button from "../../components/ui/Button/Button";
 import eleveImage from "../../assets/images/eleve.jpg";
 
-const LoginPageWithRedux = () => {
-  const { formState, formHandlers } = useLoginForm();
-  const { values, errors, touched, isSubmitting, submitError } = formState;
-  const { handleChange, handleBlur, handleSubmit } = formHandlers;
+const LoginPage = () => {
+  const { login, isLoading, error, clearAuthError, isAuthenticated } =
+    useAuth();
 
-  /**
-   * Afficher l'erreur d'un champ
-   */
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    remember: false,
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  // Nettoyer les erreurs au démontage
+  useEffect(() => {
+    return () => {
+      clearAuthError();
+    };
+  }, [clearAuthError]);
+
+  // Validation
+  const validateField = (name, value) => {
+    switch (name) {
+      case "email":
+        if (!value) return "L'email est requis";
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
+          return "Email invalide";
+        }
+        return "";
+      case "password":
+        if (!value) return "Le mot de passe est requis";
+        if (value.length < 6) {
+          return "Le mot de passe doit contenir au moins 6 caractères";
+        }
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const fieldValue = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: fieldValue,
+    }));
+
+    // Effacer l'erreur du champ
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+
+    // Effacer l'erreur globale
+    if (error) {
+      clearAuthError();
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+
+    const fieldError = validateField(name, value);
+    if (fieldError) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [name]: fieldError,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Valider tous les champs
+    const errors = {
+      email: validateField("email", formData.email),
+      password: validateField("password", formData.password),
+    };
+
+    const hasErrors = Object.values(errors).some((err) => err);
+
+    if (hasErrors) {
+      setFormErrors(errors);
+      setTouched({ email: true, password: true });
+      return;
+    }
+
+    // Soumettre
+    await login({
+      email: formData.email,
+      password: formData.password,
+    });
+  };
+
   const getFieldError = (fieldName) => {
-    return touched[fieldName] && errors[fieldName] ? errors[fieldName] : "";
+    return touched[fieldName] && formErrors[fieldName]
+      ? formErrors[fieldName]
+      : "";
   };
 
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center overflow-hidden">
-      <div className="w-full h-full max-w-7xl bg-white shadow-xl overflow-hidden lg:rounded-2xl lg:h-[95vh] lg:my-auto">
+      <div className="w-full h-full max-w-full bg-white shadow-xl overflow-hidden lg:h-[100vh] lg:my-auto">
         <div className="grid lg:grid-cols-2 h-full">
           {/* LEFT SIDE - IMAGE */}
           <div className="hidden lg:flex relative bg-gradient-to-br from-[#0b57cd] to-[#0947ab] p-8 flex-col justify-between overflow-hidden">
@@ -105,14 +203,14 @@ const LoginPageWithRedux = () => {
               </div>
 
               {/* Global Error Message */}
-              {submitError && (
+              {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">
                       Erreur de connexion
                     </p>
-                    <p className="text-sm text-red-600 mt-1">{submitError}</p>
+                    <p className="text-sm text-red-600 mt-1">{error}</p>
                   </div>
                 </div>
               )}
@@ -124,13 +222,13 @@ const LoginPageWithRedux = () => {
                   label="Adresse email"
                   type="email"
                   name="email"
-                  value={values.email}
+                  value={formData.email}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="votre.email@exemple.com"
                   leftIcon={<Mail className="w-4 h-4" />}
                   error={getFieldError("email")}
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   required
                 />
 
@@ -139,13 +237,13 @@ const LoginPageWithRedux = () => {
                   label="Mot de passe"
                   type="password"
                   name="password"
-                  value={values.password}
+                  value={formData.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="••••••••"
                   leftIcon={<Lock className="w-4 h-4" />}
                   error={getFieldError("password")}
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   required
                 />
 
@@ -155,9 +253,9 @@ const LoginPageWithRedux = () => {
                     <input
                       type="checkbox"
                       name="remember"
-                      checked={values.remember}
+                      checked={formData.remember}
                       onChange={handleChange}
-                      disabled={isSubmitting}
+                      disabled={isLoading}
                       className="w-4 h-4 text-[#0b57cd] border-gray-300 rounded focus:ring-[#0b57cd] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <span className="text-sm text-gray-700">
@@ -166,9 +264,9 @@ const LoginPageWithRedux = () => {
                   </label>
 
                   <a
-                    href="/forgot-password"
+                    href="/mot-de-passe-oublie"
                     className="text-sm font-medium text-[#0b57cd] hover:text-[#0947ab] transition-colors"
-                    tabIndex={isSubmitting ? -1 : 0}
+                    tabIndex={isLoading ? -1 : 0}
                   >
                     Mot de passe oublié ?
                   </a>
@@ -177,14 +275,12 @@ const LoginPageWithRedux = () => {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  loading={isSubmitting}
-                  disabled={isSubmitting}
-                  rightIcon={
-                    !isSubmitting && <ArrowRight className="w-4 h-4" />
-                  }
+                  loading={isLoading}
+                  disabled={isLoading}
+                  rightIcon={!isLoading && <ArrowRight className="w-4 h-4" />}
                   className="mt-4"
                 >
-                  {isSubmitting ? "Connexion en cours..." : "Se connecter"}
+                  {isLoading ? "Connexion en cours..." : "Se connecter"}
                 </Button>
               </form>
 
@@ -221,4 +317,4 @@ const LoginPageWithRedux = () => {
   );
 };
 
-export default LoginPageWithRedux;
+export default LoginPage;
