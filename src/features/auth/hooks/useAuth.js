@@ -94,10 +94,10 @@ export const useAuth = () => {
 
         redirectAfterOnboarding(result.payload.onboarding);
 
-        return true;
+        return { success: true };
       }
 
-      return false;
+      return { success: false, error: result.payload };
     },
 
     [dispatch, redirectAfterOnboarding],
@@ -120,10 +120,10 @@ export const useAuth = () => {
       if (changePasswordThunk.fulfilled.match(result)) {
         redirectAfterOnboarding(result.payload.onboarding);
 
-        return true;
+        return { success: true };
       }
 
-      return false;
+      return { success: false, error: result.payload };
     },
 
     [dispatch, redirectAfterOnboarding],

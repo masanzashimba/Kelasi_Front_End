@@ -1,0 +1,115 @@
+/**
+ * Styles personnalisés pour les toasts
+ * Charte graphique Kelasi - Bleu #0b57cd
+ */
+
+/* Container global */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+/* Toast de base */
+.Toastify__toast {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: inherit;
+  padding: 16px;
+}
+
+/* Toast de succès */
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #0b57cd 0%, #0947ab 100%);
+  color: white;
+}
+
+.Toastify__toast--success .Toastify__toast-icon {
+  color: white;
+}
+
+.Toastify__toast--success .Toastify__progress-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Toast d'erreur */
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.Toastify__toast--error .Toastify__toast-icon {
+  color: white;
+}
+
+.Toastify__toast--error .Toastify__progress-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Toast d'info */
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.Toastify__toast--info .Toastify__toast-icon {
+  color: white;
+}
+
+.Toastify__toast--info .Toastify__progress-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Toast d'avertissement */
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon {
+  color: white;
+}
+
+.Toastify__toast--warning .Toastify__progress-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Bouton de fermeture */
+.Toastify__close-button {
+  color: white;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+/* Animation d'entrée */
+@keyframes toastSlideIn {
+  from {
+    transform: translate3d(110%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.Toastify__toast {
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+/* Responsive */
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container {
+    width: 100vw;
+    padding: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+  }
+
+  .Toastify__toast {
+    margin-bottom: 0;
+    border-radius: 0;
+  }
+}

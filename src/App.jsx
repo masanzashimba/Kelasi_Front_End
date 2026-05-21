@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./styles/toast.css";
 
 // Providers
 import ReduxProvider from "./App/providers/ReduxProvider";

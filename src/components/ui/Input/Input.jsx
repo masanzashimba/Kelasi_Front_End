@@ -10,7 +10,6 @@ const Input = forwardRef(
     {
       label,
       type = "text",
-      value = "",
       placeholder = "",
       error,
       success,
@@ -75,7 +74,6 @@ const Input = forwardRef(
           {/* INPUT */}
           <motion.input
             ref={ref}
-            value={value}
             type={inputType}
             placeholder={placeholder}
             disabled={disabled || loading}
@@ -173,7 +171,7 @@ const Input = forwardRef(
 
           {maxLength && (
             <span>
-              {String(value || "").length}/{maxLength}
+              {String(props.value || "").length}/{maxLength}
             </span>
           )}
         </div>
