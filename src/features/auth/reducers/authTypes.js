@@ -1,0 +1,48 @@
+/**
+ * Types d'actions pour l'authentification
+ * Basé sur les routes du backend NestJS
+ */
+
+// LOGIN
+export const LOGIN_REQUEST = "auth/LOGIN_REQUEST";
+export const LOGIN_SUCCESS = "auth/LOGIN_SUCCESS";
+export const LOGIN_FAILURE = "auth/LOGIN_FAILURE";
+
+// LOGOUT
+export const LOGOUT_REQUEST = "auth/LOGOUT_REQUEST";
+export const LOGOUT_SUCCESS = "auth/LOGOUT_SUCCESS";
+export const LOGOUT_FAILURE = "auth/LOGOUT_FAILURE";
+
+// REFRESH TOKEN
+export const REFRESH_TOKEN_REQUEST = "auth/REFRESH_TOKEN_REQUEST";
+export const REFRESH_TOKEN_SUCCESS = "auth/REFRESH_TOKEN_SUCCESS";
+export const REFRESH_TOKEN_FAILURE = "auth/REFRESH_TOKEN_FAILURE";
+
+// GET ME (Profil utilisateur)
+export const GET_ME_REQUEST = "auth/GET_ME_REQUEST";
+export const GET_ME_SUCCESS = "auth/GET_ME_SUCCESS";
+export const GET_ME_FAILURE = "auth/GET_ME_FAILURE";
+
+// CHANGE PASSWORD
+export const CHANGE_PASSWORD_REQUEST = "auth/CHANGE_PASSWORD_REQUEST";
+export const CHANGE_PASSWORD_SUCCESS = "auth/CHANGE_PASSWORD_SUCCESS";
+export const CHANGE_PASSWORD_FAILURE = "auth/CHANGE_PASSWORD_FAILURE";
+
+// FORGOT PASSWORD
+export const FORGOT_PASSWORD_REQUEST = "auth/FORGOT_PASSWORD_REQUEST";
+export const FORGOT_PASSWORD_SUCCESS = "auth/FORGOT_PASSWORD_SUCCESS";
+export const FORGOT_PASSWORD_FAILURE = "auth/FORGOT_PASSWORD_FAILURE";
+
+// RESET PASSWORD
+export const RESET_PASSWORD_REQUEST = "auth/RESET_PASSWORD_REQUEST";
+export const RESET_PASSWORD_SUCCESS = "auth/RESET_PASSWORD_SUCCESS";
+export const RESET_PASSWORD_FAILURE = "auth/RESET_PASSWORD_FAILURE";
+
+// UPDATE USER (local)
+export const UPDATE_USER = "auth/UPDATE_USER";
+
+// CLEAR ERROR
+export const CLEAR_AUTH_ERROR = "auth/CLEAR_AUTH_ERROR";
+
+// CLEAR SUCCESS MESSAGE
+export const CLEAR_AUTH_SUCCESS = "auth/CLEAR_AUTH_SUCCESS";
