@@ -77,14 +77,14 @@ const LoginPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center overflow-hidden"
+      className="h-screen bg-linear-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center overflow-hidden"
     >
       <div className="w-full h-full max-w-full bg-white shadow-xl overflow-hidden lg:h-screen lg:my-auto">
         <div className="grid lg:grid-cols-2 h-full">
           {/* LEFT SIDE - IMAGE */}
           <motion.div
             variants={leftSideVariants}
-            className="hidden lg:flex relative bg-gradient-to-br from-[#0b57cd] to-[#0947ab] p-8 flex-col justify-between overflow-hidden"
+            className="hidden lg:flex relative bg-linear-to-br from-[#0b57cd] to-[#0947ab] p-8 flex-col justify-between overflow-hidden"
           >
             {/* Decorative circles animés */}
             <motion.div
@@ -145,7 +145,7 @@ const LoginPage = () => {
                   alt="Élèves"
                   className="w-full h-48 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></div>
               </motion.div>
             </motion.div>
 
