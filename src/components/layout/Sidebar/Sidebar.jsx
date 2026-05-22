@@ -131,7 +131,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               animate={{ opacity: collapsed ? 0 : 1 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-r from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 K
               </div>
               {!collapsed && (
@@ -164,7 +164,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   whileHover={{ x: collapsed ? 0 : 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleMenuClick(item)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${active ? "bg-gradient-to-r from-[#0b57cd] to-[#0947ab] text-white shadow-lg shadow-blue-500/30" : "text-gray-700 hover:bg-gray-100"} ${collapsed ? "justify-center" : ""}`}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${active ? "bg-linear-to-r from-[#0b57cd] to-[#0947ab] text-white shadow-lg shadow-blue-500/30" : "text-gray-700 hover:bg-gray-100"} ${collapsed ? "justify-center" : ""}`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="w-5 h-5 shrink-0" />
@@ -229,10 +229,10 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         {/* PROFILE */}
         <div className="p-4 border-t border-gray-200">
           <div
-            className={`bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 ${collapsed ? "flex justify-center" : ""}`}
+            className={`bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-3 ${collapsed ? "flex justify-center" : ""}`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold text-sm shadow-lg">
                 {user?.nom?.[0] || "U"}
               </div>
 

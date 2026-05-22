@@ -50,7 +50,7 @@ const Content = ({ children, title, breadcrumbs = [] }) => {
         {children || (
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-linear-to-r from-[#0b57cd] to-[#0947ab] flex items-center justify-center">
                 <Home className="w-12 h-12 text-white" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
