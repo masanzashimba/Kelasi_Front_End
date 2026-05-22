@@ -30,6 +30,25 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
 
+          {/* ONBOARDING ROUTES - Protected but without layout */}
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/setup"
+            element={
+              <ProtectedRoute>
+                <SetupPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* PROTECTED ROUTES WITH DASHBOARD LAYOUT */}
           <Route
             path="/dashboard"
@@ -68,34 +87,6 @@ function App() {
                   breadcrumbs={["Accueil", "Enseignants"]}
                 >
                   <EnseignantsPage />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/change-password"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout
-                  title="Changer le mot de passe"
-                  breadcrumbs={["Accueil", "Paramètres", "Mot de passe"]}
-                >
-                  <ChangePasswordPage />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/setup"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout
-                  title="Configuration"
-                  breadcrumbs={["Accueil", "Configuration"]}
-                >
-                  <SetupPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

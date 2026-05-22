@@ -19,9 +19,9 @@ export const authService = {
     return data;
   },
 
-  // POST /auth/change-password
+  // PATCH /auth/change-password
   changePassword: async (dto) => {
-    const { data } = await api.post("/auth/change-password", dto);
+    const { data } = await api.patch("/auth/change-password", dto);
 
     return data;
   },

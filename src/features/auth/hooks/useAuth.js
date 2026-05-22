@@ -33,8 +33,8 @@ import {
 
 // ── Routes ───────────────────────────────────────────────────
 const ROUTES = {
-  LOGIN: "/connexion",
-  CHANGE_PASSWORD: "/changer-mot-de-passe",
+  LOGIN: "/login",
+  CHANGE_PASSWORD: "/change-password",
   SETUP: "/setup",
   DASHBOARD: "/dashboard",
 };
@@ -60,14 +60,18 @@ export const useAuth = () => {
   // Redirection onboarding
   const redirectAfterOnboarding = useCallback(
     (status) => {
+      console.log("🔄 Redirection onboarding:", status);
+
       switch (status.etape) {
         case "CHANGE_PASSWORD":
+          console.log("➡️ Redirection vers /change-password");
           navigate(ROUTES.CHANGE_PASSWORD, {
             replace: true,
           });
           break;
 
         case "SETUP_ECOLE":
+          console.log("➡️ Redirection vers /setup");
           navigate(ROUTES.SETUP, {
             replace: true,
           });
@@ -75,6 +79,7 @@ export const useAuth = () => {
 
         case "COMPLETE":
         default:
+          console.log("➡️ Redirection vers /dashboard");
           navigate(ROUTES.DASHBOARD, {
             replace: true,
           });
@@ -87,9 +92,13 @@ export const useAuth = () => {
   // LOGIN
   const login = useCallback(
     async (dto) => {
+      console.log("🔐 Tentative de login...");
       const result = await dispatch(loginThunk(dto));
 
       if (loginThunk.fulfilled.match(result)) {
+        console.log("✅ Login réussi:", result.payload);
+        console.log("📋 Onboarding status:", result.payload.onboarding);
+
         dispatch(fetchProfileThunk());
 
         redirectAfterOnboarding(result.payload.onboarding);
@@ -97,6 +106,7 @@ export const useAuth = () => {
         return { success: true };
       }
 
+      console.log("❌ Login échoué:", result.payload);
       return { success: false, error: result.payload };
     },
 
