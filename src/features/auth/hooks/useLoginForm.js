@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "./useAuth";
 import { loginSchema } from "../schemas/login.schema";
+import { showSuccessToast, showErrorToast } from "../../../utils/toast";
 
 /**
  * Hook personnalisé pour gérer le formulaire de login
@@ -41,10 +42,19 @@ export const useLoginForm = () => {
     }
 
     // La fonction login retourne { success, error } et gère la redirection
-    await login({
+    const result = await login({
       email: data.email,
       password: data.password,
     });
+
+    // Afficher le toast approprié
+    if (result.success) {
+      showSuccessToast("Connexion réussie !");
+    } else {
+      showErrorToast(
+        `Connexion échoué: ${result.error || "Email ou mot de passe incorrect"}`,
+      );
+    }
   };
 
   /**

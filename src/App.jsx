@@ -15,6 +15,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import ElevesPage from "./pages/Eleves/ElevesPage";
 import EnseignantsPage from "./pages/Enseignants/EnseignantsPage";
 import DirecteursPage from "./pages/Admin/DirecteursPage";
+import AnneeScolairePage from "./pages/AnneeScolaire/AnneeScolairePage";
 import ChangePasswordPage from "./pages/Auth/ChangePasswordPage";
 import SetupPage from "./pages/Setup/SetupPage";
 import ProtectedRoute from "./App/routes/ProtectedRoute";
@@ -102,6 +103,18 @@ function App() {
                   breadcrumbs={["Accueil", "Administration", "Directeurs"]}
                 >
                   <DirecteursPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ANNEE SCOLAIRE ROUTE */}
+          <Route
+            path="/annees-scolaires"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout breadcrumbs={["Accueil", "Années Scolaires"]}>
+                  <AnneeScolairePage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

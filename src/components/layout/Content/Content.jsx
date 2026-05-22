@@ -3,7 +3,7 @@ import { ChevronRight, Home } from "lucide-react";
 
 const Content = ({ children, title, breadcrumbs = [] }) => {
   return (
-    <div className="flex-1 bg-gray-50 min-h-screen">
+    <div className="flex-1 bg-gray-100 min-h-screen">
       {/* Breadcrumbs */}
       {breadcrumbs.length > 0 && (
         <div className="bg-white border-b border-gray-200 px-6 py-3">

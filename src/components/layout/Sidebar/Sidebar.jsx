@@ -37,6 +37,12 @@ const baseMenuItems = [
   },
   { title: "Classes", icon: Home, path: "/classes", badge: null },
   {
+    title: "Années Scolaires",
+    icon: Calendar,
+    path: "/annees-scolaires",
+    badge: null,
+  },
+  {
     title: "Académique",
     icon: BookOpen,
     children: [
@@ -57,7 +63,6 @@ const baseMenuItems = [
   },
   { title: "Résultats", icon: FileText, path: "/resultats", badge: null },
   { title: "Rapports", icon: BarChart3, path: "/rapports", badge: null },
-  { title: "Calendrier", icon: Calendar, path: "/calendrier", badge: null },
   { title: "Paramètres", icon: Settings, path: "/parametres", badge: null },
 ];
 

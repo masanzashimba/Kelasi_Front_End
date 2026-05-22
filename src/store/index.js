@@ -3,11 +3,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 import authReducer from "../features/auth/slices/auth.slice";
 import directeursReducer from "../features/admin/slices/directeurs.slice";
+import anneeScolaireReducer from "../features/annee-scolaire/slices/annee-scolaire.slice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     directeurs: directeursReducer,
+    anneeScolaire: anneeScolaireReducer,
   },
 
   middleware: (getDefaultMiddleware) =>
