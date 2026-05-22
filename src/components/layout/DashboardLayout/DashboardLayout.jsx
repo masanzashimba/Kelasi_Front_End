@@ -25,7 +25,7 @@ const DashboardLayout = ({ children, title, breadcrumbs }) => {
         <Navbar onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} />
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-4">
           <Content title={title} breadcrumbs={breadcrumbs}>
             {children}
           </Content>
