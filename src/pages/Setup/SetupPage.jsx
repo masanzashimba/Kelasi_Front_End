@@ -1,5 +1,10 @@
-import React from "react";
+const SetupPage = () => {
+  return (
+    <div>
+      {/* Le contenu de configuration sera ajouté ici */}
+      <p className="text-gray-600">Configuration de l'école</p>
+    </div>
+  );
+};
 
-export default function SetupPage() {
-  return <div>SetupPage</div>;
-}
+export default SetupPage;

@@ -1,0 +1,49 @@
+/**
+ * Styles personnalisés pour les scrollbars
+ * Compatible avec tous les navigateurs modernes
+ */
+
+/* Scrollbar pour Webkit (Chrome, Safari, Edge) */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Scrollbar pour Firefox */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Scrollbar avec couleur bleue */
+.scrollbar-blue::-webkit-scrollbar-thumb {
+  background: #0b57cd;
+}
+
+.scrollbar-blue::-webkit-scrollbar-thumb:hover {
+  background: #0947ab;
+}
+
+.scrollbar-blue {
+  scrollbar-color: #0b57cd transparent;
+}
+
+/* Smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}

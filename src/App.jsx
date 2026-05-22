@@ -8,47 +8,67 @@ import {
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/toast.css";
-
-// Providers
+import "./styles/scrollbar.css";
 import ReduxProvider from "./App/providers/ReduxProvider";
-
-// Pages
 import LoginPage from "./pages/Login/LoginPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import ElevesPage from "./pages/Eleves/ElevesPage";
+import EnseignantsPage from "./pages/Enseignants/EnseignantsPage";
 import ChangePasswordPage from "./pages/Auth/ChangePasswordPage";
 import SetupPage from "./pages/Setup/SetupPage";
-
-// Utils
 import ProtectedRoute from "./App/routes/ProtectedRoute";
+import DashboardLayout from "./components/layout/DashboardLayout/DashboardLayout";
 
 function App() {
   return (
     <ReduxProvider>
       <Router>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
+        <ToastContainer position="top-right" autoClose={3000} theme="light" />
 
         <Routes>
-          {/* Routes publiques */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Routes protégées */}
+          {/* PROTECTED ROUTES WITH DASHBOARD LAYOUT */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <DashboardLayout
+                  title="Tableau de bord"
+                  breadcrumbs={["Accueil", "Tableau de bord"]}
+                >
+                  <DashboardPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/eleves"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  title="Gestion des élèves"
+                  breadcrumbs={["Accueil", "Élèves"]}
+                >
+                  <ElevesPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/enseignants"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  title="Gestion des enseignants"
+                  breadcrumbs={["Accueil", "Enseignants"]}
+                >
+                  <EnseignantsPage />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
@@ -57,7 +77,12 @@ function App() {
             path="/change-password"
             element={
               <ProtectedRoute>
-                <ChangePasswordPage />
+                <DashboardLayout
+                  title="Changer le mot de passe"
+                  breadcrumbs={["Accueil", "Paramètres", "Mot de passe"]}
+                >
+                  <ChangePasswordPage />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
@@ -66,12 +91,17 @@ function App() {
             path="/setup"
             element={
               <ProtectedRoute>
-                <SetupPage />
+                <DashboardLayout
+                  title="Configuration"
+                  breadcrumbs={["Accueil", "Configuration"]}
+                >
+                  <SetupPage />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
 
-          {/* Redirection par défaut */}
+          {/* FALLBACK */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

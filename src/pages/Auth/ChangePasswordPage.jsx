@@ -1,16 +1,8 @@
-import React from "react";
-
 const ChangePasswordPage = () => {
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Changer votre mot de passe
-        </h1>
-        <p className="text-gray-600">
-          Cette page sera implémentée prochainement.
-        </p>
-      </div>
+    <div>
+      {/* Le contenu de changement de mot de passe sera ajouté ici */}
+      <p className="text-gray-600">Formulaire de changement de mot de passe</p>
     </div>
   );
 };

@@ -1,5 +1,10 @@
-import React from "react";
+const DashboardPage = () => {
+  return (
+    <div>
+      {/* Le contenu du dashboard sera ajouté ici */}
+      <p className="text-gray-600">Contenu du tableau de bord</p>
+    </div>
+  );
+};
 
-export default function DashboardPage() {
-  return <div>DashboardPage</div>;
-}
+export default DashboardPage;
