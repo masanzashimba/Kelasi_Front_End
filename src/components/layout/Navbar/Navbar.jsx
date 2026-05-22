@@ -227,7 +227,7 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
                   >
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-linear-to-r from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold shadow-lg">
+                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold shadow-lg">
                           {user?.nom?.[0] || "U"}
                         </div>
                         <div className="flex-1 min-w-0">
