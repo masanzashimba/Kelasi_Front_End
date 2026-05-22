@@ -17,10 +17,11 @@ import {
   Calendar,
   DollarSign,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 
-const menuItems = [
+const baseMenuItems = [
   {
     title: "Tableau de bord",
     icon: LayoutDashboard,
@@ -60,12 +61,26 @@ const menuItems = [
   { title: "Paramètres", icon: Settings, path: "/parametres", badge: null },
 ];
 
+const adminMenuItem = {
+  title: "Administration",
+  icon: Shield,
+  path: "/admin/directeurs",
+  badge: null,
+  superAdminOnly: true,
+};
+
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Construire le menu dynamiquement selon le rôle
+  // Tableau de bord en premier, puis Administration (si SUPER_ADMIN), puis le reste
+  const menuItems = isSuperAdmin
+    ? [baseMenuItems[0], adminMenuItem, ...baseMenuItems.slice(1)]
+    : baseMenuItems;
 
   const handleMenuClick = (item) => {
     if (item.children) {
@@ -122,29 +137,29 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       <motion.aside
         animate={{ width: collapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`fixed lg:relative z-50 h-screen bg-white border-r border-gray-200 flex flex-col shadow-xl ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`fixed lg:relative z-50 h-screen bg-[#0947ab] flex flex-col shadow-2xl ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* HEADER */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-white/10">
           <div className="flex items-center justify-between">
             <motion.div
               animate={{ opacity: collapsed ? 0 : 1 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-linear-to-r from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 K
               </div>
               {!collapsed && (
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Kelasi</h1>
-                  <p className="text-xs text-gray-500">Gestion scolaire</p>
+                  <h1 className="text-lg font-bold text-white">Kelasi</h1>
+                  <p className="text-xs text-white/70">Gestion scolaire</p>
                 </div>
               )}
             </motion.div>
 
             <button
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              className="lg:hidden text-white/70 hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -152,7 +167,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         </div>
 
         {/* MENU */}
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isParentActive(item);
@@ -164,7 +179,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   whileHover={{ x: collapsed ? 0 : 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleMenuClick(item)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${active ? "bg-linear-to-r from-[#0b57cd] to-[#0947ab] text-white shadow-lg shadow-blue-500/30" : "text-gray-700 hover:bg-gray-100"} ${collapsed ? "justify-center" : ""}`}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${active ? "bg-white/20 backdrop-blur-sm text-white shadow-lg" : "text-white/80 hover:bg-white/10 hover:text-white"} ${collapsed ? "justify-center" : ""}`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="w-5 h-5 shrink-0" />
@@ -176,9 +191,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   {!collapsed && (
                     <div className="flex items-center gap-2">
                       {item.badge && (
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${active ? "bg-white/20 text-white" : "bg-blue-100 text-[#0b57cd]"}`}
-                        >
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white">
                           {item.badge}
                         </span>
                       )}
@@ -202,7 +215,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="ml-4 mt-1 space-y-1 border-l-2 border-gray-200 pl-4"
+                      className="ml-4 mt-1 space-y-1 border-l-2 border-white/20 pl-4"
                     >
                       {item.children.map((child) => {
                         const isChildActive = isActive(child.path);
@@ -211,7 +224,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                             whileHover={{ x: 4 }}
                             key={child.title}
                             onClick={() => handleSubMenuClick(child)}
-                            className={`w-full flex items-center gap-2 p-2 rounded-lg text-sm transition-all ${isChildActive ? "bg-blue-50 text-[#0b57cd] font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+                            className={`w-full flex items-center gap-2 p-2 rounded-lg text-sm transition-all ${isChildActive ? "bg-white/10 text-white font-medium" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
                           >
                             <ChevronRight className="w-3 h-3" />
                             <span>{child.title}</span>
@@ -227,22 +240,22 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         </div>
 
         {/* PROFILE */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-white/10">
           <div
-            className={`bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-3 ${collapsed ? "flex justify-center" : ""}`}
+            className={`bg-white/10 backdrop-blur-sm rounded-xl p-3 ${collapsed ? "flex justify-center" : ""}`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-semibold text-sm shadow-lg">
                 {user?.nom?.[0] || "U"}
               </div>
 
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate">
+                    <h3 className="text-sm font-semibold text-white truncate">
                       {user?.nom || "Utilisateur"}
                     </h3>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-white/70 truncate">
                       {user?.role || "Admin"}
                     </p>
                   </div>
@@ -251,7 +264,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={logout}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    className="text-white/70 hover:text-white transition-colors"
                     title="Déconnexion"
                   >
                     <LogOut className="w-4 h-4" />

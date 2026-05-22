@@ -1,101 +1,45 @@
-import { forwardRef } from "react";
+import { motion } from "framer-motion";
 import { cn } from "../../../utils/cn";
 
-const Card = forwardRef(
-  (
-    {
-      children,
-      title,
-      subtitle,
-      footer,
+const Card = ({
+  children,
+  className = "",
+  padding = "default",
+  hover = false,
+  animate = true,
+  ...props
+}) => {
+  const paddings = {
+    none: "",
+    sm: "p-4",
+    default: "p-4",
+    lg: "p-8",
+  };
 
-      hover = true,
-      padding = "md",
+  const Component = animate ? motion.div : "div";
 
-      size = "md",
-      height = "auto", // 👈 NEW
+  const animationProps = animate
+    ? {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.3 },
+      }
+    : {};
 
-      className = "",
-
-      ...props
-    },
-    ref,
-  ) => {
-    const paddings = {
-      sm: "p-3",
-      md: "p-5",
-      lg: "p-6",
-      none: "p-0",
-    };
-
-    // WIDTH SYSTEM
-    const sizes = {
-      sm: "w-64",
-      md: "w-80",
-      lg: "w-[28rem]",
-      xl: "w-[32rem]",
-      full: "w-full",
-    };
-
-    // HEIGHT SYSTEM 💡 BONUS (SENIOR TIP)
-    const heights = {
-      auto: "h-auto",
-      sm: "h-40",
-      md: "h-60",
-      lg: "h-80",
-      xl: "h-[32rem]",
-      full: "h-full",
-    };
-
-    const baseStyles =
-      "bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-200 overflow-hidden";
-
-    const hoverStyles = hover ? "hover:shadow-md hover:-translate-y-1" : "";
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          baseStyles,
-          hoverStyles,
-
-          paddings[padding],
-
-          sizes[size],
-
-          heights[height], // 👈 APPLY HEIGHT
-
-          className,
-        )}
-        {...props}
-      >
-        {/* HEADER */}
-        {(title || subtitle) && (
-          <div className="mb-4">
-            {title && (
-              <h3 className="text-base font-semibold text-slate-900">
-                {title}
-              </h3>
-            )}
-
-            {subtitle && (
-              <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
-            )}
-          </div>
-        )}
-
-        {/* CONTENT */}
-        <div>{children}</div>
-
-        {/* FOOTER */}
-        {footer && (
-          <div className="mt-5 pt-4 border-t border-slate-100">{footer}</div>
-        )}
-      </div>
-    );
-  },
-);
-
-Card.displayName = "Card";
+  return (
+    <Component
+      {...animationProps}
+      className={cn(
+        "bg-gray-150 rounded-lg",
+        paddings[padding],
+        hover && "hover:shadow-sm transition-shadow",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </Component>
+  );
+};
 
 export default Card;

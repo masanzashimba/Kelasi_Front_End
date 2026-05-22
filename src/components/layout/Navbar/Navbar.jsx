@@ -49,7 +49,7 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
-    <nav className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="sticky top-0 z-30 bg-white border-b border-gray-200 ">
       <div className="flex items-center justify-between px-6 py-3">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-4 flex-1">
