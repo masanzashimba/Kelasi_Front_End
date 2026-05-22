@@ -56,13 +56,6 @@ const LoginPage = () => {
     },
   };
 
-  const floatingVariants = {
-    animate: {
-      y: [0, -10, 0],
-      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-    },
-  };
-
   const circleVariants = {
     hidden: { scale: 0, opacity: 0 },
     visible: {
@@ -129,25 +122,16 @@ const LoginPage = () => {
             </motion.div>
 
             {/* Image with shadow - Animation flottante */}
-            <motion.div
-              variants={floatingVariants}
-              animate="animate"
-              className="relative z-10 my-4"
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="relative rounded-xl overflow-hidden shadow-2xl"
-              >
+            <div className="relative z-10 my-4">
+              <div className="relative rounded-xl overflow-hidden shadow-2xl">
                 <img
                   src={eleveImage}
                   alt="Élèves"
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
 
             {/* Stats animées */}
             <motion.div
