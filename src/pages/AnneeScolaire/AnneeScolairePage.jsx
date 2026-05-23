@@ -108,14 +108,6 @@ const AnneeScolairePage = () => {
         >
           Nouvelle année
         </Button>
-        {/* <Button
-          size="sm"
-          onClick={() => setIsCreateModalOpen(true)}
-          leftIcon={<Plus className="w-4 h-4" />}
-          className="text-sm"
-        >
-          Nouvelle année
-        </Button> */}
       </div>
 
       {/* Année Active */}

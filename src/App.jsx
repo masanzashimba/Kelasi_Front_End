@@ -57,7 +57,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardLayout
-                  title="Tableau de bord"
+                  // title="Tableau de bord"
                   breadcrumbs={["Accueil", "Tableau de bord"]}
                 >
                   <DashboardPage />
@@ -70,10 +70,7 @@ function App() {
             path="/eleves"
             element={
               <ProtectedRoute>
-                <DashboardLayout
-                  title="Gestion des élèves"
-                  breadcrumbs={["Accueil", "Élèves"]}
-                >
+                <DashboardLayout breadcrumbs={["Accueil", "Élèves"]}>
                   <ElevesPage />
                 </DashboardLayout>
               </ProtectedRoute>

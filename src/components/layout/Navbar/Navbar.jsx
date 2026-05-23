@@ -1,25 +1,27 @@
-import { useState } from "react";
+// src/components/layout/Navbar.jsx
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Bell,
-  Settings,
-  ChevronDown,
-  Menu,
-  Sun,
-  Moon,
-  Globe,
   HelpCircle,
   LogOut,
   User,
   Mail,
+  Settings,
+  Menu,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
+import AnneeSelector from "../../annee-scolaire/AnneeSelector";
 
 const Navbar = ({ onToggleSidebar, collapsed }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchRef = useRef(null);
   const { user, logout } = useAuth();
 
   const notifications = [
@@ -27,264 +29,342 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
       id: 1,
       title: "Nouveau paiement",
       message: "Jean Dupont a effectué un paiement",
-      time: "Il y a 5 min",
+      time: "5 min",
       unread: true,
     },
     {
       id: 2,
       title: "Absence signalée",
       message: "Marie Martin absente aujourd'hui",
-      time: "Il y a 1h",
+      time: "1h",
       unread: true,
     },
     {
       id: 3,
       title: "Rapport disponible",
       message: "Le rapport mensuel est prêt",
-      time: "Il y a 2h",
+      time: "2h",
       unread: false,
     },
   ];
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchOpen(false);
+      }
+    };
+    if (searchOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [searchOpen]);
+
+  // FIX Bug 2 : le backend retourne prenom et nom séparément.
+  // L'ancienne logique faisait user.nom.split(" ").map(n => n[0])
+  // ce qui donnait une seule lettre quand nom ne contient pas d'espace,
+  // et crashait si nom était undefined.
+  // ✅ On prend maintenant prenom[0] + nom[0], avec fallback sécurisé.
+  const initials =
+    [user?.prenom, user?.nom]
+      .filter(Boolean)
+      .map((s) => s[0].toUpperCase())
+      .join("")
+      .slice(0, 2) || "U";
+
+  // Nom d'affichage complet : prénom + nom
+  const displayName =
+    [user?.prenom, user?.nom].filter(Boolean).join(" ") || "Utilisateur";
+
   return (
-    <nav className="sticky top-0 z-30 bg-white border-b border-gray-200 ">
-      <div className="flex items-center justify-between px-6 py-3">
-        {/* LEFT SECTION */}
-        <div className="flex items-center gap-4 flex-1">
-          {/* Toggle Sidebar Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onToggleSidebar}
-            className="hidden lg:flex p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </motion.button>
-
-          {/* Search Bar */}
+    <>
+      <AnimatePresence>
+        {searchOpen && (
           <motion.div
-            animate={{ width: searchFocused ? "100%" : "400px" }}
-            className="relative max-w-xl"
-          >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher élèves, enseignants, classes..."
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0b57cd] focus:border-transparent transition-all"
-            />
-          </motion.div>
-        </div>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[60]"
+            onClick={() => setSearchOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
-        {/* RIGHT SECTION */}
-        <div className="flex items-center gap-3">
-          {/* Quick Actions */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-            title="Aide"
-          >
-            <HelpCircle className="w-5 h-5" />
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-            title="Paramètres"
-          >
-            <Settings className="w-5 h-5" />
-          </motion.button>
-
-          {/* Notifications */}
-          <div className="relative">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+      <nav className="sticky top-0 z-70 bg-white border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 h-14">
+          {/* ── LEFT ── */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onToggleSidebar}
+              className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
             >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                >
-                  {unreadCount}
-                </motion.span>
-              )}
-            </motion.button>
+              <Menu className="w-5 h-5" />
+            </button>
 
-            {/* Notifications Dropdown */}
-            <AnimatePresence>
-              {showNotifications && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowNotifications(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50"
+            <div ref={searchRef} className="relative">
+              <AnimatePresence initial={false} mode="wait">
+                {!searchOpen ? (
+                  <motion.button
+                    key="pill"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.1 }}
+                    onClick={() => setSearchOpen(true)}
+                    className="flex items-center gap-2 h-9 px-3.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-gray-400"
                   >
-                    <div className="p-4 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">
-                          Notifications
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          {unreadCount} non lues
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.map((notif) => (
-                        <motion.div
-                          whileHover={{ backgroundColor: "#f9fafb" }}
-                          key={notif.id}
-                          className={`p-4 border-b border-gray-100 cursor-pointer ${notif.unread ? "bg-blue-50/50" : ""}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full mt-2 ${notif.unread ? "bg-[#0b57cd]" : "bg-gray-300"}`}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900">
-                                {notif.title}
-                              </h4>
-                              <p className="text-xs text-gray-600 mt-1">
-                                {notif.message}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                {notif.time}
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    <div className="p-3 border-t border-gray-200">
-                      <button className="w-full text-center text-sm text-[#0b57cd] hover:text-[#0947ab] font-medium">
-                        Voir toutes les notifications
+                    <Search className="w-4 h-4" />
+                    <span className="text-sm hidden sm:block pr-10">
+                      Rechercher...
+                    </span>
+                    <kbd className="hidden sm:flex items-center gap-0.5 text-[11px] font-medium text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 leading-none">
+                      ⌘K
+                    </kbd>
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="expanded"
+                    initial={{ opacity: 0, width: 200 }}
+                    animate={{ opacity: 1, width: 420 }}
+                    exit={{ opacity: 0, width: 200 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative z-50"
+                  >
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      autoFocus
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Élèves, enseignants, classes..."
+                      className="w-full h-9 pl-9 pr-9 rounded-lg border border-[#0b57cd]/40 bg-white text-sm text-gray-800 placeholder:text-gray-400 outline-none shadow-lg shadow-[#0b57cd]/10 ring-2 ring-[#0b57cd]/20 relative z-[61]"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    </div>
+                    )}
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden"
+                    >
+                      <div className="px-3.5 py-2.5 border-b border-gray-100">
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                          Recherches récentes
+                        </p>
+                      </div>
+                      {["Classe 6ème A", "Jean Dupont", "Frais scolaires"].map(
+                        (item, i) => (
+                          <button
+                            key={i}
+                            className="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                          >
+                            <Search className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+                            <span className="text-sm text-gray-600">
+                              {item}
+                            </span>
+                          </button>
+                        ),
+                      )}
+                      <div className="px-3.5 py-2.5 border-t border-gray-100 bg-gray-50/50">
+                        <p className="text-xs text-gray-400">
+                          Appuyez sur{" "}
+                          <kbd className="font-medium text-gray-500">
+                            Entrée
+                          </kbd>{" "}
+                          pour rechercher
+                        </p>
+                      </div>
+                    </motion.div>
                   </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Profile Dropdown */}
-          <div className="relative">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowProfile(!showProfile)}
-              className="flex items-center gap-3 p-2 pr-3 rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              <div className="w-9 h-9 rounded-full bg-linear-to-r from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-                {user?.nom?.[0] || "U"}
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-gray-900">
-                  {user?.nom || "Utilisateur"}
-                </p>
-                <p className="text-xs text-gray-500">{user?.role || "Admin"}</p>
-              </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </motion.button>
+          {/* ── RIGHT ── */}
+          <div className="flex items-center gap-1.5">
+            <AnneeSelector className="hidden lg:block mr-1.5" variant="light" />
 
-            {/* Profile Dropdown Menu */}
-            <AnimatePresence>
-              {showProfile && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowProfile(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-50"
+            <button className="hidden md:flex w-9 h-9 items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <HelpCircle className="w-5 h-5" />
+            </button>
+
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowProfile(false);
+                }}
+                className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none"
                   >
-                    <div className="p-4 border-b border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#0b57cd] to-[#0947ab] flex items-center justify-center text-white font-semibold shadow-lg">
-                          {user?.nom?.[0] || "U"}
+                    {unreadCount}
+                  </motion.span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowNotifications(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <span className="text-sm font-semibold text-gray-800">
+                          Notifications
+                        </span>
+                        <span className="text-[11px] font-semibold text-[#0b57cd] bg-[#0b57cd]/8 px-2 py-0.5 rounded-full">
+                          {unreadCount} nouvelles
+                        </span>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors ${notif.unread ? "bg-blue-50/30" : ""}`}
+                          >
+                            <div
+                              className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${notif.unread ? "bg-[#0b57cd]" : "bg-gray-300"}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-medium text-gray-800">
+                                {notif.title}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5 truncate">
+                                {notif.message}
+                              </p>
+                            </div>
+                            <span className="text-[11px] text-gray-400 shrink-0 mt-0.5">
+                              {notif.time}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+                        <button className="text-[13px] font-medium text-[#0b57cd] hover:text-[#0947ab] transition-colors">
+                          Tout voir →
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="w-px h-6 bg-gray-200 mx-1.5" />
+
+            {/* Profil */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowProfile(!showProfile);
+                  setShowNotifications(false);
+                }}
+                className="flex items-center gap-2.5 h-10 pl-1.5 pr-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#0947ab] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                  {initials}
+                </div>
+                <div className="hidden md:block text-left">
+                  <p className="text-[13px] font-semibold text-gray-800 leading-none">
+                    {displayName}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5 leading-none">
+                    {user?.roleSysteme || "Admin"}
+                  </p>
+                </div>
+                <ChevronDown
+                  className={`hidden md:block w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${showProfile ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {showProfile && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowProfile(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+                    >
+                      <div className="flex items-center gap-3 px-3.5 py-3.5 border-b border-gray-100">
+                        <div className="w-10 h-10 rounded-lg bg-[#0947ab] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          {initials}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 truncate">
-                            {user?.nom || "Utilisateur"}
+                          <p className="text-[13px] font-semibold text-gray-900 truncate">
+                            {displayName}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-400 truncate mt-0.5">
                             {user?.email || "email@exemple.com"}
                           </p>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="p-2">
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-gray-700 transition-all"
-                      >
-                        <User className="w-4 h-4" />
-                        <span className="text-sm">Mon profil</span>
-                      </motion.button>
-
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-gray-700 transition-all"
-                      >
-                        <Mail className="w-4 h-4" />
-                        <span className="text-sm">Messages</span>
-                      </motion.button>
-
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-gray-700 transition-all"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span className="text-sm">Paramètres</span>
-                      </motion.button>
-                    </div>
-
-                    <div className="p-2 border-t border-gray-200">
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        onClick={logout}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600 transition-all"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span className="text-sm font-medium">Déconnexion</span>
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                      <div className="p-2 space-y-0.5">
+                        {[
+                          { icon: User, label: "Mon profil" },
+                          { icon: Mail, label: "Messages" },
+                          { icon: Settings, label: "Paramètres" },
+                        ].map(({ icon: Icon, label }) => (
+                          <button
+                            key={label}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors"
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span className="text-[13px]">{label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="p-2 border-t border-gray-100">
+                        <button
+                          onClick={logout}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span className="text-[13px] font-medium">
+                            Déconnexion
+                          </span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
