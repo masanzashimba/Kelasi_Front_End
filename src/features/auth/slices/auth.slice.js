@@ -8,7 +8,7 @@ import {
   clearTokens,
 } from "../../../lib/tokenStorage";
 import { authService } from "../services/auth.service";
-
+import { resetSelector } from "../../annee-scolaire/slices/annee-selector.slice";
 const initialState = {
   user: null,
   profile: null,
@@ -75,10 +75,20 @@ export const changePasswordThunk = createAsyncThunk(
   },
 );
 
-export const logoutThunk = createAsyncThunk("auth/logout", async () => {
-  await authService.logout();
-  clearTokens();
-});
+// export const logoutThunk = createAsyncThunk("auth/logout", async () => {
+//   await authService.logout();
+//   dispatch(resetSelector());
+//   clearTokens();
+// });
+// ✅
+export const logoutThunk = createAsyncThunk(
+  "auth/logout",
+  async (_, { dispatch }) => {
+    await authService.logout();
+    dispatch(resetSelector());
+    clearTokens();
+  },
+);
 
 const authSlice = createSlice({
   name: "auth",

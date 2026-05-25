@@ -20,6 +20,8 @@ import ChangePasswordPage from "./pages/Auth/ChangePasswordPage";
 import SetupPage from "./pages/Setup/SetupPage";
 import ProtectedRoute from "./App/routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout/DashboardLayout";
+import RolesPermissionsPage from "./pages/rolePermission/rolepermission";
+import NiveauxPage from "./pages/niveaux/niveaux";
 
 function App() {
   return (
@@ -28,11 +30,11 @@ function App() {
         <ToastContainer position="top-right" autoClose={3000} theme="light" />
 
         <Routes>
-          {/* PUBLIC ROUTES */}
+          {/* PUBLIC */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* ONBOARDING ROUTES - Protected but without layout */}
+          {/* ONBOARDING — sans layout */}
           <Route
             path="/change-password"
             element={
@@ -41,7 +43,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/setup"
             element={
@@ -51,21 +52,19 @@ function App() {
             }
           />
 
-          {/* PROTECTED ROUTES WITH DASHBOARD LAYOUT */}
+          {/* DASHBOARD */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardLayout
-                  // title="Tableau de bord"
-                  breadcrumbs={["Accueil", "Tableau de bord"]}
-                >
+                <DashboardLayout breadcrumbs={["Accueil", "Tableau de bord"]}>
                   <DashboardPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }
           />
 
+          {/* ÉLÈVES */}
           <Route
             path="/eleves"
             element={
@@ -77,6 +76,7 @@ function App() {
             }
           />
 
+          {/* ENSEIGNANTS */}
           <Route
             path="/enseignants"
             element={
@@ -91,7 +91,7 @@ function App() {
             }
           />
 
-          {/* ADMIN ROUTES */}
+          {/* ADMIN */}
           <Route
             path="/admin/directeurs"
             element={
@@ -105,13 +105,49 @@ function App() {
             }
           />
 
-          {/* ANNEE SCOLAIRE ROUTE */}
+          {/* PARAMÈTRES — sous-routes */}
+          {/*
+            /parametres/general, /parametres/utilisateurs, /parametres/roles
+            peuvent être ajoutées ici plus tard au même niveau.
+          */}
+
+          {/* ANNÉES SCOLAIRES — sous-onglet de Paramètres */}
           <Route
             path="/annees-scolaires"
             element={
               <ProtectedRoute>
-                <DashboardLayout breadcrumbs={["Accueil", "Années Scolaires"]}>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Paramètres", "Années scolaires"]}
+                >
                   <AnneeScolairePage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rolepermission"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={[
+                    "Accueil",
+                    "Paramètres",
+                    "Rôles & Permissions ",
+                  ]}
+                >
+                  <RolesPermissionsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/niveau"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Paramètres", "Niveaux scolaire"]}
+                >
+                  <NiveauxPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

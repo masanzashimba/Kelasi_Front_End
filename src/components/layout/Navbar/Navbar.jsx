@@ -84,13 +84,13 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[60]"
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[40]"
             onClick={() => setSearchOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      <nav className="sticky top-0 z-70 bg-white border-b border-gray-100">
+      <nav className="sticky top-0 z-48 bg-white border-b border-gray-100">
         <div className="flex items-center justify-between px-5 h-14">
           {/* ── LEFT ── */}
           <div className="flex items-center gap-3">

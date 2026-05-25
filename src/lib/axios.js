@@ -2,19 +2,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Instance Axios principale + intercepteurs request/response.
 //
-// Corrections vs version précédente :
-//   • File d'attente (pendingQueue) : les résolveurs ne font plus de double-
-//     wrapping — ils résolvent avec le token, et c'est l'appelant qui relance.
-//   • Refresh proactif dans le request interceptor : si le token expire dans
-//     moins de 60s, on le renouvelle avant d'envoyer la requête.
-//   • Instance dédiée `authAxios` pour les appels /auth/* : elle ne passe pas
-//     par les intercepteurs response de l'instance principale → plus de risque
-//     de boucle infinie sur /auth/refresh.
-//   • La déconnexion passe par un CustomEvent plutôt que window.location —
-//     Redux (ou tout autre état global) peut l'écouter et nettoyer proprement.
-//   • Pas de mutation de api.defaults.headers — on n'écrit que sur la requête
-//     originale et on laisse le request interceptor faire son travail sur les
-//     requêtes suivantes.
+// Modifications vs version précédente :
+//   • Le request interceptor lit store.getState().anneeSelector.selectedAnnee
+//     et attache x-annee-id si une année est sélectionnée.
+//   • Le store est importé directement (pas de circular dep : axios n'est pas
+//     importé dans le store, seulement dans les services).
+//   • Toute la logique refresh/queue/logout est conservée à l'identique.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import axios from "axios";
@@ -26,16 +19,23 @@ import {
   isTokenExpiredSoon,
 } from "./tokenStorage";
 
+// Import différé pour éviter les circular dependencies au démarrage
+// (store importe des slices → les slices n'importent pas axios directement)
+let _store = null;
+export const injectStore = (store) => {
+  _store = store;
+};
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3300/api/v1";
 
-// ── Instance principale (toutes les requêtes sauf /auth/*) ───
+// ── Instance principale (toutes les requêtes sauf /auth/*) ───────────────────
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
   timeout: 15_000,
 });
 
-// ── Instance isolée pour les appels auth ─────────────────────
+// ── Instance isolée pour les appels auth ─────────────────────────────────────
 // Ne passe PAS par les intercepteurs de `api` → zéro risque de boucle.
 const authAxios = axios.create({
   baseURL: BASE_URL,
@@ -43,13 +43,10 @@ const authAxios = axios.create({
   timeout: 10_000,
 });
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Gestion du refresh concurrent
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 let isRefreshing = false;
-
-// Chaque entrée : { resolve, reject }
-// resolve(newToken) → le request interceptor l'attache et relance
 let pendingQueue = [];
 
 const flushQueue = (error, token = null) => {
@@ -59,25 +56,23 @@ const flushQueue = (error, token = null) => {
   pendingQueue = [];
 };
 
-// ─────────────────────────────────────────────────────────────
-// Déconnexion propre : dispatchEvent → le store Redux écoute
-// et appelle clearTokens() + redirect, pas besoin de le faire ici.
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Déconnexion propre
+// ─────────────────────────────────────────────────────────────────────────────
 const dispatchLogout = (reason = "session_expired") => {
   clearTokens();
   window.dispatchEvent(new CustomEvent("auth:logout", { detail: { reason } }));
 };
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Appel réseau vers /auth/refresh
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 const callRefreshEndpoint = async () => {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new Error("no_refresh_token");
 
   const { data } = await authAxios.post("/auth/refresh", { refreshToken });
 
-  // Sauvegarde le nouveau access token (+ refresh si rotation activée)
   setTokens({
     accessToken: data.accessToken,
     refreshToken: data.refreshToken ?? undefined,
@@ -86,15 +81,15 @@ const callRefreshEndpoint = async () => {
   return data.accessToken;
 };
 
-// ─────────────────────────────────────────────────────────────
-// REQUEST INTERCEPTOR — attache le token + refresh proactif
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// REQUEST INTERCEPTOR
+// Attache : Authorization Bearer + x-annee-id
+// ─────────────────────────────────────────────────────────────────────────────
 api.interceptors.request.use(
   async (config) => {
     let token = getAccessToken();
 
-    // Refresh proactif : si le token expire dans moins de 60s et qu'on n'est
-    // pas déjà en train de rafraîchir, on le renouvelle avant la requête.
+    // ── Refresh proactif (token expire dans < 60s) ────────────────────────
     if (token && isTokenExpiredSoon(token) && !isRefreshing) {
       isRefreshing = true;
       try {
@@ -108,8 +103,21 @@ api.interceptors.request.use(
       }
     }
 
+    // ── Authorization ─────────────────────────────────────────────────────
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // ── x-annee-id — injecté depuis le store Redux ────────────────────────
+    // On lit le store directement pour ne pas coupler les services à Redux.
+    // injectStore() est appelé dans main.jsx après la création du store.
+    if (_store) {
+      const anneeId =
+        _store.getState().anneeSelector?.selectedAnnee?.id ?? null;
+
+      if (anneeId) {
+        config.headers["x-annee-id"] = anneeId;
+      }
     }
 
     return config;
@@ -117,16 +125,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // RESPONSE INTERCEPTOR — retry sur 401 inattendu
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 api.interceptors.response.use(
   (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
 
-    // Ne jamais intercepter les routes auth (login, refresh…)
     const isAuthRoute =
       originalRequest?.url?.includes("/auth/login") ||
       originalRequest?.url?.includes("/auth/refresh") ||
@@ -140,7 +147,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ── Refresh déjà en cours : on met la requête en file ────
+    // ── Refresh déjà en cours : on met la requête en file ─────────────────
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         pendingQueue.push({
@@ -153,17 +160,13 @@ api.interceptors.response.use(
       });
     }
 
-    // ── On prend la main sur le refresh ─────────────────────
+    // ── On prend la main sur le refresh ───────────────────────────────────
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
       const newToken = await callRefreshEndpoint();
-
-      // Débloquer toutes les requêtes en attente
       flushQueue(null, newToken);
-
-      // Relancer la requête originale avec le nouveau token
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
       return api(originalRequest);
     } catch (refreshError) {

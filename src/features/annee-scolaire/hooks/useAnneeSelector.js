@@ -1,96 +1,109 @@
 // src/features/annee-scolaire/hooks/useAnneeSelector.js
 // ─────────────────────────────────────────────────────────────
-// Hook personnalisé — Sélecteur Année Scolaire
+// Hook — Sélecteur Année Scolaire Global
+//
+// Usage :
+//   const { selectedAnnee, selectAnnee, isLoading } = useAnneeSelector();
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store";
 import {
-  initializeAnneeSelectorThunk,
-  fetchAnneesDisponiblesThunk,
-  fetchAnneeActiveThunk,
   selectAnnee,
   resetToActive,
-  clearError,
   resetSelector,
 } from "../slices/annee-selector.slice";
+import { initializeAnneeSelectorThunk } from "../slices/annee-selector.slice";
 import {
   selectSelectedAnnee,
-  selectAnneeActive,
+  selectSelectedAnneeId,
+  selectAnneeActiveSelector,
   selectAnneesDisponibles,
-  selectIsLoading,
-  selectError,
-  selectIsSelectedDifferentFromActive,
+  selectIsLoadingSelector,
+  selectIsLoadingAnnees,
+  selectIsLoadingActive,
+  selectAnneeSelectorError,
+  selectIsAnneeActiveSelected,
+  selectHasSelectedAnnee,
 } from "../slices/annee-selector.selectors";
 
 export const useAnneeSelector = () => {
   const dispatch = useAppDispatch();
 
-  // Selectors
+  // ── Selectors ──────────────────────────────────────────────
   const selectedAnnee = useAppSelector(selectSelectedAnnee);
-  const anneeActive = useAppSelector(selectAnneeActive);
+  const selectedAnneeId = useAppSelector(selectSelectedAnneeId);
+  const anneeActive = useAppSelector(selectAnneeActiveSelector);
   const anneesDisponibles = useAppSelector(selectAnneesDisponibles);
-  const isLoading = useAppSelector(selectIsLoading);
-  const error = useAppSelector(selectError);
-  const isSelectedDifferentFromActive = useAppSelector(
-    selectIsSelectedDifferentFromActive,
-  );
+  const isLoading = useAppSelector(selectIsLoadingSelector);
+  const isLoadingAnnees = useAppSelector(selectIsLoadingAnnees);
+  const isLoadingActive = useAppSelector(selectIsLoadingActive);
+  const error = useAppSelector(selectAnneeSelectorError);
+  const isAnneeActiveSelected = useAppSelector(selectIsAnneeActiveSelected);
+  const hasSelectedAnnee = useAppSelector(selectHasSelectedAnnee);
 
-  // Actions
-  const initialize = useCallback(() => {
-    return dispatch(initializeAnneeSelectorThunk());
-  }, [dispatch]);
+  // ── Init au montage — une seule fois par session ───────────
+  // Si les années ne sont pas encore chargées, on initialise.
+  useEffect(() => {
+    if (anneesDisponibles.length === 0) {
+      dispatch(initializeAnneeSelectorThunk());
+    }
+  }, []);
 
-  const refreshAnnees = useCallback(() => {
-    return dispatch(fetchAnneesDisponiblesThunk());
-  }, [dispatch]);
+  // ── Actions ────────────────────────────────────────────────
 
-  const refreshAnneeActive = useCallback(() => {
-    return dispatch(fetchAnneeActiveThunk());
-  }, [dispatch]);
-
-  const changeAnnee = useCallback(
+  /**
+   * Changer l'année sélectionnée dans le combo.
+   * Met à jour Redux + localStorage → axios attache automatiquement
+   * le nouveau x-annee-id sur toutes les requêtes suivantes.
+   */
+  const handleSelectAnnee = useCallback(
     (annee) => {
       dispatch(selectAnnee(annee));
     },
     [dispatch],
   );
 
-  const resetToActiveAnnee = useCallback(() => {
+  /**
+   * Revenir à l'année active de l'école.
+   */
+  const handleResetToActive = useCallback(() => {
     dispatch(resetToActive());
   }, [dispatch]);
 
-  const clearSelectorError = useCallback(() => {
-    dispatch(clearError());
-  }, [dispatch]);
-
-  const reset = useCallback(() => {
+  /**
+   * Réinitialiser complètement (ex: logout).
+   */
+  const handleReset = useCallback(() => {
     dispatch(resetSelector());
   }, [dispatch]);
 
-  // Auto-initialiser au montage si pas encore fait
-  useEffect(() => {
-    if (!selectedAnnee && !isLoading && !error) {
-      initialize();
-    }
-  }, []);
+  /**
+   * Forcer un rechargement des années (ex: après création d'une nouvelle).
+   */
+  const handleRefresh = useCallback(() => {
+    dispatch(initializeAnneeSelectorThunk());
+  }, [dispatch]);
 
   return {
-    // State
+    // ── State ──
     selectedAnnee,
+    selectedAnneeId,
     anneeActive,
     anneesDisponibles,
     isLoading,
+    isLoadingAnnees,
+    isLoadingActive,
     error,
-    isSelectedDifferentFromActive,
 
-    // Actions
-    initialize,
-    refreshAnnees,
-    refreshAnneeActive,
-    changeAnnee,
-    resetToActiveAnnee,
-    clearSelectorError,
-    reset,
+    // ── Dérivés ──
+    isAnneeActiveSelected,
+    hasSelectedAnnee,
+
+    // ── Actions ──
+    selectAnnee: handleSelectAnnee,
+    resetToActive: handleResetToActive,
+    reset: handleReset,
+    refresh: handleRefresh,
   };
 };

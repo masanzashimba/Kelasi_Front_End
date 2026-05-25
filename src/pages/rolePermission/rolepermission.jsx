@@ -1,0 +1,1487 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Shield,
+  Plus,
+  MoreHorizontal,
+  Edit2,
+  Trash2,
+  Users,
+  Lock,
+  Unlock,
+  Check,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Search,
+  UserPlus,
+  UserMinus,
+  Key,
+  Info,
+  CheckCircle2,
+  Circle,
+  Sparkles,
+  Tag,
+  AlertCircle,
+} from "lucide-react";
+
+// ── Mock data ─────────────────────────────────────────────────────────────────
+
+const MODULES = [
+  "SCOLARITE",
+  "PEDAGOGIE",
+  "VIE_SCOLAIRE",
+  "FINANCE",
+  "RH",
+  "CONFIG",
+  "REPORTING",
+  "COMMUNICATION",
+];
+
+const MODULE_LABELS = {
+  SCOLARITE: "Scolarité",
+  PEDAGOGIE: "Pédagogie",
+  VIE_SCOLAIRE: "Vie scolaire",
+  FINANCE: "Finance",
+  RH: "Ressources humaines",
+  CONFIG: "Configuration",
+  REPORTING: "Reporting",
+  COMMUNICATION: "Communication",
+};
+
+const MODULE_COLORS = {
+  SCOLARITE: {
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
+    dot: "bg-blue-500",
+  },
+  PEDAGOGIE: {
+    bg: "bg-violet-50",
+    text: "text-violet-700",
+    border: "border-violet-200",
+    dot: "bg-violet-500",
+  },
+  VIE_SCOLAIRE: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  FINANCE: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    dot: "bg-amber-500",
+  },
+  RH: {
+    bg: "bg-pink-50",
+    text: "text-pink-700",
+    border: "border-pink-200",
+    dot: "bg-pink-500",
+  },
+  CONFIG: {
+    bg: "bg-gray-100",
+    text: "text-gray-700",
+    border: "border-gray-200",
+    dot: "bg-gray-500",
+  },
+  REPORTING: {
+    bg: "bg-cyan-50",
+    text: "text-cyan-700",
+    border: "border-cyan-200",
+    dot: "bg-cyan-500",
+  },
+  COMMUNICATION: {
+    bg: "bg-orange-50",
+    text: "text-orange-700",
+    border: "border-orange-200",
+    dot: "bg-orange-500",
+  },
+};
+
+const MOCK_PERMISSIONS = {
+  SCOLARITE: [
+    {
+      id: "p1",
+      code: "eleves:lire",
+      action: "lire",
+      description: "Consulter les élèves",
+    },
+    {
+      id: "p2",
+      code: "eleves:creer",
+      action: "creer",
+      description: "Créer des élèves",
+    },
+    {
+      id: "p3",
+      code: "eleves:modifier",
+      action: "modifier",
+      description: "Modifier les élèves",
+    },
+    {
+      id: "p4",
+      code: "eleves:supprimer",
+      action: "supprimer",
+      description: "Supprimer des élèves",
+    },
+    {
+      id: "p5",
+      code: "inscriptions:gerer",
+      action: "gerer",
+      description: "Gérer les inscriptions",
+    },
+    {
+      id: "p6",
+      code: "classes:gerer",
+      action: "gerer",
+      description: "Gérer les classes",
+    },
+    {
+      id: "p7",
+      code: "annees:gerer",
+      action: "gerer",
+      description: "Gérer les années scolaires",
+    },
+  ],
+  PEDAGOGIE: [
+    {
+      id: "p8",
+      code: "notes:lire",
+      action: "lire",
+      description: "Consulter les notes",
+    },
+    {
+      id: "p9",
+      code: "notes:saisir",
+      action: "saisir",
+      description: "Saisir les notes",
+    },
+    {
+      id: "p10",
+      code: "bulletins:generer",
+      action: "generer",
+      description: "Générer les bulletins",
+    },
+    {
+      id: "p11",
+      code: "evaluations:gerer",
+      action: "gerer",
+      description: "Gérer les évaluations",
+    },
+    {
+      id: "p12",
+      code: "cours:gerer",
+      action: "gerer",
+      description: "Gérer les cours",
+    },
+  ],
+  VIE_SCOLAIRE: [
+    {
+      id: "p13",
+      code: "absences:gerer",
+      action: "gerer",
+      description: "Gérer les absences",
+    },
+    {
+      id: "p14",
+      code: "sanctions:gerer",
+      action: "gerer",
+      description: "Gérer les sanctions",
+    },
+  ],
+  FINANCE: [
+    {
+      id: "p15",
+      code: "paiements:lire",
+      action: "lire",
+      description: "Consulter les paiements",
+    },
+    {
+      id: "p16",
+      code: "paiements:enregistrer",
+      action: "enregistrer",
+      description: "Enregistrer des paiements",
+    },
+    {
+      id: "p17",
+      code: "frais:gerer",
+      action: "gerer",
+      description: "Gérer les frais scolaires",
+    },
+  ],
+  RH: [
+    {
+      id: "p18",
+      code: "enseignants:gerer",
+      action: "gerer",
+      description: "Gérer les enseignants",
+    },
+    {
+      id: "p19",
+      code: "contrats:gerer",
+      action: "gerer",
+      description: "Gérer les contrats",
+    },
+  ],
+  CONFIG: [
+    {
+      id: "p20",
+      code: "roles:gerer",
+      action: "gerer",
+      description: "Gérer les rôles et permissions",
+    },
+    {
+      id: "p21",
+      code: "ecole:configurer",
+      action: "configurer",
+      description: "Configurer l'école",
+    },
+    {
+      id: "p22",
+      code: "niveaux:gerer",
+      action: "gerer",
+      description: "Gérer les niveaux",
+    },
+  ],
+  REPORTING: [
+    {
+      id: "p23",
+      code: "rapports:lire",
+      action: "lire",
+      description: "Consulter les rapports",
+    },
+    {
+      id: "p24",
+      code: "statistiques:lire",
+      action: "lire",
+      description: "Consulter les statistiques",
+    },
+  ],
+  COMMUNICATION: [
+    {
+      id: "p25",
+      code: "notifications:envoyer",
+      action: "envoyer",
+      description: "Envoyer des notifications",
+    },
+    {
+      id: "p26",
+      code: "messages:gerer",
+      action: "gerer",
+      description: "Gérer les messages",
+    },
+  ],
+};
+
+const MOCK_ROLES = [
+  {
+    id: "r1",
+    nom: "Directeur",
+    description: "Accès complet à toutes les fonctionnalités",
+    couleur: "#0b57cd",
+    estSysteme: true,
+    nombreUtilisateurs: 1,
+    nombrePermissions: 26,
+    permissions: Object.values(MOCK_PERMISSIONS)
+      .flat()
+      .map((p) => p.code),
+    utilisateurs: [
+      {
+        id: "u1",
+        nom: "Kabongo",
+        prenom: "Jean-Marie",
+        email: "jm.kabongo@kelasi.cd",
+        photoUrl: null,
+      },
+    ],
+  },
+  {
+    id: "r2",
+    nom: "Enseignant",
+    description: "Saisie des notes et gestion pédagogique",
+    couleur: "#7c3aed",
+    estSysteme: true,
+    nombreUtilisateurs: 18,
+    nombrePermissions: 5,
+    permissions: [
+      "notes:lire",
+      "notes:saisir",
+      "evaluations:gerer",
+      "absences:gerer",
+      "bulletins:generer",
+    ],
+    utilisateurs: [],
+  },
+  {
+    id: "r3",
+    nom: "Secrétaire",
+    description: "Gestion administrative et scolarité",
+    couleur: "#059669",
+    estSysteme: false,
+    nombreUtilisateurs: 3,
+    nombrePermissions: 8,
+    permissions: [
+      "eleves:lire",
+      "eleves:creer",
+      "eleves:modifier",
+      "inscriptions:gerer",
+      "paiements:lire",
+      "paiements:enregistrer",
+      "classes:gerer",
+      "rapports:lire",
+    ],
+    utilisateurs: [],
+  },
+  {
+    id: "r4",
+    nom: "Comptable",
+    description: "Gestion financière et paiements",
+    couleur: "#d97706",
+    estSysteme: false,
+    nombreUtilisateurs: 2,
+    nombrePermissions: 4,
+    permissions: [
+      "paiements:lire",
+      "paiements:enregistrer",
+      "frais:gerer",
+      "rapports:lire",
+    ],
+    utilisateurs: [],
+  },
+];
+
+const MOCK_USERS = [
+  { id: "u2", nom: "Mutombo", prenom: "Alice", email: "a.mutombo@kelasi.cd" },
+  {
+    id: "u3",
+    nom: "Tshilombo",
+    prenom: "Pierre",
+    email: "p.tshilombo@kelasi.cd",
+  },
+  { id: "u4", nom: "Nkusu", prenom: "Marie", email: "m.nkusu@kelasi.cd" },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const initiales = (nom, prenom) =>
+  `${prenom?.[0] || ""}${nom?.[0] || ""}`.toUpperCase();
+
+const avatarColor = (id) =>
+  ["#0b57cd", "#7c3aed", "#059669", "#d97706", "#dc2626", "#0891b2"][
+    id?.charCodeAt(0) % 6
+  ];
+
+// ── Dropdown ──────────────────────────────────────────────────────────────────
+
+const Dropdown = ({ items, onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+    transition={{ duration: 0.1 }}
+    className="absolute right-0 top-8 z-50 w-52 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden"
+    onClick={(e) => e.stopPropagation()}
+  >
+    {items.map((item, i) =>
+      item.separator ? (
+        <div key={i} className="border-t border-gray-100 my-1" />
+      ) : (
+        <button
+          key={i}
+          onClick={() => {
+            item.onClick();
+            onClose();
+          }}
+          disabled={item.disabled}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+            item.danger
+              ? "text-red-600 hover:bg-red-50"
+              : "text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          {item.icon}
+          {item.label}
+        </button>
+      ),
+    )}
+  </motion.div>
+);
+
+// ── Modal wrapper ─────────────────────────────────────────────────────────────
+
+const Modal = ({ title, subtitle, onClose, wide, children }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+    onClick={onClose}
+  >
+    <motion.div
+      initial={{ scale: 0.95, opacity: 0, y: 10 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.95, opacity: 0 }}
+      transition={{ type: "spring", damping: 28, stiffness: 380 }}
+      onClick={(e) => e.stopPropagation()}
+      className={`bg-white rounded-xl border border-gray-200 shadow-2xl w-full overflow-hidden ${wide ? "max-w-2xl" : "max-w-md"}`}
+    >
+      <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100">
+        <div>
+          <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
+          {subtitle && (
+            <p className="text-[12px] text-gray-400 mt-0.5">{subtitle}</p>
+          )}
+        </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors mt-0.5"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="px-5 py-5 max-h-[70vh] overflow-y-auto">{children}</div>
+    </motion.div>
+  </motion.div>
+);
+
+const inputCls =
+  "w-full h-9 px-3 rounded-lg border border-gray-200 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all";
+const FormField = ({ label, required, hint, children }) => (
+  <div className="flex flex-col gap-1.5">
+    <div className="flex items-center justify-between">
+      <label className="text-[12px] font-medium text-gray-600">
+        {label}
+        {required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {hint && <span className="text-[11px] text-gray-400">{hint}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+// ── Modal création/édition rôle ───────────────────────────────────────────────
+
+const RoleModal = ({ onClose, initialData }) => {
+  const isEdit = !!initialData;
+  const allPerms = Object.values(MOCK_PERMISSIONS).flat();
+  const [selected, setSelected] = useState(
+    new Set(initialData?.permissions || []),
+  );
+  const [expandedModules, setExpandedModules] = useState(
+    new Set(["SCOLARITE", "PEDAGOGIE"]),
+  );
+
+  const toggleModule = (mod) => {
+    setExpandedModules((prev) => {
+      const next = new Set(prev);
+      next.has(mod) ? next.delete(mod) : next.add(mod);
+      return next;
+    });
+  };
+
+  const toggleModuleAll = (mod, e) => {
+    e.stopPropagation();
+    const modPerms = MOCK_PERMISSIONS[mod].map((p) => p.code);
+    const allSelected = modPerms.every((c) => selected.has(c));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allSelected) modPerms.forEach((c) => next.delete(c));
+      else modPerms.forEach((c) => next.add(c));
+      return next;
+    });
+  };
+
+  const togglePerm = (code) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(code) ? next.delete(code) : next.add(code);
+      return next;
+    });
+  };
+
+  return (
+    <Modal
+      title={isEdit ? "Modifier le rôle" : "Nouveau rôle personnalisé"}
+      subtitle={isEdit ? initialData.nom : "Définissez les accès de ce rôle"}
+      onClose={onClose}
+      wide
+    >
+      <div className="space-y-5">
+        {/* Infos de base */}
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Nom du rôle" required>
+            <input
+              className={inputCls}
+              placeholder="ex: Surveillant"
+              defaultValue={initialData?.nom}
+            />
+          </FormField>
+          <FormField label="Couleur">
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                defaultValue={initialData?.couleur || "#6366f1"}
+                className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+              />
+              <input
+                className={inputCls}
+                placeholder="#6366f1"
+                defaultValue={initialData?.couleur || "#6366f1"}
+              />
+            </div>
+          </FormField>
+        </div>
+        <FormField label="Description">
+          <input
+            className={inputCls}
+            placeholder="Rôle pour..."
+            defaultValue={initialData?.description}
+          />
+        </FormField>
+
+        {/* Permissions */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[12px] font-medium text-gray-600">
+              Permissions{" "}
+              <span className="text-gray-400 font-normal">
+                ({selected.size} sélectionnées)
+              </span>
+            </label>
+            <button
+              onClick={() => {
+                const all = allPerms.map((p) => p.code);
+                setSelected(
+                  selected.size === all.length ? new Set() : new Set(all),
+                );
+              }}
+              className="text-[11px] text-blue-600 hover:text-blue-700 font-medium"
+            >
+              {selected.size === allPerms.length
+                ? "Tout décocher"
+                : "Tout cocher"}
+            </button>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+            {MODULES.map((mod) => {
+              const modPerms = MOCK_PERMISSIONS[mod];
+              const selectedCount = modPerms.filter((p) =>
+                selected.has(p.code),
+              ).length;
+              const allSel = selectedCount === modPerms.length;
+              const partSel = selectedCount > 0 && !allSel;
+              const col = MODULE_COLORS[mod];
+              const expanded = expandedModules.has(mod);
+
+              return (
+                <div key={mod}>
+                  <button
+                    onClick={() => toggleModule(mod)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <ChevronRight
+                      className={`w-3.5 h-3.5 text-gray-400 transition-transform shrink-0 ${expanded ? "rotate-90" : ""}`}
+                    />
+                    <span
+                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${col.bg} ${col.text} ${col.border}`}
+                    >
+                      {MODULE_LABELS[mod]}
+                    </span>
+                    <span className="flex-1" />
+                    <span className="text-[11px] text-gray-400 mr-2">
+                      {selectedCount}/{modPerms.length}
+                    </span>
+                    <button
+                      onClick={(e) => toggleModuleAll(mod, e)}
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded-md transition-colors ${
+                        allSel
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                    >
+                      {allSel ? "Tout décocher" : "Tout"}
+                    </button>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {expanded && (
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: "auto" }}
+                        exit={{ height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-3 pb-2 space-y-1 bg-gray-50/50">
+                          {modPerms.map((perm) => (
+                            <label
+                              key={perm.id}
+                              className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-white cursor-pointer group transition-colors"
+                            >
+                              <div
+                                onClick={() => togglePerm(perm.code)}
+                                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+                                  selected.has(perm.code)
+                                    ? "bg-blue-600 border-blue-600"
+                                    : "border-gray-300 group-hover:border-blue-400"
+                                }`}
+                              >
+                                {selected.has(perm.code) && (
+                                  <Check className="w-2.5 h-2.5 text-white" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[12px] font-medium text-gray-700">
+                                  {perm.description}
+                                </span>
+                                <span className="text-[11px] text-gray-400 ml-2 font-mono">
+                                  {perm.code}
+                                </span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            Annuler
+          </button>
+          <button className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5" />
+            {isEdit ? "Mettre à jour" : "Créer le rôle"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Modal détail rôle ─────────────────────────────────────────────────────────
+
+const RoleDetailModal = ({ role, onClose, onEdit }) => {
+  const [tab, setTab] = useState("permissions");
+
+  const permsByModule = {};
+  MODULES.forEach((mod) => {
+    const found = (MOCK_PERMISSIONS[mod] || []).filter((p) =>
+      role.permissions.includes(p.code),
+    );
+    if (found.length) permsByModule[mod] = found;
+  });
+
+  return (
+    <Modal title={role.nom} subtitle={role.description} onClose={onClose} wide>
+      <div className="space-y-4">
+        {/* Tabs */}
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          {[
+            {
+              id: "permissions",
+              label: `Permissions (${role.nombrePermissions})`,
+            },
+            {
+              id: "utilisateurs",
+              label: `Utilisateurs (${role.nombreUtilisateurs})`,
+            },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 h-7 rounded-md text-[12px] font-medium transition-all ${
+                tab === t.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Permissions tab */}
+        {tab === "permissions" && (
+          <div className="space-y-3">
+            {Object.entries(permsByModule).map(([mod, perms]) => {
+              const col = MODULE_COLORS[mod];
+              return (
+                <div key={mod}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${col.bg} ${col.text} ${col.border}`}
+                    >
+                      {MODULE_LABELS[mod]}
+                    </span>
+                  </div>
+                  <div className="space-y-1 pl-1">
+                    {perms.map((p) => (
+                      <div key={p.id} className="flex items-center gap-2 py-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="text-[13px] text-gray-700">
+                          {p.description}
+                        </span>
+                        <span className="text-[11px] text-gray-400 font-mono ml-auto">
+                          {p.code}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {Object.keys(permsByModule).length === 0 && (
+              <p className="text-[13px] text-gray-400 text-center py-6">
+                Aucune permission assignée
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Utilisateurs tab */}
+        {tab === "utilisateurs" && (
+          <div className="space-y-2">
+            {role.utilisateurs.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                <p className="text-[13px] text-gray-400">
+                  Aucun utilisateur avec ce rôle
+                </p>
+              </div>
+            ) : (
+              role.utilisateurs.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50"
+                >
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+                    style={{ background: avatarColor(u.id) }}
+                  >
+                    {initiales(u.nom, u.prenom)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-gray-800">
+                      {u.prenom} {u.nom}
+                    </p>
+                    <p className="text-[11px] text-gray-400">{u.email}</p>
+                  </div>
+                  <button className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1">
+                    <UserMinus className="w-3.5 h-3.5" /> Révoquer
+                  </button>
+                </div>
+              ))
+            )}
+            {!role.estSysteme && (
+              <button className="w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-gray-200 text-[13px] text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all mt-2">
+                <UserPlus className="w-4 h-4" /> Assigner à un utilisateur
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-between pt-2 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-500 hover:bg-gray-100 transition-colors"
+          >
+            Fermer
+          </button>
+          {!role.estSysteme && (
+            <button
+              onClick={() => {
+                onClose();
+                onEdit(role);
+              }}
+              className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+            >
+              <Edit2 className="w-3.5 h-3.5" /> Modifier le rôle
+            </button>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Modal assigner rôle ───────────────────────────────────────────────────────
+
+const AssignerRoleModal = ({ onClose }) => {
+  const [search, setSearch] = useState("");
+  const filtered = MOCK_USERS.filter((u) =>
+    `${u.prenom} ${u.nom} ${u.email}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+
+  return (
+    <Modal
+      title="Assigner un rôle"
+      subtitle="Sélectionnez un utilisateur et un rôle"
+      onClose={onClose}
+    >
+      <div className="space-y-4">
+        <FormField label="Utilisateur" required>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              className={`${inputCls} pl-9`}
+              placeholder="Rechercher un utilisateur…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {search && (
+            <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 divide-y divide-gray-50">
+              {filtered.map((u) => (
+                <button
+                  key={u.id}
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                    style={{ background: avatarColor(u.id) }}
+                  >
+                    {initiales(u.nom, u.prenom)}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-medium text-gray-800">
+                      {u.prenom} {u.nom}
+                    </p>
+                    <p className="text-[11px] text-gray-400">{u.email}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </FormField>
+
+        <FormField label="Rôle" required>
+          <select className={`${inputCls} bg-white`}>
+            <option value="">Choisir un rôle…</option>
+            {MOCK_ROLES.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.nom}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Date de début">
+            <input className={inputCls} type="date" />
+          </FormField>
+          <FormField label="Date de fin" hint="optionnel">
+            <input className={inputCls} type="date" />
+          </FormField>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            Annuler
+          </button>
+          <button className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+            <UserPlus className="w-3.5 h-3.5" /> Assigner
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Modal permission directe ──────────────────────────────────────────────────
+
+const PermissionDirecteModal = ({ onClose }) => {
+  const [search, setSearch] = useState("");
+  const [permSearch, setPermSearch] = useState("");
+  const [accorde, setAccorde] = useState(true);
+  const allPerms = Object.values(MOCK_PERMISSIONS).flat();
+  const filteredPerms = allPerms.filter(
+    (p) =>
+      p.code.includes(permSearch) ||
+      p.description.toLowerCase().includes(permSearch.toLowerCase()),
+  );
+
+  return (
+    <Modal
+      title="Permission directe"
+      subtitle="Accorder ou retirer une permission spécifique à un utilisateur"
+      onClose={onClose}
+    >
+      <div className="space-y-4">
+        <FormField label="Utilisateur" required>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input className={`${inputCls} pl-9`} placeholder="Rechercher…" />
+          </div>
+        </FormField>
+
+        <FormField label="Permission" required>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              className={`${inputCls} pl-9`}
+              placeholder="Rechercher une permission…"
+              value={permSearch}
+              onChange={(e) => setPermSearch(e.target.value)}
+            />
+          </div>
+          {permSearch && (
+            <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 max-h-40 overflow-y-auto divide-y divide-gray-50">
+              {filteredPerms.map((p) => (
+                <button
+                  key={p.id}
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
+                >
+                  <Key className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <div>
+                    <p className="text-[12px] font-medium text-gray-800">
+                      {p.description}
+                    </p>
+                    <p className="text-[11px] font-mono text-gray-400">
+                      {p.code}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </FormField>
+
+        {/* Accorder / Retirer */}
+        <div>
+          <label className="text-[12px] font-medium text-gray-600 mb-2 block">
+            Action
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setAccorde(true)}
+              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${
+                accorde
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              <Unlock className="w-3.5 h-3.5" /> Accorder
+            </button>
+            <button
+              onClick={() => setAccorde(false)}
+              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${
+                !accorde
+                  ? "bg-red-50 border-red-300 text-red-700"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5" /> Retirer
+            </button>
+          </div>
+        </div>
+
+        <FormField label="Raison" hint="optionnel">
+          <input
+            className={inputCls}
+            placeholder="Pourquoi cette permission directe ?"
+          />
+        </FormField>
+
+        <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            className={`h-8 px-4 rounded-lg text-[13px] font-medium text-white transition-colors flex items-center gap-1.5 ${accorde ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            {accorde ? "Accorder" : "Retirer"} la permission
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Carte rôle ────────────────────────────────────────────────────────────────
+
+const RoleCard = ({ role, onAction }) => {
+  const [menu, setMenu] = useState(false);
+
+  const menuItems = [
+    {
+      icon: <Info className="w-3.5 h-3.5" />,
+      label: "Voir les détails",
+      onClick: () => onAction("detail", role),
+    },
+    !role.estSysteme && {
+      icon: <Edit2 className="w-3.5 h-3.5" />,
+      label: "Modifier",
+      onClick: () => onAction("edit", role),
+    },
+    {
+      icon: <UserPlus className="w-3.5 h-3.5" />,
+      label: "Assigner à un utilisateur",
+      onClick: () => onAction("assigner", role),
+    },
+    { separator: true },
+    !role.estSysteme && {
+      icon: <Trash2 className="w-3.5 h-3.5" />,
+      label: "Supprimer",
+      danger: true,
+      onClick: () => onAction("delete", role),
+    },
+  ].filter(Boolean);
+
+  // Grouper les permissions par module pour l'aperçu
+  const modulesSummary = MODULES.filter((mod) =>
+    (MOCK_PERMISSIONS[mod] || []).some((p) =>
+      role.permissions.includes(p.code),
+    ),
+  );
+
+  return (
+    <motion.div
+      layout
+      className={` rounded-lg p-4 hover:border-gray-300 transition-all group ${
+        role.estSysteme ? "bg-white" : "bg-white"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3">
+          {/* Couleur + icône */}
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+            style={{
+              background: `${role.couleur}18`,
+              border: `1.5px solid ${role.couleur}40`,
+            }}
+          >
+            <Shield className="w-4 h-4" style={{ color: role.couleur }} />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[14px] font-semibold text-gray-900">
+                {role.nom}
+              </span>
+              {role.estSysteme && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                  Système
+                </span>
+              )}
+            </div>
+            {role.description && (
+              <p className="text-[12px] text-gray-400 mt-0.5">
+                {role.description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="relative shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenu((v) => !v);
+            }}
+            className="w-7 h-7 rounded-md flex items-center justify-center text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+          <AnimatePresence>
+            {menu && (
+              <Dropdown items={menuItems} onClose={() => setMenu(false)} />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Modules couverts */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {modulesSummary.map((mod) => {
+          const col = MODULE_COLORS[mod];
+          return (
+            <span
+              key={mod}
+              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${col.bg} ${col.text}`}
+            >
+              {MODULE_LABELS[mod]}
+            </span>
+          );
+        })}
+        {modulesSummary.length === 0 && (
+          <span className="text-[11px] text-gray-400 italic">
+            Aucune permission
+          </span>
+        )}
+      </div>
+
+      {/* Footer stats */}
+      <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
+        <div className="flex items-center gap-3 text-[12px] text-gray-500">
+          <span className="flex items-center gap-1">
+            <Key className="w-3 h-3" />
+            {role.nombrePermissions} permissions
+          </span>
+          <span className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {role.nombreUtilisateurs} utilisateur
+            {role.nombreUtilisateurs > 1 ? "s" : ""}
+          </span>
+        </div>
+        <button
+          onClick={() => onAction("detail", role)}
+          className="text-[11px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          Voir <ChevronRight className="w-3 h-3" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Vue permissions globales ──────────────────────────────────────────────────
+
+const PermissionsView = () => {
+  const [expanded, setExpanded] = useState(new Set(["SCOLARITE"]));
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+      {MODULES.map((mod) => {
+        const perms = MOCK_PERMISSIONS[mod];
+        const col = MODULE_COLORS[mod];
+        const isOpen = expanded.has(mod);
+
+        return (
+          <div key={mod}>
+            <button
+              onClick={() => {
+                setExpanded((prev) => {
+                  const next = new Set(prev);
+                  next.has(mod) ? next.delete(mod) : next.add(mod);
+                  return next;
+                });
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+            >
+              <ChevronRight
+                className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${isOpen ? "rotate-90" : ""}`}
+              />
+              <div className={`w-2 h-2 rounded-full shrink-0 ${col.dot}`} />
+              <span className="text-[13px] font-semibold text-gray-800 flex-1">
+                {MODULE_LABELS[mod]}
+              </span>
+              <span className="text-[12px] text-gray-400">
+                {perms.length} permissions
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-3 bg-gray-50/40">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
+                      {perms.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white transition-colors"
+                        >
+                          <Key className="w-3 h-3 text-gray-300 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] text-gray-700">
+                              {p.description}
+                            </p>
+                            <p className="text-[10px] font-mono text-gray-400">
+                              {p.code}
+                            </p>
+                          </div>
+                          {/* Quels rôles ont cette permission */}
+                          <div className="flex gap-0.5">
+                            {MOCK_ROLES.filter((r) =>
+                              r.permissions.includes(p.code),
+                            ).map((r) => (
+                              <div
+                                key={r.id}
+                                title={r.nom}
+                                className="w-4 h-4 rounded-full border-2 border-white"
+                                style={{ background: r.couleur }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ── Page principale ───────────────────────────────────────────────────────────
+
+const RolesPermissionsPage = () => {
+  const [tab, setTab] = useState("roles");
+  const [modal, setModal] = useState(null);
+
+  const handleAction = (action, data) => {
+    switch (action) {
+      case "create":
+        setModal({ type: "role_create" });
+        break;
+      case "edit":
+        setModal({ type: "role_edit", data });
+        break;
+      case "detail":
+        setModal({ type: "role_detail", data });
+        break;
+      case "assigner":
+        setModal({ type: "assigner" });
+        break;
+      case "permission_directe":
+        setModal({ type: "permission_directe" });
+        break;
+      case "delete":
+        setModal({ type: "confirm_delete", data });
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <div className="min-h-full bg-[#f5f7fa] mx-auto space-y-6">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-semibold text-gray-900">
+            Rôles & Permissions
+          </h1>
+          <p className="text-[14px] text-gray-500 mt-0.5">
+            Gérez les accès et droits des utilisateurs de votre établissement
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => handleAction("permission_directe")}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            <Key className="w-4 h-4" /> Permission directe
+          </button>
+          <button
+            onClick={() => handleAction("assigner")}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            <UserPlus className="w-4 h-4" /> Assigner un rôle
+          </button>
+          <button
+            onClick={() => handleAction("create")}
+            className="flex items-center gap-1.5 h-9 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> Nouveau rôle
+          </button>
+        </div>
+      </div>
+
+      {/* ── Stats banner ── */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          {
+            label: "Rôles configurés",
+            value: MOCK_ROLES.length,
+            icon: Shield,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+          },
+          {
+            label: "Permissions disponibles",
+            value: Object.values(MOCK_PERMISSIONS).flat().length,
+            icon: Key,
+            color: "text-violet-600",
+            bg: "bg-violet-50",
+          },
+          {
+            label: "Utilisateurs avec rôle",
+            value: MOCK_ROLES.reduce((a, r) => a + r.nombreUtilisateurs, 0),
+            icon: Users,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+          },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3"
+          >
+            <div
+              className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}
+            >
+              <s.icon className={`w-4 h-4 ${s.color}`} />
+            </div>
+            <div>
+              <p className="text-[20px] font-bold text-gray-900 leading-none">
+                {s.value}
+              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{s.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+        {[
+          { id: "roles", label: "Rôles" },
+          { id: "permissions", label: "Toutes les permissions" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`h-8 px-4 rounded-md text-[13px] font-medium transition-all ${
+              tab === t.id
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Contenu ── */}
+      <AnimatePresence mode="wait">
+        {tab === "roles" && (
+          <motion.div
+            key="roles"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+          >
+            {MOCK_ROLES.map((role) => (
+              <RoleCard key={role.id} role={role} onAction={handleAction} />
+            ))}
+            {/* Card ajouter */}
+            <motion.button
+              onClick={() => handleAction("create")}
+              className="border border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50/30 transition-all group min-h-[140px]"
+            >
+              <div className="w-9 h-9 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                <Plus className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+              </div>
+              <p className="text-[13px] font-medium text-gray-400 group-hover:text-blue-600 transition-colors">
+                Créer un rôle personnalisé
+              </p>
+            </motion.button>
+          </motion.div>
+        )}
+
+        {tab === "permissions" && (
+          <motion.div
+            key="permissions"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <Info className="w-4 h-4 text-gray-400" />
+              <p className="text-[12px] text-gray-500">
+                Les points colorés indiquent quels rôles possèdent chaque
+                permission.
+              </p>
+              <div className="flex items-center gap-2 ml-auto">
+                {MOCK_ROLES.map((r) => (
+                  <span
+                    key={r.id}
+                    className="flex items-center gap-1 text-[11px] text-gray-500"
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ background: r.couleur }}
+                    />
+                    {r.nom}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <PermissionsView />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modals ── */}
+      <AnimatePresence>
+        {modal?.type === "role_create" && (
+          <RoleModal onClose={() => setModal(null)} />
+        )}
+        {modal?.type === "role_edit" && (
+          <RoleModal onClose={() => setModal(null)} initialData={modal.data} />
+        )}
+        {modal?.type === "role_detail" && (
+          <RoleDetailModal
+            role={modal.data}
+            onClose={() => setModal(null)}
+            onEdit={(r) => setModal({ type: "role_edit", data: r })}
+          />
+        )}
+        {modal?.type === "assigner" && (
+          <AssignerRoleModal onClose={() => setModal(null)} />
+        )}
+        {modal?.type === "permission_directe" && (
+          <PermissionDirecteModal onClose={() => setModal(null)} />
+        )}
+        {modal?.type === "confirm_delete" && (
+          <Modal title="Supprimer le rôle" onClose={() => setModal(null)}>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-[13px] text-red-700">
+                  Supprimer <strong>"{modal.data?.nom}"</strong> ? Les
+                  utilisateurs ayant ce rôle perdront les permissions associées.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setModal(null)}
+                  className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => setModal(null)}
+                  className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default RolesPermissionsPage;

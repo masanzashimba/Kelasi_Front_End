@@ -13,7 +13,6 @@ const DashboardLayout = ({ children, title, breadcrumbs }) => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}

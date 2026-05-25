@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useEleve } from "../../features/eleve/hooks/useEleve";
 import { AddEleveModal } from "../../components/eleve/AddEleveModal";
+import { useAnneeSelector } from "../../features/annee-scolaire/hooks/useAnneeSelector";
 
 // ── Config ───────────────²─────────────────────────────────────────────────────
 
@@ -279,10 +280,10 @@ const ElevesPage = () => {
     updateEleve,
     deleteEleve,
   } = useEleve();
-
+  const { selectedAnneeId, selectedAnnee } = useAnneeSelector();
   useEffect(() => {
-    fetchEleves();
-  }, []);
+    if (selectedAnneeId) fetchEleves();
+  }, [selectedAnneeId]);
 
   const actifs = state.eleves.filter((e) => e.actif).length;
 
@@ -590,7 +591,7 @@ const ElevesPage = () => {
                           </p>
                           <p className="text-[12px] text-gray-300">
                             {state.eleves.length === 0
-                              ? "Ajoutez votre premier élève"
+                              ? `Aucun élève inscrit pour l'année ${selectedAnnee?.libelle ?? "sélectionnée"}`
                               : "Essayez d'ajuster vos filtres"}
                           </p>
                           {state.eleves.length === 0 && (
