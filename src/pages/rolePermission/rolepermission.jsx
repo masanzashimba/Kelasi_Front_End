@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/pages/rolePermission/rolepermission.jsx
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -11,7 +12,6 @@ import {
   Unlock,
   Check,
   X,
-  ChevronDown,
   ChevronRight,
   Search,
   UserPlus,
@@ -19,13 +19,15 @@ import {
   Key,
   Info,
   CheckCircle2,
-  Circle,
-  Sparkles,
-  Tag,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
+import { useRoles } from "../../features/roles/hooks/useRoles";
+import { usePermissions } from "../../features/permissions/hooks/usePermissions";
+// ✅ Hook dédié — plus d'import dynamique d'axios dans les composants
+import { useUtilisateursSearch } from "../../features/utilisateurs/hooks/useUtilisateursSearch";
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Constantes UI ─────────────────────────────────────────────────────────────
 
 const MODULES = [
   "SCOLARITE",
@@ -100,314 +102,81 @@ const MODULE_COLORS = {
   },
 };
 
-const MOCK_PERMISSIONS = {
-  SCOLARITE: [
-    {
-      id: "p1",
-      code: "eleves:lire",
-      action: "lire",
-      description: "Consulter les élèves",
-    },
-    {
-      id: "p2",
-      code: "eleves:creer",
-      action: "creer",
-      description: "Créer des élèves",
-    },
-    {
-      id: "p3",
-      code: "eleves:modifier",
-      action: "modifier",
-      description: "Modifier les élèves",
-    },
-    {
-      id: "p4",
-      code: "eleves:supprimer",
-      action: "supprimer",
-      description: "Supprimer des élèves",
-    },
-    {
-      id: "p5",
-      code: "inscriptions:gerer",
-      action: "gerer",
-      description: "Gérer les inscriptions",
-    },
-    {
-      id: "p6",
-      code: "classes:gerer",
-      action: "gerer",
-      description: "Gérer les classes",
-    },
-    {
-      id: "p7",
-      code: "annees:gerer",
-      action: "gerer",
-      description: "Gérer les années scolaires",
-    },
-  ],
-  PEDAGOGIE: [
-    {
-      id: "p8",
-      code: "notes:lire",
-      action: "lire",
-      description: "Consulter les notes",
-    },
-    {
-      id: "p9",
-      code: "notes:saisir",
-      action: "saisir",
-      description: "Saisir les notes",
-    },
-    {
-      id: "p10",
-      code: "bulletins:generer",
-      action: "generer",
-      description: "Générer les bulletins",
-    },
-    {
-      id: "p11",
-      code: "evaluations:gerer",
-      action: "gerer",
-      description: "Gérer les évaluations",
-    },
-    {
-      id: "p12",
-      code: "cours:gerer",
-      action: "gerer",
-      description: "Gérer les cours",
-    },
-  ],
-  VIE_SCOLAIRE: [
-    {
-      id: "p13",
-      code: "absences:gerer",
-      action: "gerer",
-      description: "Gérer les absences",
-    },
-    {
-      id: "p14",
-      code: "sanctions:gerer",
-      action: "gerer",
-      description: "Gérer les sanctions",
-    },
-  ],
-  FINANCE: [
-    {
-      id: "p15",
-      code: "paiements:lire",
-      action: "lire",
-      description: "Consulter les paiements",
-    },
-    {
-      id: "p16",
-      code: "paiements:enregistrer",
-      action: "enregistrer",
-      description: "Enregistrer des paiements",
-    },
-    {
-      id: "p17",
-      code: "frais:gerer",
-      action: "gerer",
-      description: "Gérer les frais scolaires",
-    },
-  ],
-  RH: [
-    {
-      id: "p18",
-      code: "enseignants:gerer",
-      action: "gerer",
-      description: "Gérer les enseignants",
-    },
-    {
-      id: "p19",
-      code: "contrats:gerer",
-      action: "gerer",
-      description: "Gérer les contrats",
-    },
-  ],
-  CONFIG: [
-    {
-      id: "p20",
-      code: "roles:gerer",
-      action: "gerer",
-      description: "Gérer les rôles et permissions",
-    },
-    {
-      id: "p21",
-      code: "ecole:configurer",
-      action: "configurer",
-      description: "Configurer l'école",
-    },
-    {
-      id: "p22",
-      code: "niveaux:gerer",
-      action: "gerer",
-      description: "Gérer les niveaux",
-    },
-  ],
-  REPORTING: [
-    {
-      id: "p23",
-      code: "rapports:lire",
-      action: "lire",
-      description: "Consulter les rapports",
-    },
-    {
-      id: "p24",
-      code: "statistiques:lire",
-      action: "lire",
-      description: "Consulter les statistiques",
-    },
-  ],
-  COMMUNICATION: [
-    {
-      id: "p25",
-      code: "notifications:envoyer",
-      action: "envoyer",
-      description: "Envoyer des notifications",
-    },
-    {
-      id: "p26",
-      code: "messages:gerer",
-      action: "gerer",
-      description: "Gérer les messages",
-    },
-  ],
-};
-
-const MOCK_ROLES = [
-  {
-    id: "r1",
-    nom: "Directeur",
-    description: "Accès complet à toutes les fonctionnalités",
-    couleur: "#0b57cd",
-    estSysteme: true,
-    nombreUtilisateurs: 1,
-    nombrePermissions: 26,
-    permissions: Object.values(MOCK_PERMISSIONS)
-      .flat()
-      .map((p) => p.code),
-    utilisateurs: [
-      {
-        id: "u1",
-        nom: "Kabongo",
-        prenom: "Jean-Marie",
-        email: "jm.kabongo@kelasi.cd",
-        photoUrl: null,
-      },
-    ],
-  },
-  {
-    id: "r2",
-    nom: "Enseignant",
-    description: "Saisie des notes et gestion pédagogique",
-    couleur: "#7c3aed",
-    estSysteme: true,
-    nombreUtilisateurs: 18,
-    nombrePermissions: 5,
-    permissions: [
-      "notes:lire",
-      "notes:saisir",
-      "evaluations:gerer",
-      "absences:gerer",
-      "bulletins:generer",
-    ],
-    utilisateurs: [],
-  },
-  {
-    id: "r3",
-    nom: "Secrétaire",
-    description: "Gestion administrative et scolarité",
-    couleur: "#059669",
-    estSysteme: false,
-    nombreUtilisateurs: 3,
-    nombrePermissions: 8,
-    permissions: [
-      "eleves:lire",
-      "eleves:creer",
-      "eleves:modifier",
-      "inscriptions:gerer",
-      "paiements:lire",
-      "paiements:enregistrer",
-      "classes:gerer",
-      "rapports:lire",
-    ],
-    utilisateurs: [],
-  },
-  {
-    id: "r4",
-    nom: "Comptable",
-    description: "Gestion financière et paiements",
-    couleur: "#d97706",
-    estSysteme: false,
-    nombreUtilisateurs: 2,
-    nombrePermissions: 4,
-    permissions: [
-      "paiements:lire",
-      "paiements:enregistrer",
-      "frais:gerer",
-      "rapports:lire",
-    ],
-    utilisateurs: [],
-  },
-];
-
-const MOCK_USERS = [
-  { id: "u2", nom: "Mutombo", prenom: "Alice", email: "a.mutombo@kelasi.cd" },
-  {
-    id: "u3",
-    nom: "Tshilombo",
-    prenom: "Pierre",
-    email: "p.tshilombo@kelasi.cd",
-  },
-  { id: "u4", nom: "Nkusu", prenom: "Marie", email: "m.nkusu@kelasi.cd" },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const initiales = (nom, prenom) =>
   `${prenom?.[0] || ""}${nom?.[0] || ""}`.toUpperCase();
-
 const avatarColor = (id) =>
   ["#0b57cd", "#7c3aed", "#059669", "#d97706", "#dc2626", "#0891b2"][
     id?.charCodeAt(0) % 6
   ];
+const inputCls =
+  "w-full h-9 px-3 rounded-lg border border-gray-200 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all";
+
+// ── Spinner ───────────────────────────────────────────────────────────────────
+
+const Spinner = ({ className = "w-4 h-4" }) => (
+  <Loader2 className={`${className} animate-spin`} />
+);
+
+// ── FormField ─────────────────────────────────────────────────────────────────
+
+const FormField = ({ label, required, hint, children }) => (
+  <div className="flex flex-col gap-1.5">
+    <div className="flex items-center justify-between">
+      <label className="text-[12px] font-medium text-gray-600">
+        {label}
+        {required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {hint && <span className="text-[11px] text-gray-400">{hint}</span>}
+    </div>
+    {children}
+  </div>
+);
 
 // ── Dropdown ──────────────────────────────────────────────────────────────────
 
-const Dropdown = ({ items, onClose }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95, y: -4 }}
-    animate={{ opacity: 1, scale: 1, y: 0 }}
-    exit={{ opacity: 0, scale: 0.95, y: -4 }}
-    transition={{ duration: 0.1 }}
-    className="absolute right-0 top-8 z-50 w-52 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden"
-    onClick={(e) => e.stopPropagation()}
-  >
-    {items.map((item, i) =>
-      item.separator ? (
-        <div key={i} className="border-t border-gray-100 my-1" />
-      ) : (
-        <button
-          key={i}
-          onClick={() => {
-            item.onClick();
-            onClose();
-          }}
-          disabled={item.disabled}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-            item.danger
-              ? "text-red-600 hover:bg-red-50"
-              : "text-gray-700 hover:bg-gray-50"
-          }`}
-        >
-          {item.icon}
-          {item.label}
-        </button>
-      ),
-    )}
-  </motion.div>
-);
+const Dropdown = ({ items, onClose }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+      transition={{ duration: 0.1 }}
+      className="absolute right-0 top-8 z-50 w-52 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {items.map((item, i) =>
+        item.separator ? (
+          <div key={i} className="border-t border-gray-100 my-1" />
+        ) : (
+          <button
+            key={i}
+            onClick={() => {
+              item.onClick();
+              onClose();
+            }}
+            disabled={item.disabled}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${item.danger ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50"}`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ),
+      )}
+    </motion.div>
+  );
+};
 
 // ── Modal wrapper ─────────────────────────────────────────────────────────────
 
@@ -447,58 +216,140 @@ const Modal = ({ title, subtitle, onClose, wide, children }) => (
   </motion.div>
 );
 
-const inputCls =
-  "w-full h-9 px-3 rounded-lg border border-gray-200 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all";
-const FormField = ({ label, required, hint, children }) => (
-  <div className="flex flex-col gap-1.5">
-    <div className="flex items-center justify-between">
-      <label className="text-[12px] font-medium text-gray-600">
-        {label}
-        {required && <span className="text-red-400 ml-0.5">*</span>}
-      </label>
-      {hint && <span className="text-[11px] text-gray-400">{hint}</span>}
-    </div>
-    {children}
-  </div>
-);
+// ── UserSearchField — composant partagé (remplace les deux blocs répétés) ─────
+// Utilise useUtilisateursSearch, plus aucun appel axios direct ici.
 
-// ── Modal création/édition rôle ───────────────────────────────────────────────
+const UserSearchField = ({ selectedUser, onSelect, onClear }) => {
+  // ✅ Hook — axios est dans le hook, pas ici
+  const { query, setQuery, results, isLoading } = useUtilisateursSearch(300);
 
-const RoleModal = ({ onClose, initialData }) => {
-  const isEdit = !!initialData;
-  const allPerms = Object.values(MOCK_PERMISSIONS).flat();
-  const [selected, setSelected] = useState(
-    new Set(initialData?.permissions || []),
+  if (selectedUser) {
+    return (
+      <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+          style={{ background: avatarColor(selectedUser.id) }}
+        >
+          {initiales(selectedUser.nom, selectedUser.prenom)}
+        </div>
+        <div className="flex-1">
+          <p className="text-[13px] font-medium text-gray-800">
+            {selectedUser.prenom} {selectedUser.nom}
+          </p>
+          <p className="text-[11px] text-gray-400">{selectedUser.email}</p>
+        </div>
+        <button onClick={onClear} className="text-gray-400 hover:text-gray-600">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <input
+          className={`${inputCls} pl-9`}
+          placeholder="Rechercher un utilisateur…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {isLoading && (
+          <Spinner className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        )}
+      </div>
+      {query && results.length > 0 && (
+        <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 divide-y divide-gray-50 max-h-44 overflow-y-auto">
+          {results.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => {
+                onSelect(u);
+                setQuery("");
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                style={{ background: avatarColor(u.id) }}
+              >
+                {initiales(u.nom, u.prenom)}
+              </div>
+              <div>
+                <p className="text-[13px] font-medium text-gray-800">
+                  {u.prenom} {u.nom}
+                </p>
+                <p className="text-[11px] text-gray-400">{u.email}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {query && !isLoading && results.length === 0 && (
+        <p className="text-[12px] text-gray-400 px-1 mt-1">
+          Aucun utilisateur trouvé
+        </p>
+      )}
+    </>
   );
+};
+
+// ── RoleModal (création + édition) ────────────────────────────────────────────
+
+const RoleModal = ({
+  onClose,
+  initialData,
+  permissionsGroupees,
+  onSubmit,
+  loading,
+}) => {
+  const isEdit = !!initialData;
+  const allPerms = Object.values(permissionsGroupees).flat();
+
+  const [nom, setNom] = useState(initialData?.nom ?? "");
+  const [description, setDesc] = useState(initialData?.description ?? "");
+  const [couleur, setCouleur] = useState(initialData?.couleur ?? "#6366f1");
+  const [selected, setSelected] = useState(() => {
+    const perms = initialData?.permissions ?? [];
+    const codes = perms.map((p) => (typeof p === "string" ? p : p.code));
+    return new Set(codes);
+  });
   const [expandedModules, setExpandedModules] = useState(
     new Set(["SCOLARITE", "PEDAGOGIE"]),
   );
 
-  const toggleModule = (mod) => {
+  const toggleModule = (mod) =>
     setExpandedModules((prev) => {
-      const next = new Set(prev);
-      next.has(mod) ? next.delete(mod) : next.add(mod);
-      return next;
+      const n = new Set(prev);
+      n.has(mod) ? n.delete(mod) : n.add(mod);
+      return n;
     });
-  };
-
   const toggleModuleAll = (mod, e) => {
     e.stopPropagation();
-    const modPerms = MOCK_PERMISSIONS[mod].map((p) => p.code);
-    const allSelected = modPerms.every((c) => selected.has(c));
+    const ids = (permissionsGroupees[mod] ?? []).map((p) => p.id);
+    const allSel = ids.every((id) => selected.has(id));
     setSelected((prev) => {
-      const next = new Set(prev);
-      if (allSelected) modPerms.forEach((c) => next.delete(c));
-      else modPerms.forEach((c) => next.add(c));
-      return next;
+      const n = new Set(prev);
+      if (allSel) ids.forEach((id) => n.delete(id));
+      else ids.forEach((id) => n.add(id));
+      return n;
     });
   };
-
-  const togglePerm = (code) => {
+  const togglePerm = (id) =>
     setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(code) ? next.delete(code) : next.add(code);
-      return next;
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+
+  const handleSubmit = () => {
+    if (!nom.trim()) return;
+    onSubmit({
+      nom: nom.trim(),
+      description: description.trim() || undefined,
+      couleur,
+      permissionIds: [...selected],
     });
   };
 
@@ -510,26 +361,27 @@ const RoleModal = ({ onClose, initialData }) => {
       wide
     >
       <div className="space-y-5">
-        {/* Infos de base */}
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Nom du rôle" required>
             <input
               className={inputCls}
               placeholder="ex: Surveillant"
-              defaultValue={initialData?.nom}
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
             />
           </FormField>
           <FormField label="Couleur">
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                defaultValue={initialData?.couleur || "#6366f1"}
+                value={couleur}
+                onChange={(e) => setCouleur(e.target.value)}
                 className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5"
               />
               <input
                 className={inputCls}
-                placeholder="#6366f1"
-                defaultValue={initialData?.couleur || "#6366f1"}
+                value={couleur}
+                onChange={(e) => setCouleur(e.target.value)}
               />
             </div>
           </FormField>
@@ -538,11 +390,11 @@ const RoleModal = ({ onClose, initialData }) => {
           <input
             className={inputCls}
             placeholder="Rôle pour..."
-            defaultValue={initialData?.description}
+            value={description}
+            onChange={(e) => setDesc(e.target.value)}
           />
         </FormField>
 
-        {/* Permissions */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-[12px] font-medium text-gray-600">
@@ -553,7 +405,7 @@ const RoleModal = ({ onClose, initialData }) => {
             </label>
             <button
               onClick={() => {
-                const all = allPerms.map((p) => p.code);
+                const all = allPerms.map((p) => p.id);
                 setSelected(
                   selected.size === all.length ? new Set() : new Set(all),
                 );
@@ -565,18 +417,16 @@ const RoleModal = ({ onClose, initialData }) => {
                 : "Tout cocher"}
             </button>
           </div>
-
           <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
             {MODULES.map((mod) => {
-              const modPerms = MOCK_PERMISSIONS[mod];
-              const selectedCount = modPerms.filter((p) =>
-                selected.has(p.code),
+              const modPerms = permissionsGroupees[mod] ?? [];
+              if (!modPerms.length) return null;
+              const selCount = modPerms.filter((p) =>
+                selected.has(p.id),
               ).length;
-              const allSel = selectedCount === modPerms.length;
-              const partSel = selectedCount > 0 && !allSel;
+              const allSel = selCount === modPerms.length;
               const col = MODULE_COLORS[mod];
               const expanded = expandedModules.has(mod);
-
               return (
                 <div key={mod}>
                   <button
@@ -593,20 +443,15 @@ const RoleModal = ({ onClose, initialData }) => {
                     </span>
                     <span className="flex-1" />
                     <span className="text-[11px] text-gray-400 mr-2">
-                      {selectedCount}/{modPerms.length}
+                      {selCount}/{modPerms.length}
                     </span>
                     <button
                       onClick={(e) => toggleModuleAll(mod, e)}
-                      className={`text-[10px] font-medium px-2 py-0.5 rounded-md transition-colors ${
-                        allSel
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      }`}
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded-md transition-colors ${allSel ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
                     >
                       {allSel ? "Tout décocher" : "Tout"}
                     </button>
                   </button>
-
                   <AnimatePresence initial={false}>
                     {expanded && (
                       <motion.div
@@ -622,14 +467,10 @@ const RoleModal = ({ onClose, initialData }) => {
                               className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-white cursor-pointer group transition-colors"
                             >
                               <div
-                                onClick={() => togglePerm(perm.code)}
-                                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                                  selected.has(perm.code)
-                                    ? "bg-blue-600 border-blue-600"
-                                    : "border-gray-300 group-hover:border-blue-400"
-                                }`}
+                                onClick={() => togglePerm(perm.id)}
+                                className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${selected.has(perm.id) ? "bg-blue-600 border-blue-600" : "border-gray-300 group-hover:border-blue-400"}`}
                               >
-                                {selected.has(perm.code) && (
+                                {selected.has(perm.id) && (
                                   <Check className="w-2.5 h-2.5 text-white" />
                                 )}
                               </div>
@@ -656,12 +497,17 @@ const RoleModal = ({ onClose, initialData }) => {
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+            disabled={loading}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             Annuler
           </button>
-          <button className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5">
-            <Check className="w-3.5 h-3.5" />
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !nom.trim()}
+            className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Spinner /> : <Check className="w-3.5 h-3.5" />}
             {isEdit ? "Mettre à jour" : "Créer le rôle"}
           </button>
         </div>
@@ -670,161 +516,194 @@ const RoleModal = ({ onClose, initialData }) => {
   );
 };
 
-// ── Modal détail rôle ─────────────────────────────────────────────────────────
+// ── RoleDetailModal ───────────────────────────────────────────────────────────
 
-const RoleDetailModal = ({ role, onClose, onEdit }) => {
+const RoleDetailModal = ({
+  role,
+  onClose,
+  onEdit,
+  onRevoquer,
+  onOuvrirAssigner,
+  detailLoading,
+  permissionsGroupees,
+}) => {
   const [tab, setTab] = useState("permissions");
 
   const permsByModule = {};
   MODULES.forEach((mod) => {
-    const found = (MOCK_PERMISSIONS[mod] || []).filter((p) =>
-      role.permissions.includes(p.code),
+    const modPerms = permissionsGroupees[mod] ?? [];
+    const roleCodes = (role.permissions ?? []).map((p) =>
+      typeof p === "string" ? p : p.code,
     );
+    const found = modPerms.filter((p) => roleCodes.includes(p.code));
     if (found.length) permsByModule[mod] = found;
   });
 
   return (
     <Modal title={role.nom} subtitle={role.description} onClose={onClose} wide>
-      <div className="space-y-4">
-        {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-          {[
-            {
-              id: "permissions",
-              label: `Permissions (${role.nombrePermissions})`,
-            },
-            {
-              id: "utilisateurs",
-              label: `Utilisateurs (${role.nombreUtilisateurs})`,
-            },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 h-7 rounded-md text-[12px] font-medium transition-all ${
-                tab === t.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+      {detailLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spinner className="w-6 h-6 text-blue-500" />
         </div>
-
-        {/* Permissions tab */}
-        {tab === "permissions" && (
-          <div className="space-y-3">
-            {Object.entries(permsByModule).map(([mod, perms]) => {
-              const col = MODULE_COLORS[mod];
-              return (
-                <div key={mod}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${col.bg} ${col.text} ${col.border}`}
-                    >
-                      {MODULE_LABELS[mod]}
-                    </span>
-                  </div>
-                  <div className="space-y-1 pl-1">
-                    {perms.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2 py-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        <span className="text-[13px] text-gray-700">
-                          {p.description}
-                        </span>
-                        <span className="text-[11px] text-gray-400 font-mono ml-auto">
-                          {p.code}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            {Object.keys(permsByModule).length === 0 && (
-              <p className="text-[13px] text-gray-400 text-center py-6">
-                Aucune permission assignée
-              </p>
-            )}
+      ) : (
+        <div className="space-y-4">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {[
+              {
+                id: "permissions",
+                label: `Permissions (${role.nombrePermissions ?? 0})`,
+              },
+              {
+                id: "utilisateurs",
+                label: `Utilisateurs (${role.nombreUtilisateurs ?? 0})`,
+              },
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex-1 h-7 rounded-md text-[12px] font-medium transition-all ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-        )}
 
-        {/* Utilisateurs tab */}
-        {tab === "utilisateurs" && (
-          <div className="space-y-2">
-            {role.utilisateurs.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                <p className="text-[13px] text-gray-400">
-                  Aucun utilisateur avec ce rôle
+          {tab === "permissions" && (
+            <div className="space-y-3">
+              {Object.entries(permsByModule).map(([mod, perms]) => {
+                const col = MODULE_COLORS[mod];
+                return (
+                  <div key={mod}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${col.bg} ${col.text} ${col.border}`}
+                      >
+                        {MODULE_LABELS[mod]}
+                      </span>
+                    </div>
+                    <div className="space-y-1 pl-1">
+                      {perms.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-center gap-2 py-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span className="text-[13px] text-gray-700">
+                            {p.description}
+                          </span>
+                          <span className="text-[11px] text-gray-400 font-mono ml-auto">
+                            {p.code}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.keys(permsByModule).length === 0 && (
+                <p className="text-[13px] text-gray-400 text-center py-6">
+                  Aucune permission assignée
                 </p>
-              </div>
-            ) : (
-              role.utilisateurs.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50"
-                >
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0"
-                    style={{ background: avatarColor(u.id) }}
-                  >
-                    {initiales(u.nom, u.prenom)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-gray-800">
-                      {u.prenom} {u.nom}
-                    </p>
-                    <p className="text-[11px] text-gray-400">{u.email}</p>
-                  </div>
-                  <button className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1">
-                    <UserMinus className="w-3.5 h-3.5" /> Révoquer
-                  </button>
+              )}
+            </div>
+          )}
+
+          {tab === "utilisateurs" && (
+            <div className="space-y-2">
+              {(role.utilisateurs ?? []).length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                  <p className="text-[13px] text-gray-400">
+                    Aucun utilisateur avec ce rôle
+                  </p>
                 </div>
-              ))
-            )}
+              ) : (
+                (role.utilisateurs ?? []).map((u) => (
+                  <div
+                    key={u.assignationId ?? u.id}
+                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+                      style={{ background: avatarColor(u.id) }}
+                    >
+                      {initiales(u.nom, u.prenom)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-gray-800">
+                        {u.prenom} {u.nom}
+                      </p>
+                      <p className="text-[11px] text-gray-400">{u.email}</p>
+                    </div>
+                    <button
+                      onClick={() => onRevoquer(u.assignationId)}
+                      className="text-[11px] text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"
+                    >
+                      <UserMinus className="w-3.5 h-3.5" /> Révoquer
+                    </button>
+                  </div>
+                ))
+              )}
+              {!role.estSysteme && (
+                <button
+                  onClick={onOuvrirAssigner}
+                  className="w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-gray-200 text-[13px] text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all mt-2"
+                >
+                  <UserPlus className="w-4 h-4" /> Assigner à un utilisateur
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-between pt-2 border-t border-gray-100">
+            <button
+              onClick={onClose}
+              className="h-8 px-4 rounded-lg text-[13px] text-gray-500 hover:bg-gray-100 transition-colors"
+            >
+              Fermer
+            </button>
             {!role.estSysteme && (
-              <button className="w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-dashed border-gray-200 text-[13px] text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all mt-2">
-                <UserPlus className="w-4 h-4" /> Assigner à un utilisateur
+              <button
+                onClick={() => {
+                  onClose();
+                  onEdit(role);
+                }}
+                className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> Modifier le rôle
               </button>
             )}
           </div>
-        )}
-
-        <div className="flex justify-between pt-2 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="h-8 px-4 rounded-lg text-[13px] text-gray-500 hover:bg-gray-100 transition-colors"
-          >
-            Fermer
-          </button>
-          {!role.estSysteme && (
-            <button
-              onClick={() => {
-                onClose();
-                onEdit(role);
-              }}
-              className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5"
-            >
-              <Edit2 className="w-3.5 h-3.5" /> Modifier le rôle
-            </button>
-          )}
         </div>
-      </div>
+      )}
     </Modal>
   );
 };
 
-// ── Modal assigner rôle ───────────────────────────────────────────────────────
+// ── AssignerRoleModal ─────────────────────────────────────────────────────────
+// ✅ Utilise UserSearchField — plus d'import dynamique d'axios
 
-const AssignerRoleModal = ({ onClose }) => {
-  const [search, setSearch] = useState("");
-  const filtered = MOCK_USERS.filter((u) =>
-    `${u.prenom} ${u.nom} ${u.email}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
+const AssignerRoleModal = ({
+  onClose,
+  roles,
+  onSubmit,
+  loading,
+  preselectedRoleId,
+}) => {
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRoleId, setSelectedRoleId] = useState(preselectedRoleId ?? "");
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
+
+  const handleSubmit = () => {
+    if (!selectedUser || !selectedRoleId) return;
+    onSubmit({
+      utilisateurId: selectedUser.id,
+      roleId: selectedRoleId,
+      dateDebut: dateDebut || undefined,
+      dateFin: dateFin || undefined,
+    });
+  };
 
   return (
     <Modal
@@ -834,69 +713,59 @@ const AssignerRoleModal = ({ onClose }) => {
     >
       <div className="space-y-4">
         <FormField label="Utilisateur" required>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <input
-              className={`${inputCls} pl-9`}
-              placeholder="Rechercher un utilisateur…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          {search && (
-            <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 divide-y divide-gray-50">
-              {filtered.map((u) => (
-                <button
-                  key={u.id}
-                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
-                >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                    style={{ background: avatarColor(u.id) }}
-                  >
-                    {initiales(u.nom, u.prenom)}
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-medium text-gray-800">
-                      {u.prenom} {u.nom}
-                    </p>
-                    <p className="text-[11px] text-gray-400">{u.email}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          <UserSearchField
+            selectedUser={selectedUser}
+            onSelect={setSelectedUser}
+            onClear={() => setSelectedUser(null)}
+          />
         </FormField>
-
         <FormField label="Rôle" required>
-          <select className={`${inputCls} bg-white`}>
+          <select
+            className={`${inputCls} bg-white`}
+            value={selectedRoleId}
+            onChange={(e) => setSelectedRoleId(e.target.value)}
+          >
             <option value="">Choisir un rôle…</option>
-            {MOCK_ROLES.map((r) => (
+            {roles.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.nom}
               </option>
             ))}
           </select>
         </FormField>
-
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Date de début">
-            <input className={inputCls} type="date" />
+            <input
+              className={inputCls}
+              type="date"
+              value={dateDebut}
+              onChange={(e) => setDateDebut(e.target.value)}
+            />
           </FormField>
           <FormField label="Date de fin" hint="optionnel">
-            <input className={inputCls} type="date" />
+            <input
+              className={inputCls}
+              type="date"
+              value={dateFin}
+              onChange={(e) => setDateFin(e.target.value)}
+            />
           </FormField>
         </div>
-
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+            disabled={loading}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             Annuler
           </button>
-          <button className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5">
-            <UserPlus className="w-3.5 h-3.5" /> Assigner
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !selectedUser || !selectedRoleId}
+            className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Spinner /> : <UserPlus className="w-3.5 h-3.5" />}
+            Assigner
           </button>
         </div>
       </div>
@@ -904,18 +773,32 @@ const AssignerRoleModal = ({ onClose }) => {
   );
 };
 
-// ── Modal permission directe ──────────────────────────────────────────────────
+// ── PermissionDirecteModal ────────────────────────────────────────────────────
+// ✅ Utilise UserSearchField — plus d'import dynamique d'axios
 
-const PermissionDirecteModal = ({ onClose }) => {
-  const [search, setSearch] = useState("");
+const PermissionDirecteModal = ({
+  onClose,
+  rechercherPermissions,
+  onSubmit,
+  actionLoading,
+}) => {
+  const [selectedUser, setSelectedUser] = useState(null);
   const [permSearch, setPermSearch] = useState("");
+  const [selectedPerm, setSelectedPerm] = useState(null);
   const [accorde, setAccorde] = useState(true);
-  const allPerms = Object.values(MOCK_PERMISSIONS).flat();
-  const filteredPerms = allPerms.filter(
-    (p) =>
-      p.code.includes(permSearch) ||
-      p.description.toLowerCase().includes(permSearch.toLowerCase()),
-  );
+  const [raison, setRaison] = useState("");
+
+  const filteredPerms = rechercherPermissions(permSearch);
+
+  const handleSubmit = () => {
+    if (!selectedUser || !selectedPerm) return;
+    onSubmit({
+      utilisateurId: selectedUser.id,
+      permissionId: selectedPerm.id,
+      accorde,
+      raison: raison.trim() || undefined,
+    });
+  };
 
   return (
     <Modal
@@ -925,45 +808,77 @@ const PermissionDirecteModal = ({ onClose }) => {
     >
       <div className="space-y-4">
         <FormField label="Utilisateur" required>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <input className={`${inputCls} pl-9`} placeholder="Rechercher…" />
-          </div>
+          <UserSearchField
+            selectedUser={selectedUser}
+            onSelect={setSelectedUser}
+            onClear={() => setSelectedUser(null)}
+          />
         </FormField>
 
         <FormField label="Permission" required>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <input
-              className={`${inputCls} pl-9`}
-              placeholder="Rechercher une permission…"
-              value={permSearch}
-              onChange={(e) => setPermSearch(e.target.value)}
-            />
-          </div>
-          {permSearch && (
-            <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 max-h-40 overflow-y-auto divide-y divide-gray-50">
-              {filteredPerms.map((p) => (
-                <button
-                  key={p.id}
-                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
-                >
-                  <Key className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  <div>
-                    <p className="text-[12px] font-medium text-gray-800">
-                      {p.description}
-                    </p>
-                    <p className="text-[11px] font-mono text-gray-400">
-                      {p.code}
-                    </p>
-                  </div>
-                </button>
-              ))}
+          {selectedPerm ? (
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50">
+              <Key className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-[12px] font-medium text-gray-800">
+                  {selectedPerm.description}
+                </p>
+                <p className="text-[11px] font-mono text-gray-400">
+                  {selectedPerm.code}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedPerm(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  placeholder="Rechercher une permission…"
+                  value={permSearch}
+                  onChange={(e) => setPermSearch(e.target.value)}
+                />
+              </div>
+              {permSearch && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden mt-1 max-h-40 overflow-y-auto divide-y divide-gray-50">
+                  {filteredPerms.length === 0 ? (
+                    <p className="text-[12px] text-gray-400 px-3 py-2">
+                      Aucune permission trouvée
+                    </p>
+                  ) : (
+                    filteredPerms.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedPerm(p);
+                          setPermSearch("");
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-blue-50 transition-colors text-left"
+                      >
+                        <Key className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <div>
+                          <p className="text-[12px] font-medium text-gray-800">
+                            {p.description}
+                          </p>
+                          <p className="text-[11px] font-mono text-gray-400">
+                            {p.code}
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </>
           )}
         </FormField>
 
-        {/* Accorder / Retirer */}
         <div>
           <label className="text-[12px] font-medium text-gray-600 mb-2 block">
             Action
@@ -971,21 +886,13 @@ const PermissionDirecteModal = ({ onClose }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setAccorde(true)}
-              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${
-                accorde
-                  ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${accorde ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
             >
               <Unlock className="w-3.5 h-3.5" /> Accorder
             </button>
             <button
               onClick={() => setAccorde(false)}
-              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${
-                !accorde
-                  ? "bg-red-50 border-red-300 text-red-700"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg border text-[13px] font-medium transition-all ${!accorde ? "bg-red-50 border-red-300 text-red-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
             >
               <Lock className="w-3.5 h-3.5" /> Retirer
             </button>
@@ -996,20 +903,25 @@ const PermissionDirecteModal = ({ onClose }) => {
           <input
             className={inputCls}
             placeholder="Pourquoi cette permission directe ?"
+            value={raison}
+            onChange={(e) => setRaison(e.target.value)}
           />
         </FormField>
 
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+            disabled={actionLoading}
+            className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             Annuler
           </button>
           <button
-            className={`h-8 px-4 rounded-lg text-[13px] font-medium text-white transition-colors flex items-center gap-1.5 ${accorde ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
+            onClick={handleSubmit}
+            disabled={actionLoading || !selectedUser || !selectedPerm}
+            className={`h-8 px-4 rounded-lg text-[13px] font-medium text-white transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed ${accorde ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
           >
-            <Key className="w-3.5 h-3.5" />
+            {actionLoading ? <Spinner /> : <Key className="w-3.5 h-3.5" />}
             {accorde ? "Accorder" : "Retirer"} la permission
           </button>
         </div>
@@ -1018,9 +930,9 @@ const PermissionDirecteModal = ({ onClose }) => {
   );
 };
 
-// ── Carte rôle ────────────────────────────────────────────────────────────────
+// ── RoleCard ──────────────────────────────────────────────────────────────────
 
-const RoleCard = ({ role, onAction }) => {
+const RoleCard = ({ role, onAction, permissionsGroupees }) => {
   const [menu, setMenu] = useState(false);
 
   const menuItems = [
@@ -1048,23 +960,19 @@ const RoleCard = ({ role, onAction }) => {
     },
   ].filter(Boolean);
 
-  // Grouper les permissions par module pour l'aperçu
   const modulesSummary = MODULES.filter((mod) =>
-    (MOCK_PERMISSIONS[mod] || []).some((p) =>
-      role.permissions.includes(p.code),
+    (permissionsGroupees[mod] ?? []).some((p) =>
+      role.permissions?.includes(p.code),
     ),
   );
 
   return (
     <motion.div
       layout
-      className={` rounded-lg p-4 hover:border-gray-300 transition-all group ${
-        role.estSysteme ? "bg-white" : "bg-white"
-      }`}
+      className="border border-gray-200 rounded-lg p-4 bg-white hover:border-gray-300 transition-all group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3">
-          {/* Couleur + icône */}
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
             style={{
@@ -1092,7 +1000,6 @@ const RoleCard = ({ role, onAction }) => {
             )}
           </div>
         </div>
-
         <div className="relative shrink-0">
           <button
             onClick={(e) => {
@@ -1111,7 +1018,6 @@ const RoleCard = ({ role, onAction }) => {
         </div>
       </div>
 
-      {/* Modules couverts */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {modulesSummary.map((mod) => {
           const col = MODULE_COLORS[mod];
@@ -1131,7 +1037,6 @@ const RoleCard = ({ role, onAction }) => {
         )}
       </div>
 
-      {/* Footer stats */}
       <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
         <div className="flex items-center gap-3 text-[12px] text-gray-500">
           <span className="flex items-center gap-1">
@@ -1155,28 +1060,27 @@ const RoleCard = ({ role, onAction }) => {
   );
 };
 
-// ── Vue permissions globales ──────────────────────────────────────────────────
+// ── PermissionsView ───────────────────────────────────────────────────────────
 
-const PermissionsView = () => {
+const PermissionsView = ({ grouped, roles }) => {
   const [expanded, setExpanded] = useState(new Set(["SCOLARITE"]));
+  const toggleMod = (mod) =>
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      n.has(mod) ? n.delete(mod) : n.add(mod);
+      return n;
+    });
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
       {MODULES.map((mod) => {
-        const perms = MOCK_PERMISSIONS[mod];
+        const perms = grouped[mod] ?? [];
         const col = MODULE_COLORS[mod];
         const isOpen = expanded.has(mod);
-
         return (
           <div key={mod}>
             <button
-              onClick={() => {
-                setExpanded((prev) => {
-                  const next = new Set(prev);
-                  next.has(mod) ? next.delete(mod) : next.add(mod);
-                  return next;
-                });
-              }}
+              onClick={() => toggleMod(mod)}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
             >
               <ChevronRight
@@ -1214,18 +1118,17 @@ const PermissionsView = () => {
                               {p.code}
                             </p>
                           </div>
-                          {/* Quels rôles ont cette permission */}
                           <div className="flex gap-0.5">
-                            {MOCK_ROLES.filter((r) =>
-                              r.permissions.includes(p.code),
-                            ).map((r) => (
-                              <div
-                                key={r.id}
-                                title={r.nom}
-                                className="w-4 h-4 rounded-full border-2 border-white"
-                                style={{ background: r.couleur }}
-                              />
-                            ))}
+                            {roles
+                              .filter((r) => r.permissions?.includes(p.code))
+                              .map((r) => (
+                                <div
+                                  key={r.id}
+                                  title={r.nom}
+                                  className="w-4 h-4 rounded-full border-2 border-white"
+                                  style={{ background: r.couleur }}
+                                />
+                              ))}
                           </div>
                         </div>
                       ))}
@@ -1247,6 +1150,71 @@ const RolesPermissionsPage = () => {
   const [tab, setTab] = useState("roles");
   const [modal, setModal] = useState(null);
 
+  const {
+    roles,
+    selectedRole,
+    loading,
+    detailLoading,
+    stats,
+    createSuccess,
+    updateSuccess,
+    deleteSuccess,
+    assignSuccess,
+    loadRole,
+    creerRole,
+    modifierRole,
+    supprimerRole,
+    assignRole,
+    revoquerRoleUtilisateur,
+    resetCreateSuccess,
+    resetUpdateSuccess,
+    resetDeleteSuccess,
+    resetAssignSuccess,
+  } = useRoles();
+
+  const {
+    grouped,
+    toutesLesPermissions,
+    nombreTotalPermissions,
+    rechercherPermissions,
+    accorderPermission,
+    retirerPermission,
+    actionLoading: permActionLoading,
+    actionSuccess: permActionSuccess,
+    resetActionSuccess: resetPermActionSuccess,
+  } = usePermissions();
+
+  useEffect(() => {
+    if (createSuccess) {
+      setModal(null);
+      resetCreateSuccess();
+    }
+  }, [createSuccess, resetCreateSuccess]);
+  useEffect(() => {
+    if (updateSuccess) {
+      setModal(null);
+      resetUpdateSuccess();
+    }
+  }, [updateSuccess, resetUpdateSuccess]);
+  useEffect(() => {
+    if (deleteSuccess) {
+      setModal(null);
+      resetDeleteSuccess();
+    }
+  }, [deleteSuccess, resetDeleteSuccess]);
+  useEffect(() => {
+    if (assignSuccess) {
+      setModal(null);
+      resetAssignSuccess();
+    }
+  }, [assignSuccess, resetAssignSuccess]);
+  useEffect(() => {
+    if (permActionSuccess) {
+      setModal(null);
+      resetPermActionSuccess();
+    }
+  }, [permActionSuccess, resetPermActionSuccess]);
+
   const handleAction = (action, data) => {
     switch (action) {
       case "create":
@@ -1256,10 +1224,11 @@ const RolesPermissionsPage = () => {
         setModal({ type: "role_edit", data });
         break;
       case "detail":
+        loadRole(data.id);
         setModal({ type: "role_detail", data });
         break;
       case "assigner":
-        setModal({ type: "assigner" });
+        setModal({ type: "assigner", data });
         break;
       case "permission_directe":
         setModal({ type: "permission_directe" });
@@ -1267,14 +1236,55 @@ const RolesPermissionsPage = () => {
       case "delete":
         setModal({ type: "confirm_delete", data });
         break;
-      default:
-        break;
     }
   };
 
+  const handleRoleSubmit = (formData) => {
+    modal?.type === "role_edit"
+      ? modifierRole(modal.data.id, formData)
+      : creerRole(formData);
+  };
+
+  const handlePermissionDirecteSubmit = ({
+    utilisateurId,
+    permissionId,
+    accorde,
+    raison,
+  }) => {
+    accorde
+      ? accorderPermission(utilisateurId, permissionId, raison)
+      : retirerPermission(utilisateurId, permissionId, raison);
+  };
+
+  const roleEnDetail =
+    selectedRole?.id === modal?.data?.id ? selectedRole : modal?.data;
+
+  const statsBanner = [
+    {
+      label: "Rôles configurés",
+      value: stats.nombreRoles,
+      icon: Shield,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "Permissions disponibles",
+      value: nombreTotalPermissions,
+      icon: Key,
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+    },
+    {
+      label: "Utilisateurs avec rôle",
+      value: stats.nombreUtilisateurs,
+      icon: Users,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+  ];
+
   return (
     <div className="min-h-full bg-[#f5f7fa] mx-auto space-y-6">
-      {/* ── Header ── */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-semibold text-gray-900">
@@ -1306,31 +1316,8 @@ const RolesPermissionsPage = () => {
         </div>
       </div>
 
-      {/* ── Stats banner ── */}
       <div className="grid grid-cols-3 gap-3">
-        {[
-          {
-            label: "Rôles configurés",
-            value: MOCK_ROLES.length,
-            icon: Shield,
-            color: "text-blue-600",
-            bg: "bg-blue-50",
-          },
-          {
-            label: "Permissions disponibles",
-            value: Object.values(MOCK_PERMISSIONS).flat().length,
-            icon: Key,
-            color: "text-violet-600",
-            bg: "bg-violet-50",
-          },
-          {
-            label: "Utilisateurs avec rôle",
-            value: MOCK_ROLES.reduce((a, r) => a + r.nombreUtilisateurs, 0),
-            icon: Users,
-            color: "text-emerald-600",
-            bg: "bg-emerald-50",
-          },
-        ].map((s) => (
+        {statsBanner.map((s) => (
           <div
             key={s.label}
             className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3"
@@ -1350,7 +1337,6 @@ const RolesPermissionsPage = () => {
         ))}
       </div>
 
-      {/* ── Tabs ── */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
         {[
           { id: "roles", label: "Rôles" },
@@ -1359,18 +1345,13 @@ const RolesPermissionsPage = () => {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`h-8 px-4 rounded-md text-[13px] font-medium transition-all ${
-              tab === t.id
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`h-8 px-4 rounded-md text-[13px] font-medium transition-all ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
             {t.label}
           </button>
         ))}
       </div>
 
-      {/* ── Contenu ── */}
       <AnimatePresence mode="wait">
         {tab === "roles" && (
           <motion.div
@@ -1380,10 +1361,21 @@ const RolesPermissionsPage = () => {
             exit={{ opacity: 0 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-3"
           >
-            {MOCK_ROLES.map((role) => (
-              <RoleCard key={role.id} role={role} onAction={handleAction} />
-            ))}
-            {/* Card ajouter */}
+            {loading && roles.length === 0
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="border border-gray-200 rounded-lg p-4 bg-white animate-pulse h-[140px]"
+                  />
+                ))
+              : roles.map((role) => (
+                  <RoleCard
+                    key={role.id}
+                    role={role}
+                    onAction={handleAction}
+                    permissionsGroupees={grouped}
+                  />
+                ))}
             <motion.button
               onClick={() => handleAction("create")}
               className="border border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50/30 transition-all group min-h-[140px]"
@@ -1397,7 +1389,6 @@ const RolesPermissionsPage = () => {
             </motion.button>
           </motion.div>
         )}
-
         {tab === "permissions" && (
           <motion.div
             key="permissions"
@@ -1412,7 +1403,7 @@ const RolesPermissionsPage = () => {
                 permission.
               </p>
               <div className="flex items-center gap-2 ml-auto">
-                {MOCK_ROLES.map((r) => (
+                {roles.map((r) => (
                   <span
                     key={r.id}
                     className="flex items-center gap-1 text-[11px] text-gray-500"
@@ -1426,34 +1417,63 @@ const RolesPermissionsPage = () => {
                 ))}
               </div>
             </div>
-            <PermissionsView />
+            <PermissionsView grouped={grouped} roles={roles} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Modals ── */}
       <AnimatePresence>
-        {modal?.type === "role_create" && (
-          <RoleModal onClose={() => setModal(null)} />
+        {(modal?.type === "role_create" || modal?.type === "role_edit") && (
+          <RoleModal
+            key="role-modal"
+            onClose={() => setModal(null)}
+            initialData={modal.type === "role_edit" ? modal.data : null}
+            permissionsGroupees={grouped}
+            onSubmit={handleRoleSubmit}
+            loading={loading}
+          />
         )}
-        {modal?.type === "role_edit" && (
-          <RoleModal onClose={() => setModal(null)} initialData={modal.data} />
-        )}
-        {modal?.type === "role_detail" && (
+        {modal?.type === "role_detail" && roleEnDetail && (
           <RoleDetailModal
-            role={modal.data}
+            key="role-detail"
+            role={roleEnDetail}
+            detailLoading={
+              detailLoading && selectedRole?.id !== roleEnDetail?.id
+            }
+            permissionsGroupees={grouped}
             onClose={() => setModal(null)}
             onEdit={(r) => setModal({ type: "role_edit", data: r })}
+            onRevoquer={(id) => revoquerRoleUtilisateur(id)}
+            onOuvrirAssigner={() =>
+              setModal({ type: "assigner", data: roleEnDetail })
+            }
           />
         )}
         {modal?.type === "assigner" && (
-          <AssignerRoleModal onClose={() => setModal(null)} />
+          <AssignerRoleModal
+            key="assigner-modal"
+            onClose={() => setModal(null)}
+            roles={roles}
+            onSubmit={assignRole}
+            loading={loading}
+            preselectedRoleId={modal.data?.id}
+          />
         )}
         {modal?.type === "permission_directe" && (
-          <PermissionDirecteModal onClose={() => setModal(null)} />
+          <PermissionDirecteModal
+            key="permission-directe-modal"
+            onClose={() => setModal(null)}
+            rechercherPermissions={rechercherPermissions}
+            onSubmit={handlePermissionDirecteSubmit}
+            actionLoading={permActionLoading}
+          />
         )}
         {modal?.type === "confirm_delete" && (
-          <Modal title="Supprimer le rôle" onClose={() => setModal(null)}>
+          <Modal
+            key="confirm-delete"
+            title="Supprimer le rôle"
+            onClose={() => setModal(null)}
+          >
             <div className="space-y-4">
               <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
                 <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
@@ -1465,14 +1485,17 @@ const RolesPermissionsPage = () => {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setModal(null)}
-                  className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors"
+                  disabled={loading}
+                  className="h-8 px-4 rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
                 >
                   Annuler
                 </button>
                 <button
-                  onClick={() => setModal(null)}
-                  className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                  onClick={() => supprimerRole(modal.data.id)}
+                  disabled={loading}
+                  className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  {loading ? <Spinner /> : <Trash2 className="w-3.5 h-3.5" />}{" "}
                   Supprimer
                 </button>
               </div>

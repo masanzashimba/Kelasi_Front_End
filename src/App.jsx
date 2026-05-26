@@ -22,6 +22,8 @@ import ProtectedRoute from "./App/routes/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout/DashboardLayout";
 import RolesPermissionsPage from "./pages/rolePermission/rolepermission";
 import NiveauxPage from "./pages/niveaux/niveaux";
+import ClassesPage from "./pages/Classes/ClassesPage";
+import ComingSoonPage from "./pages/ComingSoon/ComingSoonPage";
 
 function App() {
   return (
@@ -81,10 +83,7 @@ function App() {
             path="/enseignants"
             element={
               <ProtectedRoute>
-                <DashboardLayout
-                  title="Gestion des enseignants"
-                  breadcrumbs={["Accueil", "Enseignants"]}
-                >
+                <DashboardLayout breadcrumbs={["Accueil", "Enseignants"]}>
                   <EnseignantsPage />
                 </DashboardLayout>
               </ProtectedRoute>
@@ -148,6 +147,77 @@ function App() {
                   breadcrumbs={["Accueil", "Paramètres", "Niveaux scolaire"]}
                 >
                   <NiveauxPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* CLASSES */}
+          <Route
+            path="/classes"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout breadcrumbs={["Accueil", "Classes"]}>
+                  <ClassesPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ACADÉMIQUE */}
+          {["/cours", "/matieres", "/emploi-temps", "/evaluations"].map((p) => (
+            <Route
+              key={p}
+              path={p}
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout breadcrumbs={["Accueil", "Académique"]}>
+                    <ComingSoonPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+          ))}
+
+          {/* FINANCES */}
+          {["/paiements", "/frais", "/rapports-finances"].map((p) => (
+            <Route
+              key={p}
+              path={p}
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout breadcrumbs={["Accueil", "Finances"]}>
+                    <ComingSoonPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+          ))}
+
+          {/* RÉSULTATS & RAPPORTS */}
+          {["/resultats", "/rapports"].map((p) => (
+            <Route
+              key={p}
+              path={p}
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout breadcrumbs={["Accueil"]}>
+                    <ComingSoonPage />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+          ))}
+
+          {/* PARAMÈTRES — Utilisateurs */}
+          <Route
+            path="/parametres/utilisateurs"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Paramètres", "Utilisateurs"]}
+                >
+                  <ComingSoonPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

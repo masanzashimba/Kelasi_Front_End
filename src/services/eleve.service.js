@@ -1,81 +1,49 @@
+// src/features/eleve/services/eleve.service.js
+// ─────────────────────────────────────────────────────────────────────────────
+// L'header x-annee-id est injecté automatiquement par l'intercepteur axios.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import api from "../lib/axios";
 
-/**
- * Service gestion élèves
- */
+api;
 export const eleveService = {
-  /**
-   * Liste des élèves
-   */
-  listEleves: async () => {
-    const response = await api.get("/eleve");
-    console.log("resultas obtenue");
-
-    return response.data;
+  // GET /eleve  (filtre annee via header x-annee-id)
+  getAll: async () => {
+    const { data } = await api.get("/eleve");
+    return data;
   },
 
-  /**
-   * Obtenir un élève
-   */
-  getEleve: async (id) => {
-    const response = await api.get(`/eleve/${id}`);
-    return response.data;
+  // GET /eleve/:id
+  getById: async (id) => {
+    const { data } = await api.get(`/eleve/${id}`);
+    return data;
   },
 
-  /**
-   * Créer un élève
-   */
-  createEleve: async (data) => {
-    const response = await api.post("/eleve", data);
-    return response.data;
+  // POST /eleve  (crée + inscrit dans la même transaction)
+  // dto: { nom, prenom, email, telephone?, matricule, dateNaissance, sexe,
+  //        nationalite?, groupeSanguin?, adresse?, lieuNaissance?,
+  //        classeId, anneeScolaireId, numDossier?, montantInscription?,
+  //        motDePasse }
+  create: async (dto) => {
+    const { data } = await api.post("/eleve", dto);
+    return data; // { message, eleve (normalisé), credentials }
   },
 
-  /**
-   * Modifier élève
-   */
-  updateEleve: async (id, payload) => {
-    const response = await api.patch(`/eleve/${id}`, payload);
-
-    return response.data;
+  // PATCH /eleve/:id
+  update: async (id, dto) => {
+    const { data } = await api.patch(`/eleve/${id}`, dto);
+    return data; // { message, eleve (normalisé) }
   },
 
-  /**
-   * Supprimer / désactiver
-   */
-  deleteEleve: async (id) => {
-    const response = await api.delete(`/eleve/${id}`);
-
-    return response.data;
+  // DELETE /eleve/:id  (désactivation douce)
+  remove: async (id) => {
+    const { data } = await api.delete(`/eleve/${id}`);
+    return data;
   },
 
-  /**
-   * Changer statut
-   */
-  toggleEleveStatus: async (id) => {
-    const response = await api.patch(`/eleve/${id}/toggle-status`);
-
-    return response.data;
-  },
-
-  /**
-   * Reset mot de passe
-   */
-  resetElevePassword: async (id, envoyerEmail = true) => {
-    const response = await api.patch(`/eleve/${id}/reset-password`, {
-      envoyerEmail,
-    });
-
-    return response.data;
-  },
-
-  /**
-   * Statistiques
-   */
-  getElevesStats: async () => {
-    const response = await api.get("/eleve/stats");
-
-    return response.data;
+  // GET /eleve/non-inscrits  (élèves sans inscription active pour l'année)
+  getNonInscrits: async () => {
+    const { data } = await api.get("/eleve/non-inscrits");
+    return data;
   },
 };
-
-export default eleveService;

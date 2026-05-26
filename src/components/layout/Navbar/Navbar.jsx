@@ -12,9 +12,12 @@ import {
   Menu,
   ChevronDown,
   X,
+  AlertTriangle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import AnneeSelector from "../../annee-scolaire/AnneeSelector";
+import { useAnneeSelector } from "../../../features/annee-scolaire/hooks/useAnneeSelector";
 
 const Navbar = ({ onToggleSidebar, collapsed }) => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -23,6 +26,15 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
   const { user, logout } = useAuth();
+  const {
+    anneeActive,
+    anneesDisponibles,
+    isLoading: anneeLoading,
+  } = useAnneeSelector();
+
+  const aucuneAnnee = !anneeLoading && anneesDisponibles.length === 0;
+  const aucuneAnneeActive =
+    !anneeLoading && anneesDisponibles.length > 0 && !anneeActive;
 
   const notifications = [
     {
@@ -364,6 +376,34 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
           </div>
         </div>
       </nav>
+
+      {/* ── Bandeau année non configurée ── */}
+      <AnimatePresence>
+        {(aucuneAnnee || aucuneAnneeActive) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-2.5 px-5 py-2 bg-amber-50 border-b border-amber-200">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+              <p className="text-[13px] text-amber-800 flex-1">
+                {aucuneAnnee
+                  ? "Aucune année scolaire n'est encore configurée pour votre école."
+                  : "Aucune année scolaire active. Certaines fonctionnalités peuvent être limitées."}
+              </p>
+              <Link
+                to="/annees-scolaires"
+                className="text-[13px] font-semibold text-amber-700 hover:text-amber-900 hover:underline shrink-0"
+              >
+                Configurer →
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

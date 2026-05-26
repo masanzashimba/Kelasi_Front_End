@@ -1,16 +1,16 @@
-import { useEffect } from "react";
+// src/pages/Eleves/ElevesPage.jsx
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Plus,
-  Filter,
   Download,
-  ChevronDown,
   Users,
   UserCheck,
   UserX,
-  TrendingUp,
-  Eye,
+  School,
   Edit2,
   Trash2,
   Mail,
@@ -20,42 +20,54 @@ import {
   ChevronRight,
   Loader2,
   RefreshCw,
-  CheckCircle2,
   AlertCircle,
+  Filter,
+  Calendar,
+  LayoutGrid,
+  List,
+  Hash,
+  Globe,
 } from "lucide-react";
 import { useEleve } from "../../features/eleve/hooks/useEleve";
 import { AddEleveModal } from "../../components/eleve/AddEleveModal";
-import { useAnneeSelector } from "../../features/annee-scolaire/hooks/useAnneeSelector";
+import { useSelector } from "react-redux";
+import { selectAnneeActive } from "../../features/annee-scolaire/slices/annee-scolaire.selectors";
+import { selectSelectedAnneeId } from "../../features/annee-scolaire/slices/annee-selector.selectors";
 
-// ── Config ───────────────²─────────────────────────────────────────────────────
-
+// ── Helpers ───────────────────────────────────────────────────
 const STATUTS = ["Tous", "ACTIF", "INACTIF"];
 
 const statutConfig = {
   ACTIF: {
     label: "Actif",
-    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    cls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   },
   INACTIF: {
     label: "Inactif",
-    cls: "bg-red-50 text-red-600 border-red-200",
+    cls: "bg-red-50 text-red-600 border border-red-200",
+  },
+  TRANSFERE: {
+    label: "Transféré",
+    cls: "bg-amber-50 text-amber-700 border border-amber-200",
   },
 };
 
-const initiales = (nom, prenom) => `${prenom[0]}${nom[0]}`.toUpperCase();
+const initiales = (nom, prenom) =>
+  `${prenom?.[0] ?? ""}${nom?.[0] ?? ""}`.toUpperCase();
 
-const avatarGradient = (id) =>
-  [
-    "from-sky-400 to-blue-600",
-    "from-violet-400 to-purple-600",
-    "from-emerald-400 to-teal-600",
-    "from-rose-400 to-pink-600",
-    "from-amber-400 to-orange-500",
-  ][id.charCodeAt(0) % 5];
+const AVATAR_COLORS = [
+  "#0b57cd",
+  "#7c3aed",
+  "#059669",
+  "#d97706",
+  "#dc2626",
+  "#0891b2",
+];
+const avatarBg = (id) =>
+  AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-
-const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
+// ── Stat card ─────────────────────────────────────────────────
+const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
   <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
     <div
       className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
@@ -67,184 +79,478 @@ const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
       {loading ? (
         <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
       ) : (
-        <p className="text-[26px] font-black text-gray-600 leading-none">
-          {value}
-        </p>
+        <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
       )}
       <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
+      {sub && !loading && (
+        <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
+      )}
     </div>
   </div>
 );
 
-// ── Toast notification ────────────────────────────────────────────────────────
-
-const Toast = ({ message, type, onClose }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24, scale: 0.95 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: 12, scale: 0.95 }}
-    className={`fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-[13px] font-semibold max-w-sm ${
-      type === "success"
-        ? "bg-emerald-600 border-emerald-500/40 text-white"
-        : "bg-red-600 border-red-500/40 text-white"
-    }`}
-  >
-    {type === "success" ? (
-      <CheckCircle2 className="w-4 h-4 shrink-0" />
-    ) : (
-      <AlertCircle className="w-4 h-4 shrink-0" />
-    )}
-    <span>{message}</span>
-    <button
-      onClick={onClose}
-      className="ml-2 opacity-70 hover:opacity-100 transition-opacity"
-    >
-      <X className="w-4 h-4" />
-    </button>
-  </motion.div>
+// ── Card skeleton ─────────────────────────────────────────────
+const EleveCardSkeleton = () => (
+  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
+    <div className="h-1 bg-gray-200" />
+    <div className="p-4 space-y-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-4 bg-gray-200 rounded w-3/4" />
+          <div className="h-3 bg-gray-100 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="h-3 bg-gray-100 rounded w-1/3" />
+      <div className="flex gap-2 pt-2 border-t border-gray-100">
+        <div className="h-6 bg-gray-100 rounded w-1/2" />
+        <div className="h-6 bg-gray-100 rounded w-1/2" />
+      </div>
+    </div>
+  </div>
 );
 
-// ── Drawer détail élève ───────────────────────────────────────────────────────
+// ── Eleve card (grid) ─────────────────────────────────────────
+const EleveCard = ({ eleve, selected, onSelect }) => {
+  const sKey = eleve.actif ? "ACTIF" : "INACTIF";
+  const s = statutConfig[sKey];
+  const color = avatarBg(eleve.id);
 
-const EleveDrawer = ({ eleve, onClose, onEdit, onDelete, submitting }) => {
-  const s = eleve.actif ? statutConfig.ACTIF : statutConfig.INACTIF;
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/30 z-80 flex justify-end"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          className="w-full max-w-md bg-white h-full shadow-xl flex flex-col overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="relative bg-gradient-to-br from-[#0b57cd] to-[#0947ab] p-6 pb-10">
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div
-              className={`w-16 h-16 rounded-lg bg-gradient-to-br ${avatarGradient(eleve.id)} flex items-center justify-center text-white text-xl font-black mb-3 border-2 border-white/30`}
-            >
-              {initiales(eleve.nom, eleve.prenom)}
-            </div>
-            <h2 className="text-white text-xl font-bold">
-              {eleve.prenom} {eleve.nom}
-            </h2>
-            <p className="text-blue-200 text-sm mt-0.5">{eleve.matricule}</p>
-            <div className="flex items-center gap-2 mt-2">
-              {eleve.classeActuelle && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-white/10 text-white border-white/20">
-                  {eleve.classeActuelle.nom}
-                </span>
-              )}
+    <motion.div
+      whileHover={{ y: -2 }}
+      onClick={() => onSelect(selected ? null : eleve)}
+      className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
+        selected
+          ? "border-primary shadow-lg shadow-[#0b57cd]/20 ring-2 ring-[#0b57cd]/15"
+          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+      }`}
+    >
+      {/* Top bar — bleu pâle uniforme */}
+      <div className="h-1 bg-[#0b57cd]" />
+
+      <div className="p-4">
+        {/* Avatar + nom + statut */}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden border border-gray-100">
+            {eleve.photoUrl ? (
+              <img
+                src={eleve.photoUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-white text-[14px] font-black"
+                style={{ background: color }}
+              >
+                {initiales(eleve.nom, eleve.prenom)}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-1">
+              <h3 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
+                {eleve.prenom} {eleve.nom}
+              </h3>
               <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${s.cls}`}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${s.cls}`}
               >
                 {s.label}
               </span>
             </div>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin"}
+            </p>
           </div>
+        </div>
 
-          <div className="p-6 space-y-4 -mt-4">
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                {
-                  label: "Inscriptions",
-                  value: eleve.nombreInscriptions,
-                  color: "text-[#0b57cd]",
-                },
-                {
-                  label: "Notes",
-                  value: eleve.nombreNotes,
-                  color: "text-violet-600",
-                },
-                {
-                  label: "Statut",
-                  value: eleve.actif ? "Actif" : "Inactif",
-                  color: eleve.actif ? "text-emerald-600" : "text-red-500",
-                },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-gray-50 rounded-lg p-3 text-center"
-                >
-                  <p className={`text-[17px] font-black ${stat.color}`}>
-                    {stat.value}
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    {stat.label}
-                  </p>
+        {/* Email */}
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Mail className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="text-[11px] text-gray-400 truncate">
+            {eleve.email}
+          </span>
+        </div>
+
+        {/* Matricule */}
+        <div className="flex items-center gap-1.5 mb-3">
+          <Hash className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="text-[11px] font-mono text-gray-400 truncate">
+            {eleve.matricule}
+          </span>
+        </div>
+
+        {/* Classe + niveau */}
+        <div className="mb-3">
+          {eleve.classeActuelle ? (
+            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-[#0b57cd] font-semibold">
+              {eleve.classeActuelle.nom}
+              {eleve.classeActuelle.niveau && (
+                <span className="text-blue-300 font-normal">
+                  · {eleve.classeActuelle.niveau}
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="text-[11px] text-amber-600 font-medium">
+              Sans classe
+            </span>
+          )}
+        </div>
+
+        {/* Mini stats */}
+        <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+          <div className="flex-1 text-center bg-gray-50 rounded-lg py-1.5">
+            <p className="text-[14px] font-black text-[#185fa5] leading-none">
+              {eleve.nombreInscriptions}
+            </p>
+            <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">
+              Inscr.
+            </p>
+          </div>
+          <div className="flex-1 text-center bg-gray-50 rounded-lg py-1.5">
+            <p className="text-[14px] font-black text-[#534ab7] leading-none">
+              {eleve.nombreNotes}
+            </p>
+            <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">
+              Notes
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── New eleve card ────────────────────────────────────────────
+const NewEleveCard = ({ onClick }) => (
+  <motion.button
+    whileHover={{ y: -2 }}
+    onClick={onClick}
+    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-[168px] text-gray-400 hover:text-[#0b57cd] group"
+  >
+    <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+      <Plus className="w-5 h-5" />
+    </div>
+    <span className="text-[12px] font-semibold">Nouvel élève</span>
+  </motion.button>
+);
+
+// ── Skeleton row ──────────────────────────────────────────────
+const SkeletonRow = () => (
+  <tr className="border-b border-gray-50">
+    {Array.from({ length: 7 }).map((_, i) => (
+      <td key={i} className="px-5 py-3.5">
+        <div
+          className="h-4 bg-gray-100 animate-pulse rounded"
+          style={{ width: `${55 + ((i * 13) % 35)}%` }}
+        />
+      </td>
+    ))}
+  </tr>
+);
+
+// ── Detail drawer ─────────────────────────────────────────────
+const EleveDetailPanel = ({
+  isOpen,
+  eleve,
+  onClose,
+  onEdit,
+  onDelete,
+  submitting,
+}) => {
+  if (!eleve) return null;
+  const sKey = eleve.actif ? "ACTIF" : "INACTIF";
+  const s = statutConfig[sKey];
+  const color = avatarBg(eleve.id);
+  const age = eleve.dateNaissance
+    ? Math.floor(
+        (Date.now() - new Date(eleve.dateNaissance)) /
+          (1000 * 60 * 60 * 24 * 365.25),
+      )
+    : null;
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            key="detail-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9979]"
+            style={{
+              background: "rgba(0,0,0,0.32)",
+              backdropFilter: "blur(3px)",
+            }}
+            onClick={onClose}
+          />
+
+          <motion.div
+            key="detail-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            className="fixed top-0 right-0 h-full w-full max-w-sm z-[9980] bg-white shadow-2xl flex flex-col"
+          >
+            {/* Header */}
+            <div
+              className="relative px-5 py-4 shrink-0 overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
+              }}
+            >
+              <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
+
+              <button
+                onClick={onClose}
+                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+
+              <div className="flex items-center gap-4 pr-8">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/25 shrink-0">
+                  {eleve.photoUrl ? (
+                    <img
+                      src={eleve.photoUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center text-white text-2xl font-black"
+                      style={{ background: color }}
+                    >
+                      {initiales(eleve.nom, eleve.prenom)}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
 
-            <div>
-              <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-                Informations
-              </h3>
-              <div className="space-y-3">
-                {[
-                  {
-                    icon: BookOpen,
-                    label: "Classe",
-                    value: eleve.classeActuelle?.nom ?? "Non inscrit",
-                  },
-                  {
-                    icon: Users,
-                    label: "Sexe",
-                    value: eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin",
-                  },
-                  {
-                    icon: Phone,
-                    label: "Téléphone",
-                    value: eleve.telephone ?? "—",
-                  },
-                  { icon: Mail, label: "Email", value: eleve.email },
-                ].map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                      <Icon className="w-4 h-4 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-gray-400">{label}</p>
-                      <p className="text-[13px] font-semibold text-gray-800">
-                        {value}
-                      </p>
-                    </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-white text-[15px] font-bold leading-snug truncate">
+                    {eleve.prenom} {eleve.nom}
+                  </h2>
+                  <p className="text-white/60 text-[11px] font-mono mt-0.5 truncate">
+                    {eleve.matricule}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {eleve.classeActuelle && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/20 flex items-center gap-1">
+                        <School className="w-2.5 h-2.5" />{" "}
+                        {eleve.classeActuelle.nom}
+                      </span>
+                    )}
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${s.cls}`}
+                    >
+                      {s.label}
+                    </span>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => onEdit(eleve)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0b57cd] text-white rounded-lg text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
-              >
-                <Edit2 className="w-4 h-4" /> Modifier
-              </button>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {/* Mini stats */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    label: "Inscriptions",
+                    value: eleve.nombreInscriptions,
+                    color: "#185fa5",
+                  },
+                  {
+                    label: "Notes",
+                    value: eleve.nombreNotes,
+                    color: "#534ab7",
+                  },
+                  {
+                    label: "Statut",
+                    value: eleve.actif ? "Actif" : "Inactif",
+                    color: eleve.actif ? "#0f6e56" : "#a32d2d",
+                  },
+                ].map((st) => (
+                  <div
+                    key={st.label}
+                    className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"
+                  >
+                    <p
+                      className="text-[15px] font-black leading-none"
+                      style={{ color: st.color }}
+                    >
+                      {st.value}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide font-medium">
+                      {st.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Informations personnelles */}
+              <div>
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Informations
+                </p>
+                <div className="rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
+                  {[
+                    { icon: Mail, label: "Email", value: eleve.email },
+                    {
+                      icon: Phone,
+                      label: "Téléphone",
+                      value: eleve.telephone ?? "—",
+                    },
+                    {
+                      icon: Users,
+                      label: "Sexe",
+                      value: eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin",
+                    },
+                    {
+                      icon: Globe,
+                      label: "Nationalité",
+                      value: eleve.nationalite ?? "—",
+                    },
+                    ...(eleve.dateNaissance
+                      ? [
+                          {
+                            icon: Calendar,
+                            label: "Naissance",
+                            value: `${new Date(eleve.dateNaissance).toLocaleDateString("fr-FR")}${age ? `  ·  ${age} ans` : ""}`,
+                          },
+                        ]
+                      : []),
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-gray-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">
+                          {label}
+                        </p>
+                        <p className="text-[13px] font-semibold text-gray-800 truncate mt-0.5">
+                          {value}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scolarité */}
+              {eleve.classeActuelle && (
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Scolarité
+                  </p>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] text-blue-500 font-medium">
+                        Classe
+                      </span>
+                      <span className="text-[13px] font-bold text-[#0b57cd]">
+                        {eleve.classeActuelle.nom}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] text-blue-500 font-medium">
+                        Niveau
+                      </span>
+                      <span className="text-[12px] font-semibold text-[#185fa5]">
+                        {eleve.classeActuelle.niveau}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex items-center justify-end gap-2">
               <button
                 onClick={() => onDelete(eleve.id)}
                 disabled={submitting}
-                className="flex items-center justify-center gap-2 py-2.5 px-4 bg-red-50 text-red-600 rounded-lg text-[13px] font-semibold hover:bg-red-100 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-[13px] font-semibold hover:bg-red-100 transition-colors border border-red-100 disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
+                Désactiver
+              </button>
+              <button
+                onClick={() => onEdit(eleve)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#0b57cd] text-white rounded-xl text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
+              >
+                <Edit2 className="w-4 h-4" /> Modifier
               </button>
             </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+};
+
+// ── Confirm delete modal ──────────────────────────────────────
+const ConfirmDeleteModal = ({ open, onClose, onConfirm, isDeleting }) => {
+  if (!open) return null;
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+        >
+          <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center mb-4">
+            <Trash2 className="w-5 h-5 text-red-500" />
+          </div>
+          <h3 className="text-[16px] font-bold text-gray-900">
+            Désactiver cet élève ?
+          </h3>
+          <p className="text-[13px] text-gray-500 mt-1.5 leading-relaxed">
+            L'élève sera désactivé. Ses données seront conservées mais il ne
+            pourra plus se connecter.
+          </p>
+          <div className="flex gap-2 mt-5">
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isDeleting}
+              className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Désactiver"
+              )}
+            </button>
           </div>
         </motion.div>
       </motion.div>
@@ -252,40 +558,38 @@ const EleveDrawer = ({ eleve, onClose, onEdit, onDelete, submitting }) => {
   );
 };
 
-// ── Loading skeleton row ──────────────────────────────────────────────────────
-
-const SkeletonRow = () => (
-  <tr className="border-b border-gray-50">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <td key={i} className="px-5 py-4">
-        <div
-          className="h-4 bg-gray-100 animate-pulse rounded-md"
-          style={{ width: `${60 + ((i * 17) % 40)}%` }}
-        />
-      </td>
-    ))}
-    <td className="px-5 py-4" />
-  </tr>
-);
-
-// ── Page principale ───────────────────────────────────────────────────────────
-
+// ── Page principale ───────────────────────────────────────────
 const ElevesPage = () => {
   const {
     state,
     dispatch,
     filteredEleves,
+    classes,
+    stats,
     fetchEleves,
     createEleve,
     updateEleve,
     deleteEleve,
   } = useEleve();
-  const { selectedAnneeId, selectedAnnee } = useAnneeSelector();
-  useEffect(() => {
-    if (selectedAnneeId) fetchEleves();
-  }, [selectedAnneeId]);
 
-  const actifs = state.eleves.filter((e) => e.actif).length;
+  const anneeId = useSelector(selectSelectedAnneeId);
+  const anneeActive = useSelector(selectAnneeActive);
+
+  const [view, setView] = useState("grid");
+
+  useEffect(() => {
+    if (anneeId) fetchEleves();
+  }, [anneeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fermer le panel de détail quand on change de vue
+  const handleSetView = (v) => {
+    setView(v);
+    dispatch({ type: "CLOSE_DRAWER" });
+  };
+
+  const openDetail = (eleve) =>
+    dispatch({ type: "OPEN_DRAWER", payload: eleve });
+  const closeDetail = () => dispatch({ type: "CLOSE_DRAWER" });
 
   const fade = (delay = 0) => ({
     initial: { opacity: 0, y: 14 },
@@ -293,20 +597,13 @@ const ElevesPage = () => {
     transition: { duration: 0.24, ease: "easeOut", delay },
   });
 
-  const classes = [
-    "Toutes",
-    ...Array.from(
-      new Set(state.eleves.map((e) => e.classeActuelle?.nom).filter(Boolean)),
-    ).sort(),
-  ];
-
   return (
     <>
       <div className="min-h-full bg-[#f5f7fa] space-y-4">
         {/* ── Hero header ── */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-lg overflow-hidden shadow-lg shadow-blue-900/15"
+          className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
           style={{
             background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
           }}
@@ -314,7 +611,6 @@ const ElevesPage = () => {
           <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
           <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5" />
           <div className="absolute  top-4   right-32  w-16 h-16 rounded-full bg-white/5" />
-
           <div className="relative px-6 py-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
@@ -332,11 +628,15 @@ const ElevesPage = () => {
                 <p className="text-white/60 text-[12px] mt-0.5">
                   {state.loading
                     ? "Chargement…"
-                    : `${state.eleves.length} élèves enregistrés · ${actifs} actifs`}
+                    : `${stats.total} élève${stats.total > 1 ? "s" : ""} inscrits`}
+                  {anneeActive && (
+                    <span className="ml-2 opacity-70">
+                      · {anneeActive.libelle}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
-
             <div className="flex items-center gap-2 shrink-0">
               <motion.button
                 whileHover={{ scale: 1.03 }}
@@ -350,31 +650,52 @@ const ElevesPage = () => {
                   className={`w-4 h-4 ${state.loading ? "animate-spin" : ""}`}
                 />
               </motion.button>
-
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 bg-white/10 text-white px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-white/20 hover:bg-white/20 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exporter</span>
+              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() =>
                   dispatch({ type: "OPEN_MODAL", payload: { mode: "add" } })
                 }
-                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors"
+                disabled={!anneeId}
+                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Plus className="w-4 h-4" />
-                Nouvel élève
+                <Plus className="w-4 h-4" /> Nouvel élève
               </motion.button>
             </div>
           </div>
         </motion.div>
 
-        {/* ── Stats ── */}
+        {/* ── Avertissement si pas d'année ── */}
+        {!anneeId && !state.loading && (
+          <motion.div
+            {...fade(0.04)}
+            className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3"
+          >
+            <Calendar className="w-5 h-5 text-amber-500 shrink-0" />
+            <p className="text-[13px] text-amber-700 font-medium">
+              Sélectionnez une année scolaire dans la barre de navigation pour
+              afficher les élèves.
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Stat cards ── */}
         <motion.div
           {...fade(0.06)}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3"
         >
           <StatCard
             icon={Users}
-            label="Total élèves"
-            value={state.eleves.length}
+            label="Total inscrits"
+            value={stats.total}
             color="#0b57cd"
             bg="#eff4ff"
             loading={state.loading}
@@ -382,26 +703,24 @@ const ElevesPage = () => {
           <StatCard
             icon={UserCheck}
             label="Actifs"
-            value={actifs}
+            value={stats.actifs}
             color="#059669"
             bg="#ecfdf5"
             loading={state.loading}
+            sub={`${stats.total > 0 ? Math.round((stats.actifs / stats.total) * 100) : 0}% du total`}
           />
           <StatCard
             icon={UserX}
             label="Inactifs"
-            value={state.eleves.length - actifs}
+            value={stats.inactifs}
             color="#dc2626"
             bg="#fef2f2"
             loading={state.loading}
           />
           <StatCard
-            icon={TrendingUp}
-            label="Inscriptions tot."
-            value={state.eleves.reduce(
-              (acc, e) => acc + e.nombreInscriptions,
-              0,
-            )}
+            icon={School}
+            label="Sans classe"
+            value={stats.sansClasse}
             color="#7c3aed"
             bg="#f5f3ff"
             loading={state.loading}
@@ -411,7 +730,7 @@ const ElevesPage = () => {
         {/* ── Toolbar ── */}
         <motion.div {...fade(0.1)}>
           <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-2 items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 <input
@@ -420,7 +739,7 @@ const ElevesPage = () => {
                     dispatch({ type: "SET_SEARCH", payload: e.target.value })
                   }
                   placeholder="Rechercher par nom, prénom ou matricule…"
-                  className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                  className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
                 />
                 {state.search && (
                   <button
@@ -433,20 +752,31 @@ const ElevesPage = () => {
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <button
+                onClick={() => dispatch({ type: "TOGGLE_FILTERS" })}
+                className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
+                  state.showFilters
+                    ? "bg-blue-50 text-[#0b57cd] border-blue-200"
+                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Filter className="w-4 h-4" /> Filtres
+              </button>
+              {/* Toggle vue */}
+              <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
                 <button
-                  onClick={() => dispatch({ type: "TOGGLE_FILTERS" })}
-                  className={`h-10 px-4 rounded-lg border text-[13px] font-medium flex items-center gap-2 transition-all ${
-                    state.showFilters
-                      ? "bg-[#0b57cd] text-white border-[#0b57cd]"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                  }`}
+                  onClick={() => handleSetView("grid")}
+                  className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                  title="Vue cartes"
                 >
-                  <Filter className="w-4 h-4" /> Filtres
+                  <LayoutGrid className="w-4 h-4" />
                 </button>
-                <button className="h-10 px-4 rounded-lg border border-gray-200 text-[13px] font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors">
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Exporter</span>
+                <button
+                  onClick={() => handleSetView("list")}
+                  className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                  title="Vue tableau"
+                >
+                  <List className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -460,7 +790,7 @@ const ElevesPage = () => {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="pt-4 mt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-3 gap-3">
                     {[
                       {
                         label: "Classe",
@@ -500,10 +830,7 @@ const ElevesPage = () => {
                         <select
                           value={value}
                           onChange={(e) =>
-                            dispatch({
-                              type: action,
-                              payload: e.target.value,
-                            })
+                            dispatch({ type: action, payload: e.target.value })
                           }
                           className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
                         >
@@ -516,320 +843,295 @@ const ElevesPage = () => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      onClick={() => dispatch({ type: "RESET_FILTERS" })}
-                      className="text-[12px] font-medium text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      Réinitialiser les filtres
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => dispatch({ type: "RESET_FILTERS" })}
+                    className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  >
+                    Réinitialiser les filtres
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </motion.div>
 
-        {/* ── Tableau ── */}
+        {/* ── Contenu ── */}
         <motion.div {...fade(0.14)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-              <p className="text-[13px] font-semibold text-gray-700">
-                {state.loading
-                  ? "Chargement des élèves…"
-                  : `${filteredEleves.length} élève${filteredEleves.length > 1 ? "s" : ""}${
-                      state.search ||
-                      state.selectedClasse !== "Toutes" ||
-                      state.selectedStatut !== "Tous" ||
-                      state.selectedSexe !== "Tous"
-                        ? " trouvé" + (filteredEleves.length > 1 ? "s" : "")
-                        : " au total"
-                    }`}
-              </p>
-              <div className="flex items-center gap-1 text-[12px] text-gray-400">
-                <span>Trier par</span>
-                <button className="flex items-center gap-0.5 font-medium text-gray-600 hover:text-gray-900">
-                  Nom <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50/60">
-                    {[
-                      "Élève",
-                      "Matricule",
-                      "Classe",
-                      "Inscriptions",
-                      "Notes",
-                      "Statut",
-                      "",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
+          <div>
+            <div>
+              {/* ══ VUE CARTES ══ */}
+              {view === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {state.loading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <SkeletonRow key={i} />
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <EleveCardSkeleton key={i} />
                     ))
                   ) : filteredEleves.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center py-16">
-                        <div className="flex flex-col items-center gap-2">
-                          <Users className="w-10 h-10 text-gray-200" />
-                          <p className="text-[14px] font-semibold text-gray-400">
-                            Aucun élève trouvé
-                          </p>
-                          <p className="text-[12px] text-gray-300">
-                            {state.eleves.length === 0
-                              ? `Aucun élève inscrit pour l'année ${selectedAnnee?.libelle ?? "sélectionnée"}`
-                              : "Essayez d'ajuster vos filtres"}
-                          </p>
-                          {state.eleves.length === 0 && (
-                            <button
-                              onClick={() =>
-                                dispatch({
-                                  type: "OPEN_MODAL",
-                                  payload: { mode: "add" },
-                                })
-                              }
-                              className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Ajouter un élève
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                    <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+                      <Users className="w-10 h-10 text-gray-200" />
+                      <p className="text-[14px] font-semibold text-gray-400">
+                        {state.eleves.length === 0
+                          ? "Aucun élève pour cette année"
+                          : "Aucun élève trouvé"}
+                      </p>
+                      {state.eleves.length === 0 && anneeId && (
+                        <button
+                          onClick={() =>
+                            dispatch({
+                              type: "OPEN_MODAL",
+                              payload: { mode: "add" },
+                            })
+                          }
+                          className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
+                        >
+                          <Plus className="w-4 h-4" /> Ajouter un élève
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <AnimatePresence>
-                      {filteredEleves.map((eleve, i) => {
-                        const s = eleve.actif
-                          ? statutConfig.ACTIF
-                          : statutConfig.INACTIF;
-                        return (
-                          <motion.tr
-                            key={eleve.id}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: i * 0.025 }}
-                            className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
-                            onClick={() =>
-                              dispatch({
-                                type: "OPEN_DRAWER",
-                                payload: eleve,
-                              })
-                            }
-                          >
-                            <td className="px-5 py-3.5">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={`w-9 h-9 rounded-lg bg-gradient-to-br ${avatarGradient(eleve.id)} flex items-center justify-center text-white text-[12px] font-black shrink-0 shadow-sm`}
-                                >
-                                  {initiales(eleve.nom, eleve.prenom)}
-                                </div>
-                                <div>
-                                  <p className="text-[13px] font-semibold text-gray-900">
-                                    {eleve.prenom} {eleve.nom}
-                                  </p>
-                                  <p className="text-[11px] text-gray-400">
-                                    {eleve.sexe === "MASCULIN"
-                                      ? "Masculin"
-                                      : "Féminin"}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span className="text-[12px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                                {eleve.matricule}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span className="text-[13px] font-medium text-gray-700">
-                                {eleve.classeActuelle?.nom ?? (
-                                  <span className="text-gray-300 italic">
-                                    Non inscrit
-                                  </span>
-                                )}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span className="text-[13px] font-bold text-[#0b57cd]">
-                                {eleve.nombreInscriptions}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span className="text-[13px] font-bold text-violet-600">
-                                {eleve.nombreNotes}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <span
-                                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${s.cls}`}
-                              >
-                                {s.label}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch({
-                                      type: "OPEN_DRAWER",
-                                      payload: eleve,
-                                    });
-                                  }}
-                                  className="w-7 h-7 rounded-lg hover:bg-blue-50 flex items-center justify-center text-gray-400 hover:text-[#0b57cd] transition-colors"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch({
-                                      type: "OPEN_MODAL",
-                                      payload: { mode: "edit", eleve },
-                                    });
-                                  }}
-                                  className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    dispatch({
-                                      type: "SET_DELETE_CONFIRM",
-                                      payload: eleve.id,
-                                    });
-                                  }}
-                                  className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        );
-                      })}
+                      {filteredEleves.map((eleve, i) => (
+                        <motion.div
+                          key={eleve.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ delay: i * 0.03 }}
+                        >
+                          <EleveCard
+                            eleve={eleve}
+                            selected={state.drawerEleve?.id === eleve.id}
+                            onSelect={(e) => {
+                              if (e === null) closeDetail();
+                              else openDetail(e);
+                            }}
+                          />
+                        </motion.div>
+                      ))}
                     </AnimatePresence>
                   )}
-                </tbody>
-              </table>
-            </div>
+                  {!state.loading && anneeId && (
+                    <NewEleveCard
+                      onClick={() =>
+                        dispatch({
+                          type: "OPEN_MODAL",
+                          payload: { mode: "add" },
+                        })
+                      }
+                    />
+                  )}
+                </div>
+              )}
 
-            {!state.loading && filteredEleves.length > 0 && (
-              <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-[12px] text-gray-400">
-                  Affichage de{" "}
-                  <span className="font-semibold text-gray-600">
-                    {filteredEleves.length}
-                  </span>{" "}
-                  sur{" "}
-                  <span className="font-semibold text-gray-600">
-                    {state.eleves.length}
-                  </span>{" "}
-                  élèves
-                </p>
-              </div>
-            )}
+              {/* ══ VUE TABLEAU ══ */}
+              {view === "list" && (
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-gray-100">
+                    <p className="text-[13px] font-semibold text-gray-700">
+                      {state.loading
+                        ? "Chargement…"
+                        : `${filteredEleves.length} élève${filteredEleves.length > 1 ? "s" : ""}`}
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50/60">
+                          {[
+                            "Élève",
+                            "Matricule",
+                            "Classe",
+                            "Inscr.",
+                            "Notes",
+                            "Statut",
+                            "",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {state.loading ? (
+                          Array.from({ length: 5 }).map((_, i) => (
+                            <SkeletonRow key={i} />
+                          ))
+                        ) : filteredEleves.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="text-center py-14">
+                              <div className="flex flex-col items-center gap-2">
+                                <Users className="w-10 h-10 text-gray-200" />
+                                <p className="text-[14px] font-semibold text-gray-400">
+                                  Aucun élève trouvé
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          <AnimatePresence>
+                            {filteredEleves.map((eleve, i) => {
+                              const sKey = eleve.actif ? "ACTIF" : "INACTIF";
+                              const s = statutConfig[sKey];
+                              const isActive =
+                                state.drawerEleve?.id === eleve.id;
+                              return (
+                                <motion.tr
+                                  key={eleve.id}
+                                  initial={{ opacity: 0, y: 4 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.02 }}
+                                  className={`border-b border-gray-50 cursor-pointer group transition-colors hover:bg-blue-50/20 ${isActive ? "bg-blue-50/30" : ""}`}
+                                  onClick={() =>
+                                    isActive ? closeDetail() : openDetail(eleve)
+                                  }
+                                >
+                                  <td className="px-5 py-3.5">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden border border-gray-100">
+                                        {eleve.photoUrl ? (
+                                          <img
+                                            src={eleve.photoUrl}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <div
+                                            className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold"
+                                            style={{
+                                              background: avatarBg(eleve.id),
+                                            }}
+                                          >
+                                            {initiales(eleve.nom, eleve.prenom)}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <p className="text-[13px] font-semibold text-gray-900">
+                                          {eleve.prenom} {eleve.nom}
+                                        </p>
+                                        <p className="text-[11px] text-gray-400">
+                                          {eleve.sexe === "MASCULIN"
+                                            ? "Masculin"
+                                            : "Féminin"}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[11px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                                      {eleve.matricule}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    {eleve.classeActuelle ? (
+                                      <span className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-[#0b57cd] font-semibold">
+                                        {eleve.classeActuelle.nom}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[11px] text-gray-300 italic">
+                                        —
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[13px] font-bold text-[#185fa5]">
+                                      {eleve.nombreInscriptions}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[13px] font-bold text-[#534ab7]">
+                                      {eleve.nombreNotes}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span
+                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}
+                                    >
+                                      {s.label}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          dispatch({
+                                            type: "OPEN_MODAL",
+                                            payload: { mode: "edit", eleve },
+                                          });
+                                        }}
+                                        className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          dispatch({
+                                            type: "SET_DELETE_CONFIRM",
+                                            payload: eleve.id,
+                                          });
+                                        }}
+                                        className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </motion.tr>
+                              );
+                            })}
+                          </AnimatePresence>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  {!state.loading && filteredEleves.length > 0 && (
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <p className="text-[12px] text-gray-400">
+                        {filteredEleves.length} sur {state.eleves.length} élèves
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
-      </div>
 
-      {/* ── Delete confirm modal ── */}
-      <AnimatePresence>
-        {state.deleteConfirmId && (
+        {/* ── Erreur globale ── */}
+        {state.error && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            style={{
-              background: "rgba(0,0,0,0.4)",
-              backdropFilter: "blur(8px)",
-            }}
-            onClick={() =>
-              dispatch({ type: "SET_DELETE_CONFIRM", payload: null })
-            }
+            {...fade()}
+            className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3"
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-            >
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-4">
-                <Trash2 className="w-6 h-6 text-red-500" />
-              </div>
-              <h3 className="text-[16px] font-bold text-gray-900">
-                Désactiver cet élève ?
-              </h3>
-              <p className="text-[13px] text-gray-500 mt-1.5">
-                L'élève sera désactivé. Ses données seront conservées mais il ne
-                pourra plus se connecter.
-              </p>
-              <div className="flex gap-2 mt-5">
-                <button
-                  onClick={() =>
-                    dispatch({ type: "SET_DELETE_CONFIRM", payload: null })
-                  }
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => deleteEleve(state.deleteConfirmId)}
-                  disabled={state.submitting}
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {state.submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Désactiver"
-                  )}
-                </button>
-              </div>
-            </motion.div>
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <p className="text-[13px] text-red-700">{state.error}</p>
           </motion.div>
         )}
-      </AnimatePresence>
+      </div>
 
-      {/* ── Drawer ── */}
-      {state.drawerEleve && (
-        <EleveDrawer
-          eleve={state.drawerEleve}
-          onClose={() => dispatch({ type: "CLOSE_DRAWER" })}
-          onEdit={(e) => {
-            dispatch({ type: "CLOSE_DRAWER" });
-            dispatch({
-              type: "OPEN_MODAL",
-              payload: { mode: "edit", eleve: e },
-            });
-          }}
-          onDelete={(id) => {
-            dispatch({ type: "CLOSE_DRAWER" });
-            dispatch({ type: "SET_DELETE_CONFIRM", payload: id });
-          }}
-          submitting={state.submitting}
-        />
-      )}
+      {/* ── Drawer détail élève ── */}
+      <EleveDetailPanel
+        isOpen={!!state.drawerEleve}
+        eleve={state.drawerEleve}
+        onClose={closeDetail}
+        onEdit={(e) => {
+          closeDetail();
+          dispatch({ type: "OPEN_MODAL", payload: { mode: "edit", eleve: e } });
+        }}
+        onDelete={(id) => {
+          closeDetail();
+          dispatch({ type: "SET_DELETE_CONFIRM", payload: id });
+        }}
+        submitting={state.submitting}
+      />
 
-      {/* ── Add / Edit modal ── */}
+      {/* ── Drawer création/édition ── */}
       <AddEleveModal
         isOpen={state.modalMode === "add" || state.modalMode === "edit"}
         onClose={() => dispatch({ type: "CLOSE_MODAL" })}
@@ -845,23 +1147,13 @@ const ElevesPage = () => {
         error={state.error}
       />
 
-      {/* ── Toast notifications ── */}
-      <AnimatePresence>
-        {state.successMessage && (
-          <Toast
-            message={state.successMessage}
-            type="success"
-            onClose={() => dispatch({ type: "CLEAR_SUCCESS" })}
-          />
-        )}
-        {state.error && state.modalMode === null && (
-          <Toast
-            message={state.error}
-            type="error"
-            onClose={() => dispatch({ type: "CLEAR_ERROR" })}
-          />
-        )}
-      </AnimatePresence>
+      {/* ── Confirm désactivation ── */}
+      <ConfirmDeleteModal
+        open={!!state.deleteConfirmId}
+        onClose={() => dispatch({ type: "SET_DELETE_CONFIRM", payload: null })}
+        onConfirm={() => deleteEleve(state.deleteConfirmId)}
+        isDeleting={state.submitting}
+      />
     </>
   );
 };

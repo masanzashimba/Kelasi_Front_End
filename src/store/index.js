@@ -6,6 +6,11 @@ import directeursReducer from "../features/admin/slices/directeurs.slice";
 import anneeScolaireReducer from "../features/annee-scolaire/slices/annee-scolaire.slice";
 import anneeSelectorReducer from "../features/annee-scolaire/slices/annee-selector.slice";
 import eleveReducer from "../features/eleve/slices/eleve.slice";
+import rolesReducer from "../features/roles/slices/roles.slice";
+import permissionsReducer from "../features/permissions/slices/permissions.slice";
+import niveauxReducer from "../features/niveaux/slices/niveau.slice";
+import classesReducer from "../features/classe/slices/classe.slice";
+import enseignantsReducer from "../features/enseignant/slices/enseignant.slice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +19,11 @@ export const store = configureStore({
     eleve: eleveReducer,
     anneeScolaire: anneeScolaireReducer,
     anneeSelector: anneeSelectorReducer,
+    roles: rolesReducer,
+    permissions: permissionsReducer,
+    niveaux: niveauxReducer,
+    classes: classesReducer,
+    enseignants: enseignantsReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

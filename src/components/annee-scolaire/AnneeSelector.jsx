@@ -10,7 +10,6 @@ import {
   CalendarDays,
   Check,
   RefreshCw,
-  AlertCircle,
 } from "lucide-react";
 import { useAnneeSelector } from "../../features/annee-scolaire/hooks/useAnneeSelector";
 
@@ -51,19 +50,6 @@ const AnneeSelector = () => {
     return <div className="h-9 w-44 rounded-lg bg-gray-100 animate-pulse" />;
   }
 
-  // ── Erreur ──
-  if (error && !selectedAnnee) {
-    return (
-      <button
-        onClick={refresh}
-        className="flex items-center gap-2 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[12px] font-medium hover:bg-red-100 transition-colors"
-      >
-        <AlertCircle className="w-3.5 h-3.5" />
-        Erreur — Réessayer
-      </button>
-    );
-  }
-
   return (
     <div ref={ref} className="relative">
       {/* ── Trigger ── */}
@@ -83,7 +69,7 @@ const AnneeSelector = () => {
           className={`w-4 h-4 shrink-0 ${open ? "text-[#0b57cd]" : "text-gray-400"}`}
         />
 
-        <span className="max-w-[120px] truncate">
+        <span className="max-w-30 truncate">
           {selectedAnnee?.libelle ?? "Aucune année"}
         </span>
 
