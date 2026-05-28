@@ -6,7 +6,7 @@ const Content = ({ children, title, subtitle, breadcrumbs = [], actions }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f5f6f8] flex flex-col">
+    <div className="flex-1 min-h-screen bg-[#F8FAFC] flex flex-col">
       {/* ── Header zone ── */}
       {(breadcrumbs.length > 0 || title) && (
         // py-3.5 → py-4, px-6 → px-7

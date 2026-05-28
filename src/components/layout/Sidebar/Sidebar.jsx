@@ -21,6 +21,8 @@ import {
   Shield,
   UserKey,
   Footprints,
+  Contact,
+  DoorOpen,
 } from "lucide-react";
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 
@@ -29,6 +31,8 @@ const baseMenuItems = [
   { title: "Élèves", icon: Users, path: "/eleves", badge: "125" },
   { title: "Enseignants", icon: GraduationCap, path: "/enseignants" },
   { title: "Classes", icon: Home, path: "/classes" },
+  { title: "Salles", icon: DoorOpen, path: "/salles" },
+  { title: "Parents", icon: Contact, path: "/parents" },
   {
     title: "Académique",
     icon: BookOpen,
@@ -72,7 +76,10 @@ const adminMenuItem = {
 
 const groups = [
   { label: null, keys: ["Tableau de bord"] },
-  { label: "Gestion", keys: ["Élèves", "Enseignants", "Classes"] },
+  {
+    label: "Gestion",
+    keys: ["Élèves", "Enseignants", "Classes", "Salles", "Parents"],
+  },
   { label: "Pédagogie", keys: ["Académique", "Résultats"] },
   { label: "Administration", keys: ["Finances", "Rapports"] },
   { label: "Système", keys: ["Paramètres"] },

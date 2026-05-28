@@ -11,6 +11,7 @@ import permissionsReducer from "../features/permissions/slices/permissions.slice
 import niveauxReducer from "../features/niveaux/slices/niveau.slice";
 import classesReducer from "../features/classe/slices/classe.slice";
 import enseignantsReducer from "../features/enseignant/slices/enseignant.slice";
+import salleReducer from "../features/salle/slices/salle.slice";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     niveaux: niveauxReducer,
     classes: classesReducer,
     enseignants: enseignantsReducer,
+    salles: salleReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

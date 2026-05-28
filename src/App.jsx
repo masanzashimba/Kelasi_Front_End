@@ -23,7 +23,13 @@ import DashboardLayout from "./components/layout/DashboardLayout/DashboardLayout
 import RolesPermissionsPage from "./pages/rolePermission/rolepermission";
 import NiveauxPage from "./pages/niveaux/niveaux";
 import ClassesPage from "./pages/Classes/ClassesPage";
+import ParentsPage from "./pages/Parents/ParentsPage";
 import ComingSoonPage from "./pages/ComingSoon/ComingSoonPage";
+import MatieresPage from "./pages/Matieres/MatieresPage";
+import CoursPage from "./pages/Cours/CoursPage";
+import SallesPage from "./pages/Salles/SallesPage";
+import EvaluationsPage from "./pages/Evaluations/EvaluationsPage";
+import BulletinMINEDUC from "./pages/Resultat/bulletin";
 
 function App() {
   return (
@@ -164,8 +170,73 @@ function App() {
             }
           />
 
+          {/* PARENTS */}
+          <Route
+            path="/parents"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout breadcrumbs={["Accueil", "Parents"]}>
+                  <ParentsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* MATIÈRES */}
+          <Route
+            path="/matieres"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Académique", "Matières"]}
+                >
+                  <MatieresPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          {/* MATIÈRES */}
+          <Route
+            path="/evaluations"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Académique", "Evaluations"]}
+                >
+                  <EvaluationsPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* COURS */}
+          <Route
+            path="/cours"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Académique", "Cours"]}
+                >
+                  <CoursPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* SALLES */}
+          <Route
+            path="/salles"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout breadcrumbs={["Accueil", "Salles"]}>
+                  <SallesPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* ACADÉMIQUE */}
-          {["/cours", "/matieres", "/emploi-temps", "/evaluations"].map((p) => (
+          {["/emploi-temps"].map((p) => (
             <Route
               key={p}
               path={p}
@@ -195,19 +266,16 @@ function App() {
           ))}
 
           {/* RÉSULTATS & RAPPORTS */}
-          {["/resultats", "/rapports"].map((p) => (
-            <Route
-              key={p}
-              path={p}
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout breadcrumbs={["Accueil"]}>
-                    <ComingSoonPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-          ))}
+          <Route
+            path="/resultats"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout breadcrumbs={["Accueil"]}>
+                  <BulletinMINEDUC />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
 
           {/* PARAMÈTRES — Utilisateurs */}
           <Route

@@ -135,7 +135,7 @@ const ClassCard = ({ cls, selected, onSelect }) => {
     <motion.div
       whileHover={{ y: -2 }}
       onClick={() => onSelect(selected ? null : cls.id)}
-      className={`bg-white rounded-xl border cursor-pointer transition-all overflow-hidden ${
+      className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
         selected
           ? "border-[#0b57cd] shadow-lg shadow-[#0b57cd]/10 ring-2 ring-[#0b57cd]/15"
           : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
@@ -296,128 +296,144 @@ const ClassRow = ({ cls, selected, onSelect, onEdit, onDelete }) => {
   );
 };
 
-// ── DetailPanel ───────────────────────────────────────────────
+// ── DetailPanel (portal drawer) ───────────────────────────────
 
-const DetailPanel = ({ cls, onClose, onEdit, onDelete }) => {
+const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
+  if (!cls) return null;
   const pct = Math.round((cls.nombreEleves / (cls.capaciteMax || 1)) * 100);
   const fc = fillStyle(pct);
-  return (
-    <motion.div
-      key={cls.id}
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ type: "spring", damping: 28, stiffness: 340 }}
-      className="w-72 shrink-0 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden self-start sticky top-4"
-    >
-      {/* Header — couleur primaire uniforme */}
-      <div className="bg-linear-to-br from-[#0b57cd] to-[#0947ab] p-4 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-        <div className="w-12 h-12 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-base font-black mb-2 shadow-sm">
-          {cls.nom.slice(0, 2).toUpperCase()}
-        </div>
-        <h3 className="text-white font-bold text-[15px] leading-tight">
-          {cls.nom}
-        </h3>
-        <p className="text-white/70 text-[12px] mt-0.5">
-          {cls.niveau?.libelle} · {cls.anneeScolaire?.libelle}
-        </p>
-      </div>
-
-      <div className="p-4 space-y-4 overflow-y-auto">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            {
-              label: "Élèves",
-              value: cls.nombreEleves,
-              color: "text-[#0b57cd]",
-            },
-            {
-              label: "Places",
-              value: cls.capaciteMax - cls.nombreEleves,
-              color: "text-slate-600",
-            },
-            { label: "Rempli", value: `${pct}%`, color: fc.text },
-          ].map((s) => (
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            key="detail-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9979]"
+            style={{ background: "rgba(0,0,0,0.32)", backdropFilter: "blur(3px)" }}
+            onClick={onClose}
+          />
+          <motion.div
+            key="detail-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            className="fixed top-0 right-0 h-full w-full max-w-sm z-[9980] bg-white shadow-2xl flex flex-col"
+          >
+            {/* Header */}
             <div
-              key={s.label}
-              className="bg-gray-50 rounded-lg p-2.5 text-center"
+              className="shrink-0 px-5 py-5 relative"
+              style={{ background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)" }}
             >
-              <p className={`text-[15px] font-black ${s.color} leading-none`}>
-                {s.value}
-              </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-            Remplissage
-          </p>
-          <FillBar pct={pct} />
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-            Titulaire
-          </p>
-          {cls.titulaire ? (
-            <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg p-2.5">
-              <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-4 pr-8">
+                <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-xl font-black shadow-sm shrink-0">
+                  {cls.nom.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-white font-bold text-[16px] leading-tight truncate">
+                    {cls.nom}
+                  </h3>
+                  <p className="text-white/70 text-[12px] mt-0.5">
+                    {cls.niveau?.libelle}
+                    {cls.anneeScolaire?.libelle ? ` · ${cls.anneeScolaire.libelle}` : ""}
+                  </p>
+                  <div className="mt-1.5">
+                    <StatusBadge nombreEleves={cls.nombreEleves} capaciteMax={cls.capaciteMax} />
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+              {/* Stats mini */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Élèves", value: cls.nombreEleves, color: "text-[#0b57cd]" },
+                  { label: "Places", value: cls.capaciteMax - cls.nombreEleves, color: "text-slate-600" },
+                  { label: "Rempli", value: `${pct}%`, color: fc.text },
+                ].map((s) => (
+                  <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+                    <p className={`text-[17px] font-black ${s.color} leading-none`}>{s.value}</p>
+                    <p className="text-[10px] text-gray-400 mt-1 font-medium">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Remplissage */}
               <div>
-                <p className="text-[12px] font-semibold text-gray-800">
-                  {cls.titulaire.prenom} {cls.titulaire.nom}
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Remplissage
                 </p>
-                <p className="text-[10px] text-gray-400">
-                  {cls.titulaire.email}
-                </p>
+                <FillBar pct={pct} />
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 bg-amber-50 rounded-lg p-2.5 border border-amber-100">
-              <UserX className="w-4 h-4 text-amber-500 shrink-0" />
-              <p className="text-[12px] text-amber-700 font-medium">
-                Aucun titulaire assigné
-              </p>
-            </div>
-          )}
-        </div>
 
-        {cls.salleDefaut && (
-          <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-0.5">
-              Salle
-            </p>
-            <p className="text-[12px] font-semibold text-gray-700">
-              {cls.salleDefaut}
-            </p>
-          </div>
-        )}
+              {/* Titulaire */}
+              <div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Titulaire
+                </p>
+                {cls.titulaire ? (
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <div className="w-9 h-9 rounded-full bg-slate-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+                      {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-gray-800 truncate">
+                        {cls.titulaire.prenom} {cls.titulaire.nom}
+                      </p>
+                      <p className="text-[11px] text-gray-400 truncate">{cls.titulaire.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 bg-amber-50 rounded-xl p-3 border border-amber-100">
+                    <UserX className="w-4 h-4 text-amber-500 shrink-0" />
+                    <p className="text-[12px] text-amber-700 font-medium">Aucun titulaire assigné</p>
+                  </div>
+                )}
+              </div>
 
-        <div className="flex flex-col gap-2 pt-1">
-          <button
-            onClick={() => onEdit(cls)}
-            className="flex items-center justify-center gap-2 py-2 bg-[#0b57cd] text-white rounded-lg text-[12px] font-semibold hover:bg-[#0947ab] transition-colors"
-          >
-            <Edit2 className="w-3.5 h-3.5" /> Modifier
-          </button>
-          <button
-            onClick={() => onDelete(cls.id)}
-            className="flex items-center justify-center gap-2 py-2 bg-red-50 text-red-600 rounded-lg text-[12px] font-semibold hover:bg-red-100 transition-colors border border-red-100"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Supprimer
-          </button>
-        </div>
-      </div>
-    </motion.div>
+              {/* Salle */}
+              {cls.salleDefaut && (
+                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">
+                    Salle par défaut
+                  </p>
+                  <p className="text-[13px] font-semibold text-gray-700">{cls.salleDefaut}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex items-center justify-end gap-2">
+              <button
+                onClick={() => { onDelete(cls.id); onClose(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-[13px] font-semibold hover:bg-red-100 transition-colors border border-red-100"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Supprimer
+              </button>
+              <button
+                onClick={() => { onEdit(cls); onClose(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> Modifier
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 };
 
@@ -1060,7 +1076,7 @@ const ClassesPage = () => {
         {/* ── Contenu principal ── */}
         <motion.div {...fade(0.14)}>
           <div className="flex gap-4 items-start">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-full">
               {view === "grid" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {isLoading ? (
@@ -1185,21 +1201,6 @@ const ClassesPage = () => {
                 </div>
               )}
             </div>
-
-            {/* Detail panel */}
-            <AnimatePresence>
-              {selectedClasse && (
-                <DetailPanel
-                  cls={selectedClasse}
-                  onClose={() => setSelectedId(null)}
-                  onEdit={(c) => handleOpenModal("edit", c)}
-                  onDelete={(id) => {
-                    setSelectedId(null);
-                    setDeleteId(id);
-                  }}
-                />
-              )}
-            </AnimatePresence>
           </div>
         </motion.div>
 
@@ -1214,6 +1215,15 @@ const ClassesPage = () => {
           </motion.div>
         )}
       </div>
+
+      {/* ── Detail drawer ── */}
+      <DetailPanel
+        isOpen={selectedClasse !== null}
+        cls={selectedClasse}
+        onClose={() => setSelectedId(null)}
+        onEdit={(c) => { handleOpenModal("edit", c); }}
+        onDelete={(id) => { setDeleteId(id); }}
+      />
 
       {/* ── Modals ── */}
       <ClasseDrawer
