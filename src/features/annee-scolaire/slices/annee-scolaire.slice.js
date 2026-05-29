@@ -62,6 +62,22 @@ export const fetchAnneeByIdThunk = createAsyncThunk(
   },
 );
 
+export const setupAnneeThunk = createAsyncThunk(
+  "anneeScolaire/setupAnnee",
+  async (dto, { rejectWithValue }) => {
+    try { return await anneeScolaireService.setup(dto); }
+    catch (e) { return rejectWithValue(extractError(e)); }
+  },
+);
+
+export const regenererPeriodesThunk = createAsyncThunk(
+  "anneeScolaire/regenererPeriodes",
+  async ({ id, dto }, { rejectWithValue }) => {
+    try { return await anneeScolaireService.regenerer(id, dto); }
+    catch (e) { return rejectWithValue(extractError(e)); }
+  },
+);
+
 export const createAnneeThunk = createAsyncThunk(
   "anneeScolaire/createAnnee",
   async (dto, { rejectWithValue }) => {
@@ -259,6 +275,25 @@ const anneeScolaireSlice = createSlice({
         if (state.currentAnnee?.id === id) state.currentAnnee = null;
       })
       .addCase(deleteAnneeThunk.rejected,  (state, { payload }) => { state.isDeleting = false; state.error = payload; });
+
+    // ── setupAnnee ───────────────────────────────────────────
+    builder
+      .addCase(setupAnneeThunk.pending,   (state) => { state.isCreating = true;  state.error = null; })
+      .addCase(setupAnneeThunk.fulfilled, (state, { payload }) => {
+        state.isCreating = false;
+        state.annees.unshift(payload);
+      })
+      .addCase(setupAnneeThunk.rejected,  (state, { payload }) => { state.isCreating = false; state.error = payload; });
+
+    // ── regenererPeriodes ────────────────────────────────────
+    builder
+      .addCase(regenererPeriodesThunk.pending,   (state) => { state.isUpdating = true;  state.error = null; })
+      .addCase(regenererPeriodesThunk.fulfilled, (state, { payload }) => {
+        state.isUpdating = false;
+        state.annees = state.annees.map((a) => a.id === payload.id ? payload : a);
+        if (state.currentAnnee?.id === payload.id) state.currentAnnee = payload;
+      })
+      .addCase(regenererPeriodesThunk.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; });
 
     // ── createPeriode ────────────────────────────────────────
     builder

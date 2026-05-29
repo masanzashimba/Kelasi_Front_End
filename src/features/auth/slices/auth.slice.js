@@ -6,16 +6,21 @@ import {
   getRefreshToken,
   setTokens as persistTokens,
   clearTokens,
+  decodeToken,
 } from "../../../lib/tokenStorage";
 import { authService } from "../services/auth.service";
 import { resetSelector } from "../../annee-scolaire/slices/annee-selector.slice";
+const _storedToken = getAccessToken();
+const _tokenPayload = decodeToken(_storedToken);
+
 const initialState = {
   user: null,
   profile: null,
-  accessToken: getAccessToken(),
+  roleSysteme: _tokenPayload?.roleSysteme ?? null,
+  accessToken: _storedToken,
   refreshToken: getRefreshToken(),
   onboarding: null,
-  isAuthenticated: !!getAccessToken(),
+  isAuthenticated: !!_storedToken,
   isLoading: false,
   isRefreshing: false,
   error: null,
@@ -110,6 +115,7 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.profile = null;
+      state.roleSysteme = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.onboarding = null;
@@ -136,6 +142,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = payload.user;
+        state.roleSysteme = payload.user?.roleSysteme ?? null;
         state.accessToken = payload.accessToken;
         state.refreshToken = payload.refreshToken;
         state.onboarding = payload.onboarding;
@@ -161,6 +168,7 @@ const authSlice = createSlice({
       .addCase(fetchProfileThunk.fulfilled, (state, { payload }) => {
         state.isLoading = false;
         state.profile = payload;
+        state.roleSysteme = payload.roleSysteme ?? state.roleSysteme;
         state.onboarding = payload.onboarding;
         // Apres un refresh de page, state.user est null (loginThunk ne s'est pas rejoue).
         // On rehydrate uniquement les champs d'identite depuis le profil,
@@ -207,6 +215,7 @@ const authSlice = createSlice({
     builder.addCase(logoutThunk.fulfilled, (state) => {
       state.user = null;
       state.profile = null;
+      state.roleSysteme = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.onboarding = null;

@@ -7,35 +7,318 @@ import {
   Mail,
   Globe,
   ArrowRight,
+  ArrowLeft,
   AlertCircle,
   CheckCircle,
   Upload,
   X,
-  Image as ImageIcon,
-  Building2,
-  Map,
+  Sparkles,
+  GraduationCap,
+  BookOpen,
+  Users,
 } from "lucide-react";
-import Input from "../../components/ui/Input/Input";
-import Button from "../../components/ui/Button/Button";
+import pupilImg from "./../../../public/pupil.jpg";
 import { uploadService } from "../../services/upload.service";
 import { onboardingService } from "../../services/onboarding.service";
 import { useNavigate } from "react-router-dom";
 
-const SetupPage = () => {
+// ─────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────
+const STEPS = [
+  { id: 1, label: "Établissement", desc: "Nom, type & adresse", icon: School },
+  { id: 2, label: "Logo", desc: "Image de votre école", icon: Upload },
+  { id: 3, label: "Coordonnées", desc: "Contact & site web", icon: Phone },
+];
+
+const SCHOOL_TYPES = [
+  "Maternelle",
+  "Primaire",
+  "Secondaire",
+  "Maternelle et Primaire",
+  "Primaire et Secondaire",
+  "Université",
+  "Institut Supérieur",
+];
+
+const slideVariants = {
+  enter: (d) => ({ x: d > 0 ? 28 : -28, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (d) => ({ x: d > 0 ? -28 : 28, opacity: 0 }),
+};
+
+// ─────────────────────────────────────────────────────────
+//  PRIMITIVES
+// ─────────────────────────────────────────────────────────
+const Field = ({ label, required, optional, error, hint, children }) => (
+  <div className="flex flex-col gap-1">
+    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 leading-none">
+      {label}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
+      {optional && (
+        <span className="text-gray-400 font-normal normal-case text-[10px] ml-1">
+          optionnel
+        </span>
+      )}
+    </label>
+    {children}
+    {error && <p className="text-[10px] text-red-500 leading-none">{error}</p>}
+    {!error && hint && (
+      <p className="text-[10px] text-gray-400 leading-none">{hint}</p>
+    )}
+  </div>
+);
+
+const inputCls = (err, ok) =>
+  [
+    "w-full px-2.5 py-1.5 text-xs border rounded-lg outline-none transition-all bg-white text-gray-900 h-8",
+    err
+      ? "border-red-400 focus:ring-1 focus:ring-red-200"
+      : ok
+        ? "border-green-400 focus:ring-1 focus:ring-green-100"
+        : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-100",
+  ].join(" ");
+
+const Inp = ({
+  name,
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  type = "text",
+  error,
+  success,
+  className = "",
+}) => (
+  <input
+    name={name}
+    value={value}
+    onChange={onChange}
+    onBlur={onBlur}
+    placeholder={placeholder}
+    type={type}
+    className={`${inputCls(error, success)} ${className}`}
+  />
+);
+
+const Sel = ({ name, value, onChange, children }) => (
+  <select
+    name={name}
+    value={value}
+    onChange={onChange}
+    className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg outline-none bg-white text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all appearance-none cursor-pointer h-8"
+    style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "right 10px center",
+      paddingRight: 28,
+    }}
+  >
+    {children}
+  </select>
+);
+
+// ─────────────────────────────────────────────────────────
+//  LEFT PANEL  (50 %)
+// ─────────────────────────────────────────────────────────
+const LeftPanel = ({ step }) => (
+  <div className="hidden lg:flex relative w-1/2 shrink-0 flex-col overflow-hidden">
+    <img
+      src={pupilImg}
+      alt="Élèves"
+      className="absolute inset-0 w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-br from-[#07101f]/96 via-[#0b2d6e]/88 to-[#1557E8]/75" />
+
+    <div className="relative z-10 flex flex-col h-full px-10 py-9">
+      {/* Brand */}
+      {/* <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
+          <GraduationCap className="w-4 h-4 text-white" />
+        </div>
+        <span className="text-white font-bold text-lg tracking-tight">
+          Kelasi
+        </span>
+      </div> */}
+
+      {/* Hero */}
+      <div className="my-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shadow-sm backdrop-blur-sm">
+              <School className="w-5 h-5 text-blue-300" />
+            </div>
+
+            <div className="flex flex-col leading-tight">
+              <span className="text-white font-bold text-xl tracking-tight">
+                Kelasi
+              </span>
+
+              <span className="text-xs text-white/60 font-medium">
+                Gestion scolaire intelligente
+              </span>
+            </div>
+          </div>
+
+          <h2 className="text-4xl font-bold text-white leading-tight mb-2.5">
+            Configurez
+            <br />
+            votre école
+          </h2>
+          <p className="text-blue-200 text-xs leading-relaxed max-w-60">
+            Renseignez les informations de votre établissement pour commencer à
+            utiliser Kelasi.
+          </p>
+        </motion.div>
+
+        {/* Mini stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="grid grid-cols-2 gap-2.5 mt-7"
+        >
+          {[
+            { icon: Users, label: "Élèves", val: "Gestion complète" },
+            { icon: BookOpen, label: "Pédagogie", val: "Planning intégré" },
+          ].map(({ icon: Icon, label, val }) => (
+            <div
+              key={label}
+              className="bg-white/[0.07] border border-white/[0.09] rounded-xl p-3"
+            >
+              <Icon className="w-3.5 h-3.5 text-blue-300 mb-1.5" />
+              <p className="text-white font-semibold text-xs">{label}</p>
+              <p className="text-blue-300/70 text-[11px] mt-0.5">{val}</p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Step tracker */}
+      {/* <div className="mt-auto">
+        <p className="text-blue-300/60 text-[10px] uppercase tracking-widest font-bold mb-3">
+          Progression
+        </p>
+        <div className="space-y-2">
+          {STEPS.map((s) => {
+            const done = step > s.id,
+              cur = step === s.id;
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={s.id}
+                animate={{ opacity: done || cur ? 1 : 0.4 }}
+                className="flex items-center gap-2.5"
+              >
+                <div
+                  className={[
+                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300",
+                    done
+                      ? "bg-emerald-500/75 border border-emerald-400/40"
+                      : cur
+                        ? "bg-blue-500/75 border border-blue-400/40"
+                        : "bg-white/[0.07] border border-white/10",
+                  ].join(" ")}
+                >
+                  {done ? (
+                    <CheckCircle className="w-3.5 h-3.5 text-white" />
+                  ) : (
+                    <Icon className="w-3.5 h-3.5 text-white/70" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-xs font-medium truncate ${cur ? "text-white" : "text-white/55"}`}
+                  >
+                    {s.label}
+                  </p>
+                  <p className="text-blue-300/45 text-[10px] truncate">
+                    {s.desc}
+                  </p>
+                </div>
+                {cur && (
+                  <motion.div
+                    layoutId="dot"
+                    className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"
+                  />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div> */}
+
+      {/* Quote */}
+      <div className="mt-5 pt-5 border-t border-white/10">
+        <p className="text-blue-200/50 text-[11px] italic leading-relaxed">
+          "L'éducation est l'arme la plus puissante pour changer le monde."
+        </p>
+        <p className="text-blue-300/40 text-[10px] mt-0.5">— Nelson Mandela</p>
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────
+//  SUMMARY CARD
+// ─────────────────────────────────────────────────────────
+const SummaryCard = ({ formData, hasLogo }) => (
+  <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
+    <div className="flex items-center gap-1.5 mb-2">
+      <Sparkles className="w-3 h-3 text-blue-600" />
+      <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+        Résumé
+      </span>
+    </div>
+    {[
+      { k: "Nom", v: formData.nom },
+      { k: "Type", v: formData.type },
+      {
+        k: "Ville",
+        v: formData.ville ? `${formData.ville}, ${formData.pays}` : "",
+      },
+      { k: "Logo", v: hasLogo ? "✓ Ajouté" : "Non renseigné", ok: hasLogo },
+    ]
+      .filter((r) => r.v)
+      .map((row) => (
+        <div
+          key={row.k}
+          className="flex justify-between items-baseline py-1 border-b border-blue-100 last:border-0"
+        >
+          <span className="text-[11px] text-gray-500">{row.k}</span>
+          <span
+            className={`text-xs font-medium ${row.ok ? "text-emerald-600" : "text-gray-800"}`}
+          >
+            {row.v}
+          </span>
+        </div>
+      ))}
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────
+//  MAIN
+// ─────────────────────────────────────────────────────────
+export default function SetupPage() {
   const navigate = useNavigate();
+  const fileRef = useRef(null);
+
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [dir, setDir] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
-  const fileInputRef = useRef(null);
   const [touched, setTouched] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     nom: "",
     type: "Primaire et Secondaire",
-    // Adresse séparée en plusieurs champs
     numeroAvenue: "",
     avenue: "",
     quartier: "",
@@ -48,806 +331,616 @@ const SetupPage = () => {
     description: "",
   });
 
-  const handleChange = (e) => {
+  const rules = {
+    nom: (v) =>
+      !v.trim() ? "Requis" : v.trim().length < 3 ? "Min. 3 caractères" : "",
+    ville: (v) => (!v.trim() ? "Requise" : ""),
+    pays: (v) => (!v.trim() ? "Requis" : ""),
+    telephone: (v) =>
+      !v.trim() ? "Requis" : !/^[\d\s+\-()]+$/.test(v) ? "Format invalide" : "",
+    email: (v) =>
+      !v.trim()
+        ? "Requis"
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+          ? "Format invalide"
+          : "",
+    siteWeb: (v) =>
+      v.trim() && !/^https?:\/\/.+/.test(v)
+        ? "Doit commencer par http(s)://"
+        : "",
+  };
+
+  const applyRule = (name, value) => {
+    const msg = rules[name]?.(value) ?? "";
+    setFieldErrors((p) => ({ ...p, [name]: msg }));
+    return msg;
+  };
+
+  const onChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Marquer le champ comme touché
-    setTouched((prev) => ({ ...prev, [name]: true }));
-
-    // Valider le champ en temps réel
-    validateField(name, value);
+    setForm((p) => ({ ...p, [name]: value }));
+    setTouched((p) => ({ ...p, [name]: true }));
+    applyRule(name, value);
   };
 
-  const handleBlur = (e) => {
+  const onBlur = (e) => {
     const { name, value } = e.target;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    validateField(name, value);
+    setTouched((p) => ({ ...p, [name]: true }));
+    applyRule(name, value);
   };
 
-  const validateField = (name, value) => {
-    let error = "";
-
-    switch (name) {
-      case "nom":
-        if (!value.trim()) {
-          error = "Le nom de l'école est requis";
-        } else if (value.trim().length < 3) {
-          error = "Le nom doit contenir au moins 3 caractères";
-        }
-        break;
-
-      case "ville":
-        if (!value.trim()) {
-          error = "La ville est requise";
-        }
-        break;
-
-      case "pays":
-        if (!value.trim()) {
-          error = "Le pays est requis";
-        }
-        break;
-
-      case "telephone":
-        if (!value.trim()) {
-          error = "Le téléphone est requis";
-        } else if (!/^[\d\s\+\-\(\)]+$/.test(value)) {
-          error = "Format de téléphone invalide";
-        }
-        break;
-
-      case "email":
-        if (!value.trim()) {
-          error = "L'email est requis";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = "Format d'email invalide";
-        }
-        break;
-
-      case "siteWeb":
-        if (value.trim() && !/^https?:\/\/.+/.test(value)) {
-          error = "L'URL doit commencer par http:// ou https://";
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    setFieldErrors((prev) => ({ ...prev, [name]: error }));
-    return error === "";
+  const validateStep = (n) => {
+    const fields =
+      n === 1
+        ? ["nom", "ville", "pays"]
+        : n === 3
+          ? ["telephone", "email", "siteWeb"]
+          : [];
+    const errs = {};
+    fields.forEach((f) => {
+      const msg = rules[f]?.(form[f]) ?? "";
+      if (msg) errs[f] = msg;
+    });
+    setFieldErrors((p) => ({ ...p, ...errs }));
+    setTouched((p) => {
+      const t = { ...p };
+      fields.forEach((f) => (t[f] = true));
+      return t;
+    });
+    return Object.keys(errs).length === 0;
   };
 
-  const validateStep = (stepNumber) => {
-    let isValid = true;
-    const errors = {};
-
-    if (stepNumber === 1) {
-      // Valider les champs de l'étape 1
-      if (!formData.nom.trim()) {
-        errors.nom = "Le nom de l'école est requis";
-        isValid = false;
-      }
-      if (!formData.ville.trim()) {
-        errors.ville = "La ville est requise";
-        isValid = false;
-      }
-      if (!formData.pays.trim()) {
-        errors.pays = "Le pays est requis";
-        isValid = false;
-      }
-    } else if (stepNumber === 3) {
-      // Valider les champs de l'étape 3
-      if (!formData.telephone.trim()) {
-        errors.telephone = "Le téléphone est requis";
-        isValid = false;
-      } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.telephone)) {
-        errors.telephone = "Format de téléphone invalide";
-        isValid = false;
-      }
-
-      if (!formData.email.trim()) {
-        errors.email = "L'email est requis";
-        isValid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        errors.email = "Format d'email invalide";
-        isValid = false;
-      }
-
-      if (formData.siteWeb.trim() && !/^https?:\/\/.+/.test(formData.siteWeb)) {
-        errors.siteWeb = "L'URL doit commencer par http:// ou https://";
-        isValid = false;
-      }
-    }
-
-    setFieldErrors(errors);
-    return isValid;
+  const goTo = (n) => {
+    setDir(n > step ? 1 : -1);
+    setStep(n);
+    setError(null);
   };
-
-  const goToNextStep = () => {
-    if (validateStep(step)) {
-      setStep((prev) => prev + 1);
-      setError(null);
-    } else {
-      setError("Veuillez corriger les erreurs avant de continuer");
-    }
+  const next = () => {
+    if (validateStep(step)) goTo(step + 1);
+    else setError("Corrigez les erreurs avant de continuer.");
   };
+  const back = () => goTo(step - 1);
 
-  const handleLogoChange = (e) => {
+  const onLogoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        setError("Veuillez sélectionner une image valide");
-        return;
-      }
-
-      if (file.size > 2 * 1024 * 1024) {
-        setError("L'image ne doit pas dépasser 2 MB");
-        return;
-      }
-
-      setLogoFile(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setError(null);
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Image invalide.");
+      return;
     }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Max 2 Mo.");
+      return;
+    }
+    setLogoFile(file);
+    const r = new FileReader();
+    r.onloadend = () => setLogoPreview(r.result);
+    r.readAsDataURL(file);
+    setError(null);
   };
 
   const removeLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileRef.current) fileRef.current.value = "";
   };
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    // Valider l'étape finale
     if (!validateStep(3)) {
-      setError("Veuillez corriger les erreurs avant de soumettre");
+      setError("Corrigez les erreurs.");
       return;
     }
-
-    setIsLoading(true);
+    setLoading(true);
     setError(null);
-
     try {
-      // Construire l'adresse complète à partir des champs séparés
-      const adresseComplete = [
-        formData.numeroAvenue && `N° ${formData.numeroAvenue}`,
-        formData.avenue && `Av. ${formData.avenue}`,
-        formData.quartier && `Q. ${formData.quartier}`,
-        formData.commune && `C. ${formData.commune}`,
+      const adresse = [
+        form.numeroAvenue && `N° ${form.numeroAvenue}`,
+        form.avenue && `Av. ${form.avenue}`,
+        form.quartier && `Q. ${form.quartier}`,
+        form.commune && `C. ${form.commune}`,
       ]
         .filter(Boolean)
         .join(", ");
 
-      // Upload du logo si présent
       let logoUrl = "";
       if (logoFile) {
-        try {
-          const uploadResponse = await uploadService.uploadLogo(logoFile);
-          logoUrl = uploadResponse.url;
-          console.log("✅ Logo uploadé:", logoUrl);
-        } catch (uploadError) {
-          console.error("❌ Erreur upload logo:", uploadError);
-          setError("Erreur lors de l'upload du logo");
-          setIsLoading(false);
-          return;
-        }
+        const res = await uploadService.uploadLogo(logoFile);
+        logoUrl = res.url;
       }
 
-      // Préparer le payload pour l'API
-      const payload = {
-        nom: formData.nom.trim(),
-        type: formData.type,
-        adresse: adresseComplete || undefined,
-        ville: formData.ville.trim(),
-        pays: formData.pays.trim(),
-        telephone: formData.telephone.trim(),
-        email: formData.email.trim(),
-        siteWeb: formData.siteWeb.trim() || undefined,
-        description: formData.description.trim() || undefined,
+      await onboardingService.createSchool({
+        nom: form.nom.trim(),
+        type: form.type,
+        adresse: adresse || undefined,
+        ville: form.ville.trim(),
+        pays: form.pays.trim(),
+        telephone: form.telephone.trim(),
+        email: form.email.trim(),
+        siteWeb: form.siteWeb.trim() || undefined,
+        description: form.description.trim() || undefined,
         logoUrl: logoUrl || undefined,
-      };
-
-      console.log("📦 Payload:", payload);
-      console.log("📍 Adresse complète:", adresseComplete);
-
-      // Appeler l'API pour créer l'école
-      const response = await onboardingService.createSchool(payload);
-      console.log("✅ École créée:", response);
-
-      // Redirection vers le dashboard
+      });
       navigate("/dashboard");
     } catch (err) {
-      console.error("❌ Erreur:", err);
-      const errorMessage =
+      setError(
         err.response?.data?.message ||
-        err.message ||
-        "Une erreur est survenue lors de la configuration";
-      setError(errorMessage);
+          err.message ||
+          "Erreur lors de la configuration.",
+      );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const schoolTypes = [
-    "Primaire",
-    "Secondaire",
-    "Primaire et Secondaire",
-    "Maternelle",
-    "Maternelle et Primaire",
-    "Université",
-    "Institut Supérieur",
-  ];
+  const adressePreview = [
+    form.numeroAvenue && `N° ${form.numeroAvenue}`,
+    form.avenue && `Av. ${form.avenue}`,
+    form.quartier && `Q. ${form.quartier}`,
+    form.commune && `C. ${form.commune}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-3xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden"
-      >
-        {/* Header avec gradient */}
-        <div className="bg-gradient-to-r from-[#0b57cd] to-[#0947ab] p-8 text-white">
-          <div className="flex items-center justify-center mb-4">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-xl"
-            >
-              <School className="w-10 h-10 text-white" />
-            </motion.div>
+    // ── CONTENEUR PRINCIPAL : hauteur fixe, pas de scroll ──
+    <div className="h-screen flex overflow-hidden bg-gray-50">
+      {/* ── LEFT : 50 % ── */}
+      <LeftPanel step={step} />
+
+      {/* ── RIGHT : 50 % ── */}
+      <div className="w-full lg:w-1/2 flex flex-col overflow-hidden">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center gap-3 px-5 py-3 bg-white border-b border-gray-100 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+            <GraduationCap className="w-3.5 h-3.5 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-center mb-2">
-            Configuration de votre école
-          </h1>
-          <p className="text-center text-blue-100">
-            Renseignez les informations de votre établissement pour commencer
-          </p>
+          <span className="font-bold text-sm text-gray-900">Kelasi</span>
+          <span className="ml-auto text-[11px] text-gray-400">
+            Étape {step}/3
+          </span>
         </div>
 
-        <div className="p-8">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center gap-2">
-              {[1, 2, 3].map((s) => (
-                <div key={s} className="flex items-center">
-                  <motion.div
-                    animate={{ scale: step >= s ? 1 : 0.8 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s ? "bg-gradient-to-br from-[#0b57cd] to-[#0947ab] text-white shadow-lg" : "bg-gray-200 text-gray-500"}`}
-                  >
-                    {s}
-                  </motion.div>
-                  {s < 3 && (
-                    <div
-                      className={`w-16 h-1 mx-2 transition-all ${step > s ? "bg-gradient-to-r from-[#0b57cd] to-[#0947ab]" : "bg-gray-200"}`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Step Labels */}
-          <div className="flex justify-center gap-8 mb-8">
-            <div
-              className={`text-center ${step === 1 ? "text-[#0b57cd] font-semibold" : "text-gray-400"}`}
-            >
-              <p className="text-xs">Étape 1</p>
-              <p className="text-sm">Informations</p>
-            </div>
-            <div
-              className={`text-center ${step === 2 ? "text-[#0b57cd] font-semibold" : "text-gray-400"}`}
-            >
-              <p className="text-xs">Étape 2</p>
-              <p className="text-sm">Logo</p>
-            </div>
-            <div
-              className={`text-center ${step === 3 ? "text-[#0b57cd] font-semibold" : "text-gray-400"}`}
-            >
-              <p className="text-xs">Étape 3</p>
-              <p className="text-sm">Coordonnées</p>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
-              >
-                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-800">Erreur</p>
-                  <p className="text-sm text-red-600 mt-1">{error}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <AnimatePresence mode="wait">
-              {/* STEP 1 - Informations générales */}
-              {step === 1 && (
+        {/* ── ZONE FORMULAIRE : flex-1, centré, JAMAIS de scroll ── */}
+        <div className="flex-1 flex items-center justify-center px-8 py-6 overflow-hidden">
+          <div
+            className="w-full max-w-sm flex flex-col"
+            style={{ maxHeight: "100%" }}
+          >
+            {/* Header */}
+            <div className="shrink-0 mb-5">
+              {/* barre de progression */}
+              <div className="mt-2.5 h-1 bg-gray-100 rounded-full overflow-hidden">
                 <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-5"
-                >
-                  <Input
-                    label={
-                      <span>
-                        Nom de l'école <span className="text-red-500">*</span>
-                      </span>
-                    }
-                    type="text"
-                    name="nom"
-                    value={formData.nom}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Ex: Lycée Jean Dupont"
-                    leftIcon={<School className="w-4 h-4" />}
-                    error={touched.nom && fieldErrors.nom}
-                    success={
-                      touched.nom &&
-                      formData.nom.trim().length >= 3 &&
-                      !fieldErrors.nom
-                    }
-                    helperText="Minimum 3 caractères"
-                    required
-                  />
+                  animate={{ width: `${(step / 3) * 100}%` }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="h-full bg-blue-500 rounded-full"
+                />
+              </div>
+            </div>
 
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Type d'établissement{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition border border-gray-300 bg-white focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]"
-                      required
-                    >
-                      {schoolTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Adresse détaillée */}
-                  <div className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="w-4 h-4 text-[#0b57cd]" />
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        Adresse complète{" "}
-                        <span className="text-gray-500 font-normal text-xs">
-                          (optionnel)
-                        </span>
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        label="N° Avenue"
-                        type="text"
-                        name="numeroAvenue"
-                        value={formData.numeroAvenue}
-                        onChange={handleChange}
-                        placeholder="Ex: 123"
-                        leftIcon={<Building2 className="w-4 h-4" />}
-                      />
-                      <Input
-                        label="Avenue"
-                        type="text"
-                        name="avenue"
-                        value={formData.avenue}
-                        onChange={handleChange}
-                        placeholder="Ex: Kasaï"
-                        leftIcon={<Map className="w-4 h-4" />}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        label="Quartier"
-                        type="text"
-                        name="quartier"
-                        value={formData.quartier}
-                        onChange={handleChange}
-                        placeholder="Ex: Matonge"
-                        leftIcon={<MapPin className="w-4 h-4" />}
-                      />
-                      <Input
-                        label="Commune"
-                        type="text"
-                        name="commune"
-                        value={formData.commune}
-                        onChange={handleChange}
-                        placeholder="Ex: Kalamu"
-                        leftIcon={<MapPin className="w-4 h-4" />}
-                      />
-                    </div>
-
-                    {/* Preview de l'adresse */}
-                    {(formData.numeroAvenue ||
-                      formData.avenue ||
-                      formData.quartier ||
-                      formData.commune) && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-xs font-medium text-blue-900 mb-1">
-                          Aperçu de l'adresse :
-                        </p>
-                        <p className="text-sm text-blue-700">
-                          {[
-                            formData.numeroAvenue &&
-                              `N° ${formData.numeroAvenue}`,
-                            formData.avenue && `Av. ${formData.avenue}`,
-                            formData.quartier && `Q. ${formData.quartier}`,
-                            formData.commune && `C. ${formData.commune}`,
-                          ]
-                            .filter(Boolean)
-                            .join(", ")}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label={
-                        <span>
-                          Ville <span className="text-red-500">*</span>
-                        </span>
-                      }
-                      type="text"
-                      name="ville"
-                      value={formData.ville}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      placeholder="Kinshasa"
-                      error={touched.ville && fieldErrors.ville}
-                      success={
-                        touched.ville &&
-                        formData.ville.trim() &&
-                        !fieldErrors.ville
-                      }
-                      required
-                    />
-                    <Input
-                      label={
-                        <span>
-                          Pays <span className="text-red-500">*</span>
-                        </span>
-                      }
-                      type="text"
-                      name="pays"
-                      value={formData.pays}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      placeholder="RD Congo"
-                      error={touched.pays && fieldErrors.pays}
-                      success={
-                        touched.pays &&
-                        formData.pays.trim() &&
-                        !fieldErrors.pays
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Description{" "}
-                      <span className="text-gray-500 text-xs">(optionnel)</span>
-                    </label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      placeholder="Décrivez brièvement votre établissement..."
-                      rows="3"
-                      maxLength="500"
-                      className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition border border-gray-300 bg-white focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]"
-                    />
-                    <p className="text-xs text-gray-500 mt-1 text-right">
-                      {formData.description.length}/500 caractères
-                    </p>
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={goToNextStep}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
-                    className="w-full"
-                  >
-                    Continuer
-                  </Button>
-                </motion.div>
-              )}
-
-              {/* STEP 2 - Logo */}
-              {step === 2 && (
+            {/* Erreur */}
+            <AnimatePresence>
+              {error && (
                 <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-5"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="shrink-0 mb-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
                 >
-                  <div className="text-center mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Logo de l'école (optionnel)
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Ajoutez le logo de votre établissement pour personnaliser
-                      votre espace
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    {!logoPreview ? (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full max-w-md border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-[#0b57cd] hover:bg-blue-50/50 transition-all"
-                      >
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Upload className="w-8 h-8 text-[#0b57cd]" />
-                        </div>
-                        <p className="text-sm font-medium text-gray-900 mb-1">
-                          Cliquez pour télécharger
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG ou JPEG (max. 2MB)
-                        </p>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="relative"
-                      >
-                        <div className="w-48 h-48 rounded-xl overflow-hidden border-4 border-[#0b57cd] shadow-xl">
-                          <img
-                            src={logoPreview}
-                            alt="Logo preview"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          type="button"
-                          onClick={removeLogo}
-                          className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </motion.button>
-                      </motion.div>
-                    )}
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="hidden"
-                    />
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      onClick={() => setStep(1)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Retour
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setStep(3)}
-                      rightIcon={<ArrowRight className="w-4 h-4" />}
-                      className="flex-1"
-                    >
-                      Continuer
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* STEP 3 - Coordonnées */}
-              {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-5"
-                >
-                  <Input
-                    label={
-                      <span>
-                        Téléphone <span className="text-red-500">*</span>
-                      </span>
-                    }
-                    type="tel"
-                    name="telephone"
-                    value={formData.telephone}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="+243 123 456 789"
-                    leftIcon={<Phone className="w-4 h-4" />}
-                    error={touched.telephone && fieldErrors.telephone}
-                    success={
-                      touched.telephone &&
-                      formData.telephone.trim() &&
-                      !fieldErrors.telephone
-                    }
-                    helperText="Format: +243 XXX XXX XXX"
-                    required
-                  />
-
-                  <Input
-                    label={
-                      <span>
-                        Email <span className="text-red-500">*</span>
-                      </span>
-                    }
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="contact@ecole.cd"
-                    leftIcon={<Mail className="w-4 h-4" />}
-                    error={touched.email && fieldErrors.email}
-                    success={
-                      touched.email &&
-                      formData.email.trim() &&
-                      !fieldErrors.email
-                    }
-                    helperText="Email de contact de l'école"
-                    required
-                  />
-
-                  <Input
-                    label={
-                      <span>
-                        Site web{" "}
-                        <span className="text-gray-500 text-xs">
-                          (optionnel)
-                        </span>
-                      </span>
-                    }
-                    type="url"
-                    name="siteWeb"
-                    value={formData.siteWeb}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="https://www.ecole.cd"
-                    leftIcon={<Globe className="w-4 h-4" />}
-                    error={touched.siteWeb && fieldErrors.siteWeb}
-                    success={
-                      touched.siteWeb &&
-                      formData.siteWeb.trim() &&
-                      !fieldErrors.siteWeb
-                    }
-                    helperText="Doit commencer par http:// ou https://"
-                  />
-
-                  {/* Résumé des informations */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-[#0b57cd]" />
-                      Résumé de votre école
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Nom:</span>
-                        <span className="font-medium text-gray-900">
-                          {formData.nom}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        <span className="font-medium text-gray-900">
-                          {formData.type}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Ville:</span>
-                        <span className="font-medium text-gray-900">
-                          {formData.ville}, {formData.pays}
-                        </span>
-                      </div>
-                      {logoFile && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Logo:</span>
-                          <span className="font-medium text-green-600">
-                            ✓ Ajouté
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Retour
-                    </Button>
-
-                    <Button
-                      type="submit"
-                      loading={isLoading}
-                      disabled={isLoading}
-                      rightIcon={
-                        !isLoading && <CheckCircle className="w-4 h-4" />
-                      }
-                      className="flex-1"
-                    >
-                      {isLoading ? "Configuration..." : "Terminer"}
-                    </Button>
-                  </div>
+                  <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-600">{error}</p>
                 </motion.div>
               )}
             </AnimatePresence>
-          </form>
 
-          {/* Info Box */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100"
-          >
-            <div className="flex items-start gap-3">
-              <ImageIcon className="w-5 h-5 text-[#0b57cd] shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-1">
-                  À propos de vos informations
-                </p>
-                <p className="text-xs text-gray-600 mb-2">
-                  Toutes ces informations pourront être modifiées ultérieurement
-                  dans les paramètres de votre compte.
-                </p>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <span className="text-red-500">*</span>
-                  <span>Champs obligatoires</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            {/* Étapes */}
+            <form onSubmit={onSubmit} className="flex-1 min-h-0">
+              <AnimatePresence mode="wait" custom={dir}>
+                {/* ── ÉTAPE 1 ── */}
+                {step === 1 && (
+                  <motion.div
+                    key="s1"
+                    custom={dir}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex flex-col gap-3 h-full"
+                  >
+                    <Field
+                      label="Nom de l'école"
+                      required
+                      error={touched.nom && fieldErrors.nom}
+                    >
+                      <Inp
+                        name="nom"
+                        value={form.nom}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        placeholder="Institut Bondeko"
+                        error={touched.nom && fieldErrors.nom}
+                        success={
+                          touched.nom &&
+                          !fieldErrors.nom &&
+                          form.nom.length >= 3
+                        }
+                      />
+                    </Field>
+
+                    <Field label="Type d'établissement" required>
+                      <Sel name="type" value={form.type} onChange={onChange}>
+                        {SCHOOL_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </Sel>
+                    </Field>
+
+                    {/* Adresse compacte */}
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5 mb-2.5">
+                        <MapPin className="w-3 h-3 text-blue-500" />
+                        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
+                          Adresse
+                        </span>
+                        <span className="text-gray-400 text-[10px]">
+                          — optionnel
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <Field label="N°">
+                          <Inp
+                            name="numeroAvenue"
+                            value={form.numeroAvenue}
+                            onChange={onChange}
+                            placeholder="123"
+                          />
+                        </Field>
+                        <div className="col-span-2">
+                          <Field label="Avenue">
+                            <Inp
+                              name="avenue"
+                              value={form.avenue}
+                              onChange={onChange}
+                              placeholder="Av. Kasaï"
+                            />
+                          </Field>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Field label="Quartier">
+                          <Inp
+                            name="quartier"
+                            value={form.quartier}
+                            onChange={onChange}
+                            placeholder="Matonge"
+                          />
+                        </Field>
+                        <Field label="Commune">
+                          <Inp
+                            name="commune"
+                            value={form.commune}
+                            onChange={onChange}
+                            placeholder="Kalamu"
+                          />
+                        </Field>
+                      </div>
+                      {adressePreview && (
+                        <div className="mt-2 px-2.5 py-1.5 bg-blue-50 rounded-lg text-[10px] text-blue-700">
+                          <span className="font-semibold">Aperçu : </span>
+                          {adressePreview}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field
+                        label="Ville"
+                        required
+                        error={touched.ville && fieldErrors.ville}
+                      >
+                        <Inp
+                          name="ville"
+                          value={form.ville}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          placeholder="Kinshasa"
+                          error={touched.ville && fieldErrors.ville}
+                          success={
+                            touched.ville &&
+                            !fieldErrors.ville &&
+                            form.ville.trim()
+                          }
+                        />
+                      </Field>
+                      <Field
+                        label="Pays"
+                        required
+                        error={touched.pays && fieldErrors.pays}
+                      >
+                        <Inp
+                          name="pays"
+                          value={form.pays}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          placeholder="RD Congo"
+                          error={touched.pays && fieldErrors.pays}
+                          success={
+                            touched.pays &&
+                            !fieldErrors.pays &&
+                            form.pays.trim()
+                          }
+                        />
+                      </Field>
+                    </div>
+
+                    <Field label="Description" optional>
+                      <div className="relative">
+                        <textarea
+                          name="description"
+                          value={form.description}
+                          onChange={onChange}
+                          placeholder="Décrivez brièvement votre établissement…"
+                          rows={2}
+                          maxLength={500}
+                          className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg outline-none bg-white text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition-all resize-none leading-relaxed pb-5"
+                        />
+                        <span className="absolute bottom-1.5 right-2.5 text-[9px] text-gray-400">
+                          {form.description.length}/500
+                        </span>
+                      </div>
+                    </Field>
+
+                    <button
+                      type="button"
+                      onClick={next}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors mt-auto"
+                    >
+                      Continuer <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* ── ÉTAPE 2 ── */}
+                {step === 2 && (
+                  <motion.div
+                    key="s2"
+                    custom={dir}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex flex-col items-center gap-5 h-full justify-center"
+                  >
+                    <p className="text-xs text-gray-500 text-center max-w-xs leading-relaxed">
+                      Le logo apparaîtra sur les bulletins et l'interface. Cette
+                      étape est optionnelle.
+                    </p>
+
+                    {!logoPreview ? (
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02, borderColor: "#3B82F6" }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => fileRef.current?.click()}
+                        className="w-40 h-40 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-3 cursor-pointer bg-gray-50 hover:bg-blue-50 transition-colors"
+                      >
+                        <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center">
+                          <Upload className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-semibold text-gray-800">
+                            Charger un logo
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            PNG, JPG — max 2 Mo
+                          </p>
+                        </div>
+                      </motion.button>
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="relative"
+                      >
+                        <div className="w-40 h-40 rounded-2xl overflow-hidden border-2 border-blue-500 shadow-lg shadow-blue-100">
+                          <img
+                            src={logoPreview}
+                            alt="Logo"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeLogo}
+                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-3 h-3 text-white" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileRef.current?.click()}
+                          className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors whitespace-nowrap"
+                        >
+                          Changer
+                        </button>
+                      </motion.div>
+                    )}
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={onLogoChange}
+                      className="hidden"
+                    />
+
+                    <div className="flex gap-2.5 w-full mt-auto">
+                      <button
+                        type="button"
+                        onClick={back}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" /> Retour
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => goTo(3)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors"
+                      >
+                        {logoFile ? "Continuer" : "Passer"}{" "}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── ÉTAPE 3 ── */}
+                {step === 3 && (
+                  <motion.div
+                    key="s3"
+                    custom={dir}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex flex-col gap-3 h-full"
+                  >
+                    <Field
+                      label="Téléphone"
+                      required
+                      hint="+243 XXX XXX XXX"
+                      error={touched.telephone && fieldErrors.telephone}
+                    >
+                      <div className="relative">
+                        <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                        <Inp
+                          name="telephone"
+                          value={form.telephone}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          placeholder="+243 123 456 789"
+                          type="tel"
+                          className="pl-8"
+                          error={touched.telephone && fieldErrors.telephone}
+                          success={
+                            touched.telephone &&
+                            !fieldErrors.telephone &&
+                            form.telephone.trim()
+                          }
+                        />
+                      </div>
+                    </Field>
+
+                    <Field
+                      label="Email"
+                      required
+                      hint="Email de contact de l'école"
+                      error={touched.email && fieldErrors.email}
+                    >
+                      <div className="relative">
+                        <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                        <Inp
+                          name="email"
+                          value={form.email}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          placeholder="contact@ecole.cd"
+                          type="email"
+                          className="pl-8"
+                          error={touched.email && fieldErrors.email}
+                          success={
+                            touched.email &&
+                            !fieldErrors.email &&
+                            form.email.trim()
+                          }
+                        />
+                      </div>
+                    </Field>
+
+                    <Field
+                      label="Site web"
+                      optional
+                      error={touched.siteWeb && fieldErrors.siteWeb}
+                    >
+                      <div className="relative">
+                        <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                        <Inp
+                          name="siteWeb"
+                          value={form.siteWeb}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          placeholder="https://www.ecole.cd"
+                          type="url"
+                          className="pl-8"
+                          error={touched.siteWeb && fieldErrors.siteWeb}
+                          success={
+                            touched.siteWeb &&
+                            !fieldErrors.siteWeb &&
+                            form.siteWeb.trim()
+                          }
+                        />
+                      </div>
+                    </Field>
+
+                    <SummaryCard formData={form} hasLogo={!!logoFile} />
+
+                    <div className="flex gap-2.5 mt-auto">
+                      <button
+                        type="button"
+                        onClick={back}
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" /> Retour
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-xs font-semibold transition-colors ${loading ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+                      >
+                        {loading ? (
+                          <>
+                            <Spinner /> Configuration…
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5" /> Créer
+                            l'école
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </form>
+
+            {/* <p className="shrink-0 text-[10px] text-gray-400 text-center mt-4">
+              Ces informations sont modifiables dans les paramètres.{" "}
+              <span className="text-red-400">*</span> champs obligatoires.
+            </p> */}
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
-};
+}
 
-export default SetupPage;
+const Spinner = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    style={{ animation: "spin 1s linear infinite" }}
+  >
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);

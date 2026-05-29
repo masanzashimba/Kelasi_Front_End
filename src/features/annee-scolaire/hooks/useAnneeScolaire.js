@@ -5,6 +5,8 @@ import {
   fetchAnneesThunk,
   fetchAnneeActiveThunk,
   fetchAnneeByIdThunk,
+  setupAnneeThunk,
+  regenererPeriodesThunk,
   createAnneeThunk,
   updateAnneeThunk,
   activerAnneeThunk,
@@ -65,6 +67,16 @@ export const useAnneeScolaire = () => {
   const fetchAnneeById = useCallback((id) => dispatch(fetchAnneeByIdThunk(id)), [dispatch]);
 
   // ── Mutations Années ───────────────────────────────────────
+  const setupAnnee = useCallback(
+    (dto) => wrap(dispatch, setupAnneeThunk, dto),
+    [dispatch],
+  );
+
+  const regenererPeriodes = useCallback(
+    (id, dto) => wrap(dispatch, regenererPeriodesThunk, { id, dto }),
+    [dispatch],
+  );
+
   const createAnnee = useCallback(
     (dto) => wrap(dispatch, createAnneeThunk, dto),
     [dispatch],
@@ -152,6 +164,8 @@ export const useAnneeScolaire = () => {
     fetchAnneeById,
 
     // Mutations Années
+    setupAnnee,
+    regenererPeriodes,
     createAnnee,
     updateAnnee,
     activerAnnee,

@@ -15,7 +15,6 @@ import Button from "../../components/ui/Button/Button";
 const ChangePasswordPage = () => {
   const { changePassword, isLoading, error } = useAuth();
   const [formData, setFormData] = useState({
-    currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -34,28 +33,16 @@ const ChangePasswordPage = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.currentPassword) {
-      newErrors.currentPassword = "Mot de passe actuel requis";
-    }
-
     if (!formData.newPassword) {
       newErrors.newPassword = "Nouveau mot de passe requis";
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = "Minimum 6 caractères";
+    } else if (formData.newPassword.length < 8) {
+      newErrors.newPassword = "Minimum 8 caractères";
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Confirmation requise";
     } else if (formData.newPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
-    }
-
-    if (
-      formData.currentPassword &&
-      formData.newPassword &&
-      formData.currentPassword === formData.newPassword
-    ) {
-      newErrors.newPassword = "Le nouveau mot de passe doit être différent";
     }
 
     setErrors(newErrors);
@@ -69,7 +56,6 @@ const ChangePasswordPage = () => {
     if (!validate()) return;
 
     const result = await changePassword({
-      currentPassword: formData.currentPassword,
       newPassword: formData.newPassword,
     });
 
@@ -165,20 +151,6 @@ const ChangePasswordPage = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Current Password */}
-          <Input
-            label="Mot de passe actuel"
-            type="password"
-            name="currentPassword"
-            value={formData.currentPassword}
-            onChange={handleChange}
-            placeholder="Entrez votre mot de passe actuel"
-            leftIcon={<Lock className="w-4 h-4" />}
-            error={errors.currentPassword}
-            disabled={isLoading}
-            required
-          />
-
           {/* New Password */}
           <div>
             <Input

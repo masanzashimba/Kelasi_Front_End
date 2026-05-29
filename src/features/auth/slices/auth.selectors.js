@@ -67,10 +67,12 @@ export const selectPlanLimites = createSelector(
   (ecole) => ecole?.limites ?? null,
 );
 
+const selectRoleSysteme = (state) => state.auth.roleSysteme;
+
 export const selectIsSuperAdmin = createSelector(
   selectUser,
-
-  (user) => user?.roleSysteme === "SUPER_ADMIN",
+  selectRoleSysteme,
+  (user, roleSysteme) => (user?.roleSysteme ?? roleSysteme) === "SUPER_ADMIN",
 );
 
 export const selectIsDirecteur = createSelector(

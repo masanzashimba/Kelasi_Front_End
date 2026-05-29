@@ -5,6 +5,10 @@ const BASE = "/annees-scolaires";
 
 export const anneeScolaireService = {
   // ── Années ──────────────────────────────────────────────────
+  setup:            (dto)          => api.post(`${BASE}/setup`, dto).then((r) => r.data),
+  regenerer:        (id, dto)      => api.post(`${BASE}/${id}/regenerer`, dto).then((r) => r.data),
+  getCycleConfigs:  ()             => api.get(`${BASE}/cycle-configs`).then((r) => r.data),
+  upsertCycleConfig:(cycle, dto)   => api.put(`${BASE}/cycle-configs/${cycle}`, dto).then((r) => r.data),
   findAll:    ()        => api.get(BASE).then((r) => r.data),
   findActive: ()        => api.get(`${BASE}/active`).then((r) => r.data),
   findOne:    (id)      => api.get(`${BASE}/${id}`).then((r) => r.data),

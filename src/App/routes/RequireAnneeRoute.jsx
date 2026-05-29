@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnneeSelector } from "../../features/annee-scolaire/hooks/useAnneeSelector";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import AnneeWarning from "../../components/annee-scolaire/AnneeWarning";
 
 /**
@@ -10,7 +11,11 @@ import AnneeWarning from "../../components/annee-scolaire/AnneeWarning";
  */
 const RequireAnneeRoute = ({ children, showWarning = true }) => {
   const { selectedAnnee, isLoading, error } = useAnneeSelector();
+  const { isSuperAdmin } = useAuth();
   const navigate = useNavigate();
+
+  // Le superAdmin n'a pas d'école — il ne doit jamais être bloqué
+  if (isSuperAdmin) return children;
 
   useEffect(() => {
     // Si pas de chargement et pas d'année, rediriger après un délai

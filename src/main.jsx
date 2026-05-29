@@ -6,8 +6,4 @@ import { injectStore } from "./lib/axios";
 import { store } from "./store";
 
 injectStore(store);
-ReactDOM.createRoot(document.getElementById("app")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+ReactDOM.createRoot(document.getElementById("app")).render(<App />);

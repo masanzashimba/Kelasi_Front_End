@@ -18,6 +18,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useAnneeSelector } from "../../features/annee-scolaire/hooks/useAnneeSelector";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 import AnneeWarning from "../../components/annee-scolaire/AnneeWarning";
 
 // ── Données statiques (à rendre dynamiques plus tard) ──────────────────────
@@ -214,8 +215,9 @@ const Card = ({ children, className = "" }) => (
 
 const DashboardPage = () => {
   const { selectedAnnee, isLoading } = useAnneeSelector();
+  const { isSuperAdmin } = useAuth();
 
-  if (!isLoading && !selectedAnnee) return <AnneeWarning />;
+  if (!isSuperAdmin && !isLoading && !selectedAnnee) return <AnneeWarning />;
 
   const fade = (delay = 0) => ({
     initial: { opacity: 0, y: 16 },

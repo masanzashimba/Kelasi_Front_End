@@ -94,7 +94,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
 
   const allItems = isSuperAdmin
-    ? [baseMenuItems[0], adminMenuItem, ...baseMenuItems.slice(1)]
+    ? [baseMenuItems[0], adminMenuItem]
     : baseMenuItems;
 
   const groupedItems = groups.map((group) => ({

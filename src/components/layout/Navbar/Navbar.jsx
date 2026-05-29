@@ -25,7 +25,7 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
   const {
     anneeActive,
     anneesDisponibles,
@@ -379,7 +379,7 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
 
       {/* ── Bandeau année non configurée ── */}
       <AnimatePresence>
-        {(aucuneAnnee || aucuneAnneeActive) && (
+        {!isSuperAdmin && (aucuneAnnee || aucuneAnneeActive) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
