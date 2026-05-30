@@ -1,0 +1,2069 @@
+{
+  "meta": {
+    "pays": "République Démocratique du Congo",
+    "ministere": "Ministère de l'Éducation Nationale et Nouvelle Citoyenneté",
+    "source": "Bulletins officiels IGE",
+    "annee_scolaire": "2024-2025",
+    "description": "Référentiel complet des branches (matières) par niveau scolaire, classées par domaine"
+  },
+  "domaines": {
+    "LANGUES": { "label": "Domaine des Langues" },
+    "MATHS": { "label": "Domaine des Mathématiques, Sciences & Technologie" },
+    "SCIENCES": { "label": "Domaine des Sciences" },
+    "SOCIAL": { "label": "Domaine de l'Univers Social & Environnement" },
+    "ARTS": { "label": "Domaine des Arts" },
+    "DEV": { "label": "Domaine du Développement Personnel" },
+    "TECH": { "label": "Techniques & Pratique Professionnelle" }
+  },
+  "niveaux": [
+    {
+      "id": "1-2P",
+      "cycle": "PRIMAIRE",
+      "degre": "Élémentaire",
+      "label": "1ère & 2ème Primaire",
+      "abreviation": "1-2P",
+      "reference_ige": "IGE/P.S/004",
+      "cours": [
+        {
+          "domaine": "LANGUES",
+          "nom": "Expression Orale (Langues Congolaises)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Expression Écrite (Langues Congolaises)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Vocabulaire (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Expression Orale (Français)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langues Congolaises",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Mesures des grandeurs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Formes géométriques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "MATHS", "nom": "Numération", "max_pts_periode": 20 },
+        { "domaine": "MATHS", "nom": "Opérations", "max_pts_periode": 20 },
+        { "domaine": "MATHS", "nom": "Problèmes", "max_pts_periode": 20 },
+        {
+          "domaine": "MATHS",
+          "nom": "Sciences d'éveil",
+          "max_pts_periode": 20
+        },
+        { "domaine": "MATHS", "nom": "Technologie", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Santé & Environnement",
+          "max_pts_periode": 10
+        },
+        { "domaine": "ARTS", "nom": "Arts plastiques", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts dramatiques", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Éd. Physique & Sportive",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Init. Travaux Productifs",
+          "max_pts_periode": 10
+        },
+        { "domaine": "DEV", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "3-4P",
+      "cycle": "PRIMAIRE",
+      "degre": "Moyen",
+      "label": "3ème & 4ème Primaire",
+      "abreviation": "3-4P",
+      "reference_ige": "IGE/P.S/005",
+      "cours": [
+        {
+          "domaine": "LANGUES",
+          "nom": "Exp. Orale & Vocabulaire (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Grammaire & Conjugaison (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orthographe & Rédaction (Langues Congolaises)",
+          "max_pts_periode": 5
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Expr. Orale – Récitation – Vocabulaire (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orth. Phras. Écriture & Rédaction (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Grammaire – Conjugaison - Analyse (Français)",
+          "max_pts_periode": 15
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langues Congolaises",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langue Française",
+          "max_pts_periode": 30
+        },
+        { "domaine": "MATHS", "nom": "Numération", "max_pts_periode": 10 },
+        { "domaine": "MATHS", "nom": "Opérations", "max_pts_periode": 10 },
+        {
+          "domaine": "MATHS",
+          "nom": "Mesures des grandeurs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Formes géométriques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "MATHS", "nom": "Problèmes", "max_pts_periode": 20 },
+        {
+          "domaine": "MATHS",
+          "nom": "Zoologie – Botanique & Informatique",
+          "max_pts_periode": 10
+        },
+        { "domaine": "MATHS", "nom": "Technologie", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation Santé & Environnement",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts plastiques", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts dramatiques", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Éd. Physique & Sportive",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Init. Travaux Productifs",
+          "max_pts_periode": 10
+        },
+        { "domaine": "DEV", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "5P",
+      "cycle": "PRIMAIRE",
+      "degre": "Terminal",
+      "label": "5ème Primaire",
+      "abreviation": "5P",
+      "reference_ige": "IGE/P.S/006",
+      "cours": [
+        {
+          "domaine": "LANGUES",
+          "nom": "Gram. & Conj. (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Expr. Orale & Vocab. (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orth. & Rédaction (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Exp. Oral & Vocab. (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orthographe (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Rédaction (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Gram. Conj. Analyse (Français)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langues Congolaises",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langue Française",
+          "max_pts_periode": 20
+        },
+        { "domaine": "MATHS", "nom": "Numération", "max_pts_periode": 10 },
+        { "domaine": "MATHS", "nom": "Opérations", "max_pts_periode": 10 },
+        {
+          "domaine": "MATHS",
+          "nom": "Mesures des grandeurs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Formes géométriques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "MATHS", "nom": "Problèmes", "max_pts_periode": 20 },
+        {
+          "domaine": "MATHS",
+          "nom": "Phys. – Zoologie – Informatique",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Anatomie – Botanique",
+          "max_pts_periode": 20
+        },
+        { "domaine": "MATHS", "nom": "Technologie", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Santé & Environnement",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts Plastiques", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts Dramatiques", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Init. Travaux Productifs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éd. Physique & Sportive",
+          "max_pts_periode": 10
+        },
+        { "domaine": "DEV", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "6P",
+      "cycle": "PRIMAIRE",
+      "degre": "Terminal",
+      "label": "6ème Primaire (ENAFEP)",
+      "abreviation": "6P",
+      "reference_ige": "IGE/P.S/006",
+      "examen_national": "ENAFEP",
+      "cours": [
+        {
+          "domaine": "LANGUES",
+          "nom": "Gram. & Conj. (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Expr. Orale & Vocab. (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orth. & Rédaction (Langues Congolaises)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Exp. Oral & Vocab. (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Orthographe (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Rédaction (Français)",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Gram. Conj. Analyse (Français)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langues Congolaises",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "LANGUES",
+          "nom": "Lecture-Écriture en Langue Française",
+          "max_pts_periode": 20
+        },
+        { "domaine": "MATHS", "nom": "Numération", "max_pts_periode": 10 },
+        { "domaine": "MATHS", "nom": "Opérations", "max_pts_periode": 10 },
+        {
+          "domaine": "MATHS",
+          "nom": "Mesures des grandeurs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Formes géométriques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "MATHS", "nom": "Problèmes", "max_pts_periode": 20 },
+        {
+          "domaine": "MATHS",
+          "nom": "Phys. – Zoologie – Informatique",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "MATHS",
+          "nom": "Anatomie – Botanique",
+          "max_pts_periode": 20
+        },
+        { "domaine": "MATHS", "nom": "Technologie", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Santé & Environnement",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts Plastiques", "max_pts_periode": 10 },
+        { "domaine": "ARTS", "nom": "Arts Dramatiques", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Init. Travaux Productifs",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éd. Physique & Sportive",
+          "max_pts_periode": 10
+        },
+        { "domaine": "DEV", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "7A",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "TRONC_COMMUN",
+      "label": "7ème Année — Tronc Commun (CTEB)",
+      "abreviation": "7A",
+      "reference_ige": "IGE/P.S./007",
+      "cours": [
+        { "domaine": "SCIENCES", "nom": "Arithmétique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Statistique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Géométrie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Algèbre", "max_pts_periode": 40 },
+        { "domaine": "SCIENCES", "nom": "Anatomie", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Botanique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Zoologie", "max_pts_periode": 10 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Sciences Physiques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SCIENCES", "nom": "Technologie", "max_pts_periode": 10 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "TIC (Techn. Info. & Communication)",
+          "max_pts_periode": 10
+        },
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 70 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 30 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        { "domaine": "ARTS", "nom": "Dessin", "max_pts_periode": 20 },
+        { "domaine": "ARTS", "nom": "Musique", "max_pts_periode": 20 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "8A",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "TRONC_COMMUN",
+      "label": "8ème Année — Tronc Commun (CTEB + TENASOSP)",
+      "abreviation": "8A",
+      "reference_ige": "IGE/P.S./008",
+      "examen_national": "TENASOSP",
+      "cours": [
+        { "domaine": "SCIENCES", "nom": "Arithmétique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Statistique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Géométrie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Algèbre", "max_pts_periode": 40 },
+        { "domaine": "SCIENCES", "nom": "Anatomie", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Botanique", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Nutrition", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "Zoologie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 10 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Sciences Physiques",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SCIENCES", "nom": "Technologie", "max_pts_periode": 10 },
+        { "domaine": "SCIENCES", "nom": "TIC", "max_pts_periode": 10 },
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 30 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 30 },
+        { "domaine": "ARTS", "nom": "Dessin", "max_pts_periode": 20 },
+        { "domaine": "ARTS", "nom": "Musique", "max_pts_periode": 20 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-SC",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "SCIENTIFIQUE",
+      "label": "Humanités Scientifiques (1ère–3ème)",
+      "abreviation": "H-SC",
+      "reference_ige": "IGE/P.S./012",
+      "cours": [
+        {
+          "domaine": "SCIENCES",
+          "nom": "Algèbre, Stat. & Analyse",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Géométrie & Trigonométrie",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Dessin scientifique",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie générale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Microbiologie",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Géologie / Écologie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 30 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 30 },
+        { "domaine": "SCIENCES", "nom": "TIC", "max_pts_periode": 10 },
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 30 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Sociologie africaine",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 10
+        }
+      ]
+    },
+    {
+      "id": "H-LP",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "LITTERAIRE",
+      "option": "Latin-Philosophie",
+      "label": "Humanités Latin-Philosophie (1ère–4ème)",
+      "abreviation": "H-LP",
+      "reference_ige": "IGE/PS/009-011",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Latin", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Esthétique (3ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Sociologie / Économie Politique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-LG",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "LITTERAIRE",
+      "option": "Latin-Grec",
+      "label": "Humanités Latin-Grec (1ère–4ème)",
+      "abreviation": "H-LG",
+      "reference_ige": "IGE/PS/018-020",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Latin", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Grec", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 40 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Biologie", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Esthétique (3ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-LM",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "LITTERAIRE",
+      "option": "Latin-Mathématiques",
+      "label": "Humanités Latin-Mathématiques (1ère–4ème)",
+      "abreviation": "H-LM",
+      "reference_ige": "IGE/PS/021-023",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Latin", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 40 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Esthétique (3ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Sociologie / Économie Politique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-PG",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "PEDAGOGIQUE",
+      "option": "Pédagogie Générale",
+      "label": "Pédagogie Générale (1ère–4ème)",
+      "abreviation": "H-PG",
+      "reference_ige": "IGE/PS/024-027",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 50 },
+        {
+          "domaine": "LANGUES",
+          "nom": "Langues nationales",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Biologie", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Pédagogie", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Psychologie", "max_pts_periode": 50 },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique générale",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique des disciplines",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Travail manuel / Écriture",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique d'Enseignement",
+          "max_pts_periode": 100
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "ARTS",
+          "nom": "Éducation musicale / Théâtrale",
+          "max_pts_periode": 20
+        },
+        { "domaine": "ARTS", "nom": "Dessin", "max_pts_periode": 50 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-PM",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "PEDAGOGIQUE",
+      "option": "Pédagogie Maternelle",
+      "label": "Pédagogie Maternelle (1ère–4ème)",
+      "abreviation": "H-PM",
+      "reference_ige": "IGE/P.S./034-037",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 50 },
+        {
+          "domaine": "LANGUES",
+          "nom": "Langues nationales",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Pédagogie", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Psychologie", "max_pts_periode": 50 },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique générale",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique maternelle",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Travail manuel / Écriture",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique d'Enseignement",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Exploration du milieu (4ème)",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Hygiène", "max_pts_periode": 10 },
+        {
+          "domaine": "ARTS",
+          "nom": "Éducation musicale / Théâtrale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "ARTS",
+          "nom": "Dessin pédagogique & Artistique",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-PPS",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "PEDAGOGIQUE",
+      "option": "Pédagogie Pré-Scolaire",
+      "label": "Pédagogie Pré-Scolaire (1ère–4ème)",
+      "abreviation": "H-PPS",
+      "reference_ige": "IGE/P.S./038-041",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 50 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Pédagogie", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Psychologie", "max_pts_periode": 50 },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique générale",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique maternelle",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique d'Enseignement",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Éducation plastique – Bricolage",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Psychomotricité", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Technique audio-visuelle",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Exploration du milieu",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "ARTS",
+          "nom": "Éducation musicale / Théâtrale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "ARTS",
+          "nom": "Dessin pédagogique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        },
+        { "domaine": "DEV", "nom": "Éveil religieux", "max_pts_periode": 20 }
+      ]
+    },
+    {
+      "id": "H-EP",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "DEVELOPPEMENT_PERSONNEL",
+      "option": "Éducation Physique",
+      "label": "Éducation Physique (1ère–4ème)",
+      "abreviation": "H-EP",
+      "reference_ige": "IGE/P.S./028-030",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie : Anatomie – Physiologie",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Théorie de l'EPS", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Didactique de l'EPS",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Psychopédagogie", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique sportive / Pratique d'Enseignement",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Gymnastique sportive",
+          "max_pts_periode": 50
+        },
+        { "domaine": "TECH", "nom": "Sports", "max_pts_periode": 50 },
+        {
+          "domaine": "TECH",
+          "nom": "Travail manuel des sports",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Aérobie – Danse", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-AP",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "ARTISTIQUE",
+      "option": "Arts Plastiques",
+      "label": "Arts Plastiques (1ère–4ème)",
+      "abreviation": "H-AP",
+      "reference_ige": "IGE/P.S./060-062",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Croquis", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Atelier / Visite", "max_pts_periode": 60 },
+        {
+          "domaine": "TECH",
+          "nom": "Anatomie artistique",
+          "max_pts_periode": 30
+        },
+        { "domaine": "TECH", "nom": "Esthétique", "max_pts_periode": 30 },
+        { "domaine": "TECH", "nom": "Filmologie", "max_pts_periode": 30 },
+        {
+          "domaine": "TECH",
+          "nom": "Histoire de l'art",
+          "max_pts_periode": 30
+        },
+        { "domaine": "TECH", "nom": "Musicologie", "max_pts_periode": 30 },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie / Ameublement",
+          "max_pts_periode": 30
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Histoire générale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Microbiologie", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-MU",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "ARTISTIQUE",
+      "option": "Musique",
+      "label": "Musique (1ère–4ème)",
+      "abreviation": "H-MU",
+      "reference_ige": "IGE/P.S./066-068",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Instruments principaux",
+          "max_pts_periode": 50
+        },
+        { "domaine": "TECH", "nom": "Solfège chanté", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Théorie musicale", "max_pts_periode": 50 },
+        {
+          "domaine": "TECH",
+          "nom": "Auditions musicales",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Interprétation musicale",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Histoire de la musique",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Transposition musicale",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Dictée musicale", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Instruments traditionnels",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Histoire générale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Philosophie (4ème)",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-SA",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "COMMERCIALE",
+      "option": "Secrétariat & Administration",
+      "label": "Secrétariat & Administration (1ère–4ème)",
+      "abreviation": "H-SA",
+      "reference_ige": "IGE/P.S./046-049",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 40 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 30 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Comptabilité générale",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Correspondance comm. & adm. française",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Correspondance comm. & adm. anglaise",
+          "max_pts_periode": 50
+        },
+        { "domaine": "TECH", "nom": "Informatique", "max_pts_periode": 60 },
+        {
+          "domaine": "TECH",
+          "nom": "Organisation de bureau",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Sténographie", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Stage / Visites guidées",
+          "max_pts_periode": 100
+        },
+        { "domaine": "SOCIAL", "nom": "Droit", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Fiscalité", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Langues nationales",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Entrepreneuriat",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 10
+        }
+      ]
+    },
+    {
+      "id": "H-Soc",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "SOCIALE",
+      "label": "Humanités Sociales (1ère–4ème)",
+      "abreviation": "H-Soc",
+      "reference_ige": "IGE/P.S./056-059",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Statistiques", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Technique d'animation",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Travaux sociaux ind. & de groupe",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Sociologie générale / africaine",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Psychologie générale",
+          "max_pts_periode": 30
+        },
+        { "domaine": "SOCIAL", "nom": "Droit", "max_pts_periode": 30 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Introduction aux Institutions Sociales",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Économie politique",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Comptabilité", "max_pts_periode": 30 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 20
+        }
+      ]
+    },
+    {
+      "id": "H-Elec",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Électricité Générale",
+      "label": "Électricité Générale (1ère–4ème)",
+      "abreviation": "H-Elec",
+      "reference_ige": "IGE/P.S./113-116",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Électricité générale",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Machines électriques",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Dessin électrique",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Dessin industriel",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Électronique + Labo",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Atelier électrique",
+          "max_pts_periode": 100
+        },
+        { "domaine": "TECH", "nom": "Labo électrique", "max_pts_periode": 100 },
+        {
+          "domaine": "TECH",
+          "nom": "Schémas électriques",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie électrique",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Instr. Méth. Mesures",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Actualités", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 }
+      ]
+    },
+    {
+      "id": "H-MAO",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Mécanique / Machines-Outils",
+      "label": "Mécanique / Machines-Outils (1ère–4ème)",
+      "abreviation": "H-MAO",
+      "reference_ige": "IGE/P.S./050-052",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Mécanique générale",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Dessin industriel",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Résistance des matériaux",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie mécanique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        { "domaine": "TECH", "nom": "Électricité", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Mécanique appliquée",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Actualités / Géographie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 20 }
+      ]
+    },
+    {
+      "id": "H-Auto",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Mécanique Automobile",
+      "label": "Mécanique Automobile (1ère–4ème)",
+      "abreviation": "H-Auto",
+      "reference_ige": "IGE/P.S./153-156",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 40 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        { "domaine": "TECH", "nom": "Moteur thermique", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie automobile",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Électricité automobile",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Dessin industriel",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Mécanique générale / appliquée",
+          "max_pts_periode": 30
+        },
+        { "domaine": "TECH", "nom": "Électronique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Atelier Auto", "max_pts_periode": 100 },
+        {
+          "domaine": "TECH",
+          "nom": "Éléments des machines",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Résistance matérielle",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Histoire / Géographie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Actualités", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "H-Const",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Construction",
+      "label": "Construction (1ère–4ème)",
+      "abreviation": "H-Const",
+      "reference_ige": "IGE/P.S./117-119",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Dessin de construction",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        { "domaine": "TECH", "nom": "Béton armé", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Procédés de construction",
+          "max_pts_periode": 40
+        },
+        { "domaine": "TECH", "nom": "Topographie", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Graphostatique", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Résistance des matériaux",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie de construction",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Voies de communication",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Électricité / Assainissement",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Histoire / Actualités / Géographie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 20 }
+      ]
+    },
+    {
+      "id": "H-Agri",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Agriculture Générale",
+      "label": "Agriculture Générale (1ère–4ème)",
+      "abreviation": "H-Agri",
+      "reference_ige": "IGE/PS/089-092",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 60 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 60
+        },
+        { "domaine": "SCIENCES", "nom": "Biologie", "max_pts_periode": 30 },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Agriculture", "max_pts_periode": 40 },
+        { "domaine": "TECH", "nom": "Zootechnie", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Physiologie végétale / Botanique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Anat. & Physiol. Animale",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Génie rural", "max_pts_periode": 10 },
+        { "domaine": "TECH", "nom": "Phytopathologie", "max_pts_periode": 10 },
+        {
+          "domaine": "TECH",
+          "nom": "Amélioration des plantes",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie agricole",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Entrepreneuriat", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "H-Nut",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Nutrition",
+      "label": "Nutrition (1ère–4ème)",
+      "abreviation": "H-Nut",
+      "reference_ige": "IGE/P.S./105-108",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 60 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 60
+        },
+        { "domaine": "SCIENCES", "nom": "Biologie", "max_pts_periode": 30 },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Nutrition générale / Éducation nutritionnelle",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie alimentaire / culinaire",
+          "max_pts_periode": 30
+        },
+        { "domaine": "TECH", "nom": "Diététique", "max_pts_periode": 30 },
+        {
+          "domaine": "TECH",
+          "nom": "Anatomie & Physiologie",
+          "max_pts_periode": 30
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Hygiène alimentaire",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Microbiologie alimentaire",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pathologie de la nutrition",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Entrepreneuriat", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "H-Hot",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Hôtellerie & Restauration",
+      "label": "Hôtellerie & Restauration (1ère–4ème)",
+      "abreviation": "H-Hot",
+      "reference_ige": "IGE/P.S./083-084",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 40 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie / Microbiologie",
+          "max_pts_periode": 40
+        },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie de cuisine / culinaire",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie de restauration",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Technologie hôtelière économique",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        { "domaine": "TECH", "nom": "Diététique", "max_pts_periode": 30 },
+        {
+          "domaine": "TECH",
+          "nom": "Comptabilité hôtelière",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Œnologie & Boissons",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Géographie touristique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Psychologie de client",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Hygiène alimentaire / Nutrition",
+          "max_pts_periode": 20
+        },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 20 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 }
+      ]
+    },
+    {
+      "id": "H-Coif",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Coiffure",
+      "label": "Coiffure (1ère–4ème)",
+      "abreviation": "H-Coif",
+      "reference_ige": "IGE/P.S./072-075",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 50 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 50
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Biologie appliquée",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Chimie appliquée",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Coupe cheveux", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Coloration / Décoloration",
+          "max_pts_periode": 40
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Soutien de coiffure",
+          "max_pts_periode": 50
+        },
+        { "domaine": "TECH", "nom": "Soins de beauté", "max_pts_periode": 40 },
+        {
+          "domaine": "TECH",
+          "nom": "Histoire de la coiffure",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Éducation plastique",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Gestion & Administration",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Ergonomie", "max_pts_periode": 20 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 },
+        {
+          "domaine": "DEV",
+          "nom": "Éducation Physique & Sportive",
+          "max_pts_periode": 10
+        }
+      ]
+    },
+    {
+      "id": "H-Vet",
+      "cycle": "SECONDAIRE",
+      "sous_cycle": "HUMANITES",
+      "section": "TECHNIQUE",
+      "option": "Vétérinaire",
+      "label": "Vétérinaire (1ère–4ème)",
+      "abreviation": "H-Vet",
+      "reference_ige": "IGE/PS/097-100",
+      "examen_national": "EXAMEN_ETAT",
+      "cours": [
+        { "domaine": "LANGUES", "nom": "Français", "max_pts_periode": 60 },
+        { "domaine": "LANGUES", "nom": "Anglais", "max_pts_periode": 20 },
+        {
+          "domaine": "SCIENCES",
+          "nom": "Mathématiques",
+          "max_pts_periode": 60
+        },
+        { "domaine": "SCIENCES", "nom": "Biologie", "max_pts_periode": 30 },
+        { "domaine": "SCIENCES", "nom": "Chimie", "max_pts_periode": 20 },
+        { "domaine": "SCIENCES", "nom": "Physique", "max_pts_periode": 20 },
+        { "domaine": "TECH", "nom": "Zootechnie", "max_pts_periode": 50 },
+        { "domaine": "TECH", "nom": "Pathologie", "max_pts_periode": 30 },
+        {
+          "domaine": "TECH",
+          "nom": "Pratique professionnelle",
+          "max_pts_periode": 100
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Anatomie & Physiologie animale",
+          "max_pts_periode": 20
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Maladies infectieuses",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Maladies parasitaires",
+          "max_pts_periode": 10
+        },
+        { "domaine": "TECH", "nom": "Pharmacologie", "max_pts_periode": 10 },
+        {
+          "domaine": "TECH",
+          "nom": "Chirurgie / Obstétrique",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "TECH",
+          "nom": "Parasitologie / Entomologie",
+          "max_pts_periode": 20
+        },
+        { "domaine": "TECH", "nom": "Entrepreneuriat", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Géographie", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Histoire", "max_pts_periode": 10 },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éd. Civique & Morale",
+          "max_pts_periode": 10
+        },
+        {
+          "domaine": "SOCIAL",
+          "nom": "Éducation à la Vie",
+          "max_pts_periode": 10
+        },
+        { "domaine": "SOCIAL", "nom": "Religion", "max_pts_periode": 10 },
+        { "domaine": "SOCIAL", "nom": "Informatique", "max_pts_periode": 10 }
+      ]
+    }
+  ]
+}

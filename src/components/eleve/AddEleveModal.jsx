@@ -5,9 +5,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, User, Mail, Phone, Hash, Calendar, MapPin, Droplets,
+  X, User, Mail, Phone, Hash, Calendar, MapPin,
   Globe, Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle,
-  ChevronRight, UserPlus, School, Info, Camera, Trash2,
+  ChevronRight, UserPlus, School, Info, Camera, Trash2, Home,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectAnneeActive } from "../../features/annee-scolaire/slices/annee-scolaire.selectors";
@@ -259,7 +259,7 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
     photoUrl: "",
     matricule: generateMatricule(),
     lieuNaissance: "", nationalite: "Congolaise",
-    groupeSanguin: "", adresse: "",
+    commune: "", quartier: "", avenue: "", numero: "", provinceOrigine: "",
     classeId: "", anneeScolaireId: anneeId ?? "",
     numDossier: generateNumDossier(), montantInscription: "",
     motDePasse: generatePassword(),
@@ -275,6 +275,11 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
         dateNaissance: editEleve.dateNaissance?.split("T")[0] ?? "",
         sexe: editEleve.sexe ?? "MASCULIN",
         nationalite: editEleve.nationalite ?? "Congolaise",
+        commune: editEleve.commune ?? "",
+        quartier: editEleve.quartier ?? "",
+        avenue: editEleve.avenue ?? "",
+        numero: editEleve.numero ?? "",
+        provinceOrigine: editEleve.provinceOrigine ?? "",
         photoUrl: editEleve.photoUrl ?? "",
         classeId: editEleve.classeActuelle?.id ?? "",
       }));
@@ -497,20 +502,37 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
                       </Field>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Groupe sanguin">
+                      <Field label="Commune">
                         <div className="relative">
-                          <Droplets className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <select className={`${selectCls} pl-9`} value={form.groupeSanguin} onChange={(e) => set("groupeSanguin", e.target.value)}>
-                            <option value="">—</option>
-                            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((g) => <option key={g} value={g}>{g}</option>)}
-                          </select>
+                          <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input className={`${inputCls} pl-9`} placeholder="Gombe" value={form.commune} onChange={(e) => set("commune", e.target.value)} />
+                        </div>
+                      </Field>
+                      <Field label="Quartier">
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input className={`${inputCls} pl-9`} placeholder="Quartier" value={form.quartier} onChange={(e) => set("quartier", e.target.value)} />
                         </div>
                       </Field>
                     </div>
-                    <Field label="Adresse">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Avenue">
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input className={`${inputCls} pl-9`} placeholder="Avenue" value={form.avenue} onChange={(e) => set("avenue", e.target.value)} />
+                        </div>
+                      </Field>
+                      <Field label="Numéro">
+                        <div className="relative">
+                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input className={`${inputCls} pl-9`} placeholder="12" value={form.numero} onChange={(e) => set("numero", e.target.value)} />
+                        </div>
+                      </Field>
+                    </div>
+                    <Field label="Province d'origine">
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
-                        <textarea className={`${inputCls} pl-9 h-20 resize-none pt-2.5`} placeholder="Commune de Gombe, Kinshasa…" value={form.adresse} onChange={(e) => set("adresse", e.target.value)} />
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <input className={`${inputCls} pl-9`} placeholder="Kinshasa" value={form.provinceOrigine} onChange={(e) => set("provinceOrigine", e.target.value)} />
                       </div>
                     </Field>
                     {isEdit && (

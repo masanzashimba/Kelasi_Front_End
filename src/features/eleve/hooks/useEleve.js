@@ -26,6 +26,8 @@ const initialState = {
 
   // Drawer (détail élève)
   drawerEleve: null,
+  drawerEleveDetail: null,
+  detailLoading: false,
 
   // Modal création/édition
   modalMode: null, // null | "add" | "edit"
@@ -111,9 +113,13 @@ function reducer(state, action) {
 
     // ── Drawer ────────────────────────────────────────────────
     case "OPEN_DRAWER":
-      return { ...state, drawerEleve: action.payload };
+      return { ...state, drawerEleve: action.payload, drawerEleveDetail: null, detailLoading: true };
     case "CLOSE_DRAWER":
-      return { ...state, drawerEleve: null };
+      return { ...state, drawerEleve: null, drawerEleveDetail: null, detailLoading: false };
+    case "FETCH_DETAIL_SUCCESS":
+      return { ...state, detailLoading: false, drawerEleveDetail: action.payload };
+    case "FETCH_DETAIL_ERROR":
+      return { ...state, detailLoading: false };
 
     // ── Modal ─────────────────────────────────────────────────
     case "OPEN_MODAL":
@@ -192,6 +198,16 @@ export const useEleve = () => {
     }
   }, []);
 
+  // ── Fetch detail ──────────────────────────────────────────
+  const fetchEleveDetail = useCallback(async (id) => {
+    try {
+      const data = await eleveService.getById(id);
+      dispatch({ type: "FETCH_DETAIL_SUCCESS", payload: data });
+    } catch {
+      dispatch({ type: "FETCH_DETAIL_ERROR" });
+    }
+  }, []);
+
   // ── Delete ────────────────────────────────────────────────
   const deleteEleve = useCallback(async (id) => {
     dispatch({ type: "SUBMIT_START" });
@@ -261,6 +277,7 @@ export const useEleve = () => {
     classes,
     stats,
     fetchEleves,
+    fetchEleveDetail,
     createEleve,
     updateEleve,
     deleteEleve,

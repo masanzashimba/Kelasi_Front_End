@@ -303,6 +303,7 @@ const RoleModal = ({
   permissionsGroupees,
   onSubmit,
   loading,
+  existingRoles,
 }) => {
   const isEdit = !!initialData;
   const allPerms = Object.values(permissionsGroupees).flat();
@@ -315,6 +316,14 @@ const RoleModal = ({
     const codes = perms.map((p) => (typeof p === "string" ? p : p.code));
     return new Set(codes);
   });
+
+  // Vérifie si le nom est déjà pris par un autre rôle (système ou custom)
+  const isDuplicate = nom.trim().length > 0 && (existingRoles ?? []).some(
+    (r) => r.nom.toLowerCase() === nom.trim().toLowerCase() && r.id !== initialData?.id,
+  );
+  const duplicateRole = isDuplicate
+    ? (existingRoles ?? []).find((r) => r.nom.toLowerCase() === nom.trim().toLowerCase() && r.id !== initialData?.id)
+    : null;
   const [expandedModules, setExpandedModules] = useState(
     new Set(["SCOLARITE", "PEDAGOGIE"]),
   );
@@ -344,7 +353,7 @@ const RoleModal = ({
     });
 
   const handleSubmit = () => {
-    if (!nom.trim()) return;
+    if (!nom.trim() || isDuplicate) return;
     onSubmit({
       nom: nom.trim(),
       description: description.trim() || undefined,
@@ -362,14 +371,25 @@ const RoleModal = ({
     >
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Nom du rôle" required>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-gray-600">
+              Nom du rôle<span className="text-red-400 ml-0.5">*</span>
+            </label>
             <input
-              className={inputCls}
+              className={`${inputCls} ${isDuplicate ? "border-red-300 focus:border-red-400 focus:ring-red-500/20" : ""}`}
               placeholder="ex: Surveillant"
               value={nom}
               onChange={(e) => setNom(e.target.value)}
             />
-          </FormField>
+            {isDuplicate && (
+              <div className="flex items-center gap-1.5 text-[11px] text-red-600">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {duplicateRole?.estSysteme
+                  ? `"${duplicateRole.nom}" est un rôle système — choisissez un autre nom`
+                  : `Ce nom est déjà utilisé par un rôle existant`}
+              </div>
+            )}
+          </div>
           <FormField label="Couleur">
             <div className="flex items-center gap-2">
               <input
@@ -504,7 +524,7 @@ const RoleModal = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || !nom.trim()}
+            disabled={loading || !nom.trim() || isDuplicate}
             className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? <Spinner /> : <Check className="w-3.5 h-3.5" />}
@@ -1431,6 +1451,7 @@ const RolesPermissionsPage = () => {
             permissionsGroupees={grouped}
             onSubmit={handleRoleSubmit}
             loading={loading}
+            existingRoles={roles}
           />
         )}
         {modal?.type === "role_detail" && roleEnDetail && (

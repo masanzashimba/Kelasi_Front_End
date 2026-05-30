@@ -21,7 +21,7 @@ export const eleveService = {
 
   // POST /eleve  (crée + inscrit dans la même transaction)
   // dto: { nom, prenom, email, telephone?, matricule, dateNaissance, sexe,
-  //        nationalite?, groupeSanguin?, adresse?, lieuNaissance?,
+  //        nationalite?, commune?, quartier?, avenue?, numero?, provinceOrigine?, lieuNaissance?,
   //        classeId, anneeScolaireId, numDossier?, montantInscription?,
   //        motDePasse }
   create: async (dto) => {

@@ -15,7 +15,6 @@ import {
   Trash2,
   Mail,
   Phone,
-  BookOpen,
   X,
   ChevronRight,
   Loader2,
@@ -27,6 +26,17 @@ import {
   List,
   Hash,
   Globe,
+  MapPin,
+  User,
+  GraduationCap,
+  Heart,
+  ClipboardList,
+  BookOpen,
+  Home,
+  Building2,
+  Star,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { useEleve } from "../../features/eleve/hooks/useEleve";
 import { AddEleveModal } from "../../components/eleve/AddEleveModal";
@@ -251,15 +261,77 @@ const SkeletonRow = () => (
   </tr>
 );
 
+// ── Helpers détail ────────────────────────────────────────────
+const TYPE_EVAL_CFG = {
+  DEVOIR: { label: "Devoir", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  INTERROGATION: {
+    label: "Interro",
+    cls: "bg-violet-50 text-violet-700 border-violet-200",
+  },
+  EXAMEN: {
+    label: "Examen",
+    cls: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  TRAVAUX_PRATIQUES: {
+    label: "TP",
+    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+};
+
+const InfoRow = ({ icon: Icon, label, value }) => (
+  <div className="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-gray-50 transition-colors">
+    <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+      <Icon className="w-3.5 h-3.5 text-gray-400" />
+    </div>
+    <div className="min-w-0 flex-1">
+      <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">
+        {label}
+      </p>
+      <p className="text-[13px] font-semibold text-gray-800 truncate mt-0.5">
+        {value || "—"}
+      </p>
+    </div>
+  </div>
+);
+
+const DetailSkeleton = () => (
+  <div className="space-y-3 animate-pulse p-1">
+    {[80, 60, 90, 70, 55].map((w, i) => (
+      <div key={i} className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gray-100 shrink-0" />
+        <div className="flex-1 space-y-1.5">
+          <div
+            className="h-2.5 bg-gray-100 rounded"
+            style={{ width: `${w}%` }}
+          />
+          <div
+            className="h-3.5 bg-gray-200 rounded"
+            style={{ width: `${w - 15}%` }}
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 // ── Detail drawer ─────────────────────────────────────────────
 const EleveDetailPanel = ({
   isOpen,
   eleve,
+  eleveDetail,
+  detailLoading,
   onClose,
   onEdit,
   onDelete,
   submitting,
 }) => {
+  const [activeTab, setActiveTab] = useState("infos");
+
+  // Reset tab when student changes
+  useEffect(() => {
+    setActiveTab("infos");
+  }, [eleve?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!eleve) return null;
   const sKey = eleve.actif ? "ACTIF" : "INACTIF";
   const s = statutConfig[sKey];
@@ -270,6 +342,385 @@ const EleveDetailPanel = ({
           (1000 * 60 * 60 * 24 * 365.25),
       )
     : null;
+
+  const TABS = [
+    { id: "infos", label: "Infos", icon: User },
+    { id: "scolarite", label: "Scolarité", icon: GraduationCap },
+    { id: "parents", label: "Parents", icon: Heart },
+    { id: "evaluations", label: "Évaluations", icon: ClipboardList },
+  ];
+
+  const d = eleveDetail;
+
+  // ── Tab: Infos ─────────────────────────────────────────────
+  const TabInfos = () => {
+    const adresseFields = [
+      { label: "Commune", value: d?.commune },
+      { label: "Quartier", value: d?.quartier },
+      { label: "Avenue", value: d?.avenue },
+      { label: "Numéro", value: d?.numero },
+      { label: "Province d'origine", value: d?.provinceOrigine },
+    ].filter((f) => f.value);
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
+          <InfoRow icon={Mail} label="Email" value={eleve.email} />
+          <InfoRow icon={Phone} label="Téléphone" value={eleve.telephone} />
+          <InfoRow
+            icon={User}
+            label="Sexe"
+            value={eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin"}
+          />
+          <InfoRow icon={Globe} label="Nationalité" value={eleve.nationalite} />
+          {eleve.dateNaissance && (
+            <InfoRow
+              icon={Calendar}
+              label="Naissance"
+              value={`${new Date(eleve.dateNaissance).toLocaleDateString("fr-FR")}${age ? `  ·  ${age} ans` : ""}`}
+            />
+          )}
+          {eleve.lieuNaissance && (
+            <InfoRow
+              icon={MapPin}
+              label="Lieu de naissance"
+              value={eleve.lieuNaissance}
+            />
+          )}
+          {d?.numPermanent && (
+            <InfoRow icon={Hash} label="N° permanent" value={d.numPermanent} />
+          )}
+        </div>
+
+        {adresseFields.length > 0 && (
+          <div>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Home className="w-3.5 h-3.5" /> Adresse
+            </p>
+            <div className="rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
+              {adresseFields.map(({ label, value }) => (
+                <InfoRow
+                  key={label}
+                  icon={MapPin}
+                  label={label}
+                  value={value}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── Tab: Scolarité ─────────────────────────────────────────
+  const TabScolarite = () => {
+    if (detailLoading) return <DetailSkeleton />;
+    if (!d) return null;
+
+    const currentInscription =
+      d.inscriptions?.find((i) => i.statut === "ACTIF") ?? d.inscriptions?.[0];
+    const inscPrecedentes =
+      d.inscriptions?.filter((i) => i !== currentInscription) ?? [];
+
+    return (
+      <div className="space-y-4">
+        {/* Classe actuelle */}
+        {currentInscription ? (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
+            <p className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
+              Classe actuelle
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-blue-500">Classe</span>
+              <span className="text-[13px] font-bold text-[#0b57cd]">
+                {currentInscription.classe}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-blue-500">Niveau</span>
+              <span className="text-[12px] font-semibold text-[#185fa5]">
+                {currentInscription.niveau}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-blue-500">Année</span>
+              <span className="text-[12px] font-semibold text-[#185fa5]">
+                {currentInscription.anneeScolaire}
+              </span>
+            </div>
+            {d.salle && (
+              <div className="flex items-center justify-between pt-1 border-t border-blue-200/60">
+                <span className="text-[12px] text-blue-500 flex items-center gap-1">
+                  <Building2 className="w-3 h-3" /> Salle
+                </span>
+                <span className="text-[12px] font-semibold text-[#185fa5]">
+                  {d.salle}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-amber-600 text-[13px] font-medium bg-amber-50 rounded-xl border border-amber-100">
+            Aucune inscription active
+          </div>
+        )}
+
+        {/* Enseignants */}
+        {d.enseignants?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Enseignants ({d.enseignants.length})
+            </p>
+            <div className="space-y-2">
+              {d.enseignants.map((ens) => (
+                <div
+                  key={ens.id}
+                  className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden border border-gray-100">
+                    {ens.photoUrl ? (
+                      <img
+                        src={ens.photoUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold"
+                        style={{ background: avatarBg(ens.id) }}
+                      >
+                        {initiales(ens.nom, ens.prenom)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-bold text-gray-800 truncate">
+                      {ens.prenom} {ens.nom}
+                    </p>
+                    <span
+                      className="inline-block text-[10px] px-1.5 py-0.5 rounded font-semibold mt-0.5"
+                      style={{
+                        background: `${ens.matiereCouleur}20`,
+                        color: ens.matiereCouleur,
+                      }}
+                    >
+                      {ens.matiere}
+                    </span>
+                  </div>
+                  {ens.telephone && (
+                    <a
+                      href={`tel:${ens.telephone}`}
+                      className="text-gray-300 hover:text-[#0b57cd] transition-colors"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Historique */}
+        {inscPrecedentes.length > 0 && (
+          <div>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Historique
+            </p>
+            <div className="space-y-1.5">
+              {inscPrecedentes.map((i) => (
+                <div
+                  key={i.id}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 border border-gray-100"
+                >
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-700">
+                      {i.classe}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {i.anneeScolaire}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statutConfig[i.statut]?.cls ?? "bg-gray-100 text-gray-500"}`}
+                  >
+                    {statutConfig[i.statut]?.label ?? i.statut}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── Tab: Parents ───────────────────────────────────────────
+  const TabParents = () => {
+    if (detailLoading) return <DetailSkeleton />;
+    if (!d) return null;
+    if (!d.parents?.length)
+      return (
+        <div className="text-center py-10 text-gray-400 flex flex-col items-center gap-2">
+          <Heart className="w-8 h-8 text-gray-200" />
+          <p className="text-[13px] font-medium">Aucun parent enregistré</p>
+        </div>
+      );
+
+    return (
+      <div className="space-y-3">
+        {d.parents.map((p) => (
+          <div
+            key={p.id}
+            className="p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-gray-100">
+                {p.photoUrl ? (
+                  <img
+                    src={p.photoUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center text-white text-[11px] font-bold"
+                    style={{ background: avatarBg(p.id) }}
+                  >
+                    {initiales(p.nom, p.prenom)}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[13px] font-bold text-gray-800">
+                    {p.prenom} {p.nom}
+                  </p>
+                  {p.tuteurLegal && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-0.5">
+                      <Star className="w-2.5 h-2.5" /> Tuteur
+                    </span>
+                  )}
+                </div>
+                {p.lien && (
+                  <p className="text-[11px] text-gray-500 mt-0.5 capitalize">
+                    {p.lien.toLowerCase().replace("_", " ")}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-3 space-y-1.5 pl-13">
+              {p.email && (
+                <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                  <Mail className="w-3 h-3 text-gray-300" />
+                  <span className="truncate">{p.email}</span>
+                </div>
+              )}
+              {p.telephone && (
+                <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                  <Phone className="w-3 h-3 text-gray-300" />
+                  <span>{p.telephone}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // ── Tab: Évaluations ───────────────────────────────────────
+  const TabEvaluations = () => {
+    if (detailLoading) return <DetailSkeleton />;
+    if (!d) return null;
+    if (!d.evaluations?.length)
+      return (
+        <div className="text-center py-10 text-gray-400 flex flex-col items-center gap-2">
+          <ClipboardList className="w-8 h-8 text-gray-200" />
+          <p className="text-[13px] font-medium">Aucune évaluation</p>
+        </div>
+      );
+
+    return (
+      <div className="space-y-2">
+        {d.evaluations.map((ev, i) => {
+          const typeCfg = TYPE_EVAL_CFG[ev.type] ?? {
+            label: ev.type,
+            cls: "bg-gray-100 text-gray-600 border-gray-200",
+          };
+          const pct =
+            ev.valeur != null && ev.noteSur > 0
+              ? Math.round((ev.valeur / ev.noteSur) * 100)
+              : null;
+          const noteColor =
+            pct == null
+              ? "#9ca3af"
+              : pct >= 70
+                ? "#059669"
+                : pct >= 50
+                  ? "#d97706"
+                  : "#dc2626";
+
+          return (
+            <div
+              key={i}
+              className="p-3 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-bold text-gray-800 truncate">
+                    {ev.titre}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${typeCfg.cls}`}
+                    >
+                      {typeCfg.label}
+                    </span>
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                      style={{
+                        background: `${ev.matiereCouleur}20`,
+                        color: ev.matiereCouleur,
+                      }}
+                    >
+                      {ev.matiere}
+                    </span>
+                    <span className="text-[9px] text-gray-400 flex items-center gap-0.5">
+                      <Clock className="w-2.5 h-2.5" /> {ev.periode}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  {ev.absent ? (
+                    <span className="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
+                      Absent
+                    </span>
+                  ) : ev.valeur != null ? (
+                    <div>
+                      <p
+                        className="text-[15px] font-black leading-none"
+                        style={{ color: noteColor }}
+                      >
+                        {ev.valeur}
+                      </p>
+                      <p className="text-[10px] text-gray-400">/{ev.noteSur}</p>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-gray-300 italic">—</span>
+                  )}
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                {new Date(ev.dateEval).toLocaleDateString("fr-FR")}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return createPortal(
     <AnimatePresence>
@@ -295,17 +746,16 @@ const EleveDetailPanel = ({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed top-0 right-0 h-full w-full max-w-sm z-[9980] bg-white shadow-2xl flex flex-col"
+            className="fixed top-0 right-0 h-full w-full max-w-[420px] z-[9980] bg-white shadow-2xl flex flex-col"
           >
             {/* Header */}
             <div
-              className="relative px-5 py-4 shrink-0 overflow-hidden"
+              className="relative px-5 pt-4 pb-3 shrink-0 overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
               }}
             >
               <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
-
               <button
                 onClick={onClose}
                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
@@ -313,8 +763,8 @@ const EleveDetailPanel = ({
                 <X className="w-3.5 h-3.5" />
               </button>
 
-              <div className="flex items-center gap-4 pr-8">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/25 shrink-0">
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white/25 shrink-0">
                   {eleve.photoUrl ? (
                     <img
                       src={eleve.photoUrl}
@@ -323,14 +773,13 @@ const EleveDetailPanel = ({
                     />
                   ) : (
                     <div
-                      className="w-full h-full flex items-center justify-center text-white text-2xl font-black"
+                      className="w-full h-full flex items-center justify-center text-white text-xl font-black"
                       style={{ background: color }}
                     >
                       {initiales(eleve.nom, eleve.prenom)}
                     </div>
                   )}
                 </div>
-
                 <div className="min-w-0 flex-1">
                   <h2 className="text-white text-[15px] font-bold leading-snug truncate">
                     {eleve.prenom} {eleve.nom}
@@ -338,7 +787,7 @@ const EleveDetailPanel = ({
                   <p className="text-white/60 text-[11px] font-mono mt-0.5 truncate">
                     {eleve.matricule}
                   </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {eleve.classeActuelle && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/20 flex items-center gap-1">
                         <School className="w-2.5 h-2.5" />{" "}
@@ -353,133 +802,78 @@ const EleveDetailPanel = ({
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Mini stats */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 mt-3">
                 {[
                   {
                     label: "Inscriptions",
-                    value: eleve.nombreInscriptions,
-                    color: "#185fa5",
+                    value:
+                      eleve.nombreInscriptions ??
+                      d?.inscriptions?.length ??
+                      "…",
+                    color: "text-blue-100",
                   },
                   {
-                    label: "Notes",
-                    value: eleve.nombreNotes,
-                    color: "#534ab7",
+                    label: "Évaluations",
+                    value: d?.evaluations?.length ?? (detailLoading ? "…" : 0),
+                    color: "text-violet-200",
                   },
                   {
-                    label: "Statut",
-                    value: eleve.actif ? "Actif" : "Inactif",
-                    color: eleve.actif ? "#0f6e56" : "#a32d2d",
+                    label: "Parents",
+                    value: d?.parents?.length ?? (detailLoading ? "…" : 0),
+                    color: "text-pink-200",
                   },
                 ].map((st) => (
                   <div
                     key={st.label}
-                    className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"
+                    className="bg-white/10 rounded-lg py-2 text-center"
                   >
                     <p
-                      className="text-[15px] font-black leading-none"
-                      style={{ color: st.color }}
+                      className={`text-[14px] font-black leading-none ${st.color}`}
                     >
                       {st.value}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide font-medium">
+                    <p className="text-[9px] text-white/50 mt-0.5 uppercase tracking-wide">
                       {st.label}
                     </p>
                   </div>
                 ))}
               </div>
+            </div>
 
-              {/* Informations personnelles */}
-              <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Informations
-                </p>
-                <div className="rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
-                  {[
-                    { icon: Mail, label: "Email", value: eleve.email },
-                    {
-                      icon: Phone,
-                      label: "Téléphone",
-                      value: eleve.telephone ?? "—",
-                    },
-                    {
-                      icon: Users,
-                      label: "Sexe",
-                      value: eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin",
-                    },
-                    {
-                      icon: Globe,
-                      label: "Nationalité",
-                      value: eleve.nationalite ?? "—",
-                    },
-                    ...(eleve.dateNaissance
-                      ? [
-                          {
-                            icon: Calendar,
-                            label: "Naissance",
-                            value: `${new Date(eleve.dateNaissance).toLocaleDateString("fr-FR")}${age ? `  ·  ${age} ans` : ""}`,
-                          },
-                        ]
-                      : []),
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div
-                      key={label}
-                      className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                        <Icon className="w-3.5 h-3.5 text-gray-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">
-                          {label}
-                        </p>
-                        <p className="text-[13px] font-semibold text-gray-800 truncate mt-0.5">
-                          {value}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* Tab bar */}
+            <div className="flex border-b border-gray-100 shrink-0 bg-white">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition-all border-b-2 ${
+                    activeTab === tab.id
+                      ? "border-[#0b57cd] text-[#0b57cd]"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-              {/* Scolarité */}
-              {eleve.classeActuelle && (
-                <div>
-                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    Scolarité
-                  </p>
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-blue-500 font-medium">
-                        Classe
-                      </span>
-                      <span className="text-[13px] font-bold text-[#0b57cd]">
-                        {eleve.classeActuelle.nom}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-blue-500 font-medium">
-                        Niveau
-                      </span>
-                      <span className="text-[12px] font-semibold text-[#185fa5]">
-                        {eleve.classeActuelle.niveau}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {activeTab === "infos" && <TabInfos />}
+              {activeTab === "scolarite" && <TabScolarite />}
+              {activeTab === "parents" && <TabParents />}
+              {activeTab === "evaluations" && <TabEvaluations />}
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex items-center justify-end gap-2">
+            <div className="px-4 py-3 border-t border-gray-100 shrink-0 flex items-center justify-end gap-2">
               <button
                 onClick={() => onDelete(eleve.id)}
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-[13px] font-semibold hover:bg-red-100 transition-colors border border-red-100 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl text-[12px] font-semibold hover:bg-red-100 transition-colors border border-red-100 disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -490,7 +884,7 @@ const EleveDetailPanel = ({
               </button>
               <button
                 onClick={() => onEdit(eleve)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#0b57cd] text-white rounded-xl text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white rounded-xl text-[12px] font-semibold hover:bg-[#0947ab] transition-colors"
               >
                 <Edit2 className="w-4 h-4" /> Modifier
               </button>
@@ -567,6 +961,7 @@ const ElevesPage = () => {
     classes,
     stats,
     fetchEleves,
+    fetchEleveDetail,
     createEleve,
     updateEleve,
     deleteEleve,
@@ -587,8 +982,10 @@ const ElevesPage = () => {
     dispatch({ type: "CLOSE_DRAWER" });
   };
 
-  const openDetail = (eleve) =>
+  const openDetail = (eleve) => {
     dispatch({ type: "OPEN_DRAWER", payload: eleve });
+    fetchEleveDetail(eleve.id);
+  };
   const closeDetail = () => dispatch({ type: "CLOSE_DRAWER" });
 
   const fade = (delay = 0) => ({
@@ -884,7 +1281,7 @@ const ElevesPage = () => {
                           }
                           className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
                         >
-                          <Plus className="w-4 h-4" /> Ajouter un élève
+                          <Plus className="w-4 h-4" /> Inscrire un élève
                         </button>
                       )}
                     </div>
@@ -1119,6 +1516,8 @@ const ElevesPage = () => {
       <EleveDetailPanel
         isOpen={!!state.drawerEleve}
         eleve={state.drawerEleve}
+        eleveDetail={state.drawerEleveDetail}
+        detailLoading={state.detailLoading}
         onClose={closeDetail}
         onEdit={(e) => {
           closeDetail();

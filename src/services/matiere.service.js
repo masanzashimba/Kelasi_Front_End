@@ -21,4 +21,13 @@ export const matiereService = {
     const { data } = await api.delete(`/matiere/${id}`);
     return data;
   },
+  getNiveauxWithMatieres: async () => {
+    const { data } = await api.get("/matiere/niveaux-with-matieres");
+    return data;
+  },
+  // Seed matières from référentiel IGE for a given niveau
+  seedForNiveau: async ({ niveauRef, niveauId, cours }) => {
+    const { data } = await api.post("/matiere/seed-niveau", { niveauRef, niveauId, cours });
+    return data;
+  },
 };
