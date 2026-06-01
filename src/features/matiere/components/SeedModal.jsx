@@ -123,9 +123,6 @@ export const SeedModal = ({
               <h2 className="text-[16px] font-bold text-gray-900">
                 Générer les matières
               </h2>
-              <p className="text-[12px] text-gray-400">
-                Référentiel officiel IGE · RDC 2024-2025
-              </p>
             </div>
             <button
               onClick={onClose}
@@ -163,10 +160,12 @@ export const SeedModal = ({
               {result.niveauxNonTrouves?.length > 0 && (
                 <div className="w-full rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
                   <p className="text-[12px] font-semibold text-amber-700 mb-1.5">
-                    Niveaux non trouvés dans la base ({result.niveauxNonTrouves.length})
+                    Niveaux non trouvés dans la base (
+                    {result.niveauxNonTrouves.length})
                   </p>
                   <p className="text-[11px] text-amber-600 mb-2">
-                    Vérifiez que l&apos;abréviation du niveau correspond exactement au référentiel.
+                    Vérifiez que l&apos;abréviation du niveau correspond
+                    exactement au référentiel.
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {result.niveauxNonTrouves.map((ref) => (

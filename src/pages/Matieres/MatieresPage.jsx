@@ -40,7 +40,10 @@ const DomainSeparatorRow = ({ domainKey, count }) => {
   const dm = DOMAIN_CFG[domainKey] ?? DOMAIN_CFG[D_AUTRE];
   return (
     <tr>
-      <td colSpan={6} className="px-5 py-2 bg-gray-50/70 border-y border-gray-100">
+      <td
+        colSpan={6}
+        className="px-5 py-2 bg-gray-50/70 border-y border-gray-100"
+      >
         <div className="flex items-center gap-2">
           <div
             className="w-4 h-4 rounded flex items-center justify-center"
@@ -48,7 +51,10 @@ const DomainSeparatorRow = ({ domainKey, count }) => {
           >
             <Tag className="w-2.5 h-2.5" style={{ color: dm.color }} />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: dm.color }}>
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider"
+            style={{ color: dm.color }}
+          >
             {dm.label}
           </span>
           <span
@@ -66,23 +72,59 @@ const DomainSeparatorRow = ({ domainKey, count }) => {
 // ─── Stats bar ────────────────────────────────────────────────
 const StatsBar = ({ stats, loading }) => {
   const items = [
-    { label: "Total",      value: stats.total,         color: "#2563EB", bg: "#EFF6FF", Icon: BookOpen     },
-    { label: "Actives",    value: stats.actives,        color: "#16A34A", bg: "#F0FDF4", Icon: ToggleRight  },
-    { label: "Inactives",  value: stats.inactives,      color: "#6B7280", bg: "#F3F4F6", Icon: ToggleLeft   },
-    { label: "Avec cours", value: stats.avecCours ?? 0, color: "#D97706", bg: "#FFFBEB", Icon: GraduationCap },
+    {
+      label: "Total",
+      value: stats.total,
+      color: "#2563EB",
+      bg: "#EFF6FF",
+      Icon: BookOpen,
+    },
+    {
+      label: "Actives",
+      value: stats.actives,
+      color: "#16A34A",
+      bg: "#F0FDF4",
+      Icon: ToggleRight,
+    },
+    {
+      label: "Inactives",
+      value: stats.inactives,
+      color: "#6B7280",
+      bg: "#F3F4F6",
+      Icon: ToggleLeft,
+    },
+    {
+      label: "Avec cours",
+      value: stats.avecCours ?? 0,
+      color: "#D97706",
+      bg: "#FFFBEB",
+      Icon: GraduationCap,
+    },
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {items.map(({ label, value, color, bg, Icon }) => (
-        <div key={label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
+        <div
+          key={label}
+          className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3"
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: bg }}
+          >
             <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
           </div>
           <div>
-            {loading
-              ? <div className="w-12 h-5 bg-gray-100 animate-pulse rounded-md" />
-              : <p className="text-xl font-black text-gray-700 leading-none">{value}</p>}
-            <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
+            {loading ? (
+              <div className="w-12 h-5 bg-gray-100 animate-pulse rounded-md" />
+            ) : (
+              <p className="text-xl font-black text-gray-700 leading-none">
+                {value}
+              </p>
+            )}
+            <p className="text-[12px] text-gray-500 mt-0.5 font-medium">
+              {label}
+            </p>
           </div>
         </div>
       ))}
@@ -111,12 +153,12 @@ const MatieresPage = () => {
 
   const { niveaux, fetchNiveaux } = useNiveau();
 
-  const [drawerOpen, setDrawerOpen]       = useState(false);
-  const [detailMat, setDetailMat]         = useState(null);
-  const [editMat, setEditMat]             = useState(null);
-  const [deleteId, setDeleteId]           = useState(null);
-  const [niveauFilter, setNiveauFilter]   = useState("Tous"); // "Tous" | niveau.id
-  const [search, setSearch]               = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [detailMat, setDetailMat] = useState(null);
+  const [editMat, setEditMat] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [niveauFilter, setNiveauFilter] = useState("Tous"); // "Tous" | niveau.id
+  const [search, setSearch] = useState("");
   const [seedModalOpen, setSeedModalOpen] = useState(false);
 
   useEffect(() => {
@@ -128,7 +170,7 @@ const MatieresPage = () => {
   // ── Dérivés ───────────────────────────────────────────────
 
   const selectedNiveau = niveaux.find((n) => n.id === niveauFilter) ?? null;
-  const isFiltered     = niveauFilter !== "Tous";
+  const isFiltered = niveauFilter !== "Tous";
 
   // Matières affichées selon le filtre niveau
   const baseMatieres = isFiltered
@@ -159,17 +201,30 @@ const MatieresPage = () => {
 
   // Nombre de matières par niveau (badge sur les chips)
   const countByNiveau = useMemo(
-    () => Object.fromEntries(niveaux.map((n) => [n.id, (niveauMatieres[n.id] ?? []).length])),
+    () =>
+      Object.fromEntries(
+        niveaux.map((n) => [n.id, (niveauMatieres[n.id] ?? []).length]),
+      ),
     [niveaux, niveauMatieres],
   );
 
   // Matière à confirmer pour suppression
-  const deleteMat = matiereState.matieres.find((m) => m.id === deleteId) ?? null;
+  const deleteMat =
+    matiereState.matieres.find((m) => m.id === deleteId) ?? null;
 
   // ── Handlers ─────────────────────────────────────────────
-  const openCreate      = () => { setEditMat(null); setDrawerOpen(true); };
-  const openEdit        = (mat) => { setEditMat(mat); setDrawerOpen(true); };
-  const closeFormDrawer = () => { setDrawerOpen(false); dispatch({ type: "CLOSE_MODAL" }); };
+  const openCreate = () => {
+    setEditMat(null);
+    setDrawerOpen(true);
+  };
+  const openEdit = (mat) => {
+    setEditMat(mat);
+    setDrawerOpen(true);
+  };
+  const closeFormDrawer = () => {
+    setDrawerOpen(false);
+    dispatch({ type: "CLOSE_MODAL" });
+  };
 
   const handleSubmit = async (form) => {
     if (editMat) {
@@ -210,12 +265,13 @@ const MatieresPage = () => {
   return (
     <>
       <div className="min-h-full bg-[#f5f7fa] flex flex-col gap-4">
-
         {/* Hero header */}
         <motion.div
           {...fade(0)}
           className="relative rounded-xl overflow-hidden shadow-lg"
-          style={{ background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)" }}
+          style={{
+            background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+          }}
         >
           <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
           <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
@@ -249,17 +305,21 @@ const MatieresPage = () => {
                 title="Rafraîchir"
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
               >
-                <RefreshCw className={`w-4 h-4 ${matiereState.loading ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${matiereState.loading ? "animate-spin" : ""}`}
+                />
               </button>
               <button
                 onClick={() => setSeedModalOpen(true)}
                 disabled={matiereState.seeding}
                 className="flex items-center gap-2 bg-white/15 text-white border border-white/25 px-4 py-2.5 rounded-xl text-[13px] font-semibold hover:bg-white/25 transition-colors disabled:opacity-50"
               >
-                {matiereState.seeding
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Sparkles className="w-4 h-4" />}
-                Générer IGE
+                {matiereState.seeding ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                Générer
               </button>
               <button
                 onClick={openCreate}
@@ -287,7 +347,10 @@ const MatieresPage = () => {
             <div className="relative shrink-0">
               <select
                 value={niveauFilter}
-                onChange={(e) => { setNiveauFilter(e.target.value); setSearch(""); }}
+                onChange={(e) => {
+                  setNiveauFilter(e.target.value);
+                  setSearch("");
+                }}
                 className="h-9 pl-3 pr-8 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all appearance-none cursor-pointer min-w-52"
               >
                 <option value="Tous">Tous les niveaux</option>
@@ -296,7 +359,11 @@ const MatieresPage = () => {
                     .filter((n) => n.cycle === cycle)
                     .sort((a, b) => a.ordre - b.ordre);
                   if (!groupe.length) return null;
-                  const labels = { MATERNELLE: "Maternelle", PRIMAIRE: "Primaire", SECONDAIRE: "Secondaire" };
+                  const labels = {
+                    MATERNELLE: "Maternelle",
+                    PRIMAIRE: "Primaire",
+                    SECONDAIRE: "Secondaire",
+                  };
                   return (
                     <optgroup key={cycle} label={`── ${labels[cycle]}`}>
                       {groupe.map((n) => (
@@ -310,9 +377,16 @@ const MatieresPage = () => {
               </select>
               <svg
                 className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
-                fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </div>
 
@@ -348,7 +422,14 @@ const MatieresPage = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50/60 border-b border-gray-100">
-                  {["Matière", "Description", "Note", "Cours", "Statut", ""].map((h) => (
+                  {[
+                    "Matière",
+                    "Description",
+                    "Note",
+                    "Cours",
+                    "Statut",
+                    "",
+                  ].map((h) => (
                     <th
                       key={h}
                       className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
@@ -406,44 +487,51 @@ const MatieresPage = () => {
                 )}
 
                 {/* Mode "Tous" — table plate */}
-                {!matiereState.loading && !isFiltered && displayMatieres.length > 0 && (
-                  <AnimatePresence>
-                    {displayMatieres.map((mat) => (
-                      <MatiereRow
-                        key={mat.id}
-                        mat={mat}
-                        onSelect={setDetailMat}
-                        onEdit={openEdit}
-                        onDelete={setDeleteId}
-                      />
-                    ))}
-                  </AnimatePresence>
-                )}
+                {!matiereState.loading &&
+                  !isFiltered &&
+                  displayMatieres.length > 0 && (
+                    <AnimatePresence>
+                      {displayMatieres.map((mat) => (
+                        <MatiereRow
+                          key={mat.id}
+                          mat={mat}
+                          onSelect={setDetailMat}
+                          onEdit={openEdit}
+                          onDelete={setDeleteId}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  )}
 
                 {/* Mode niveau filtré — groupé par domaine */}
-                {!matiereState.loading && isFiltered && displayMatieres.length > 0 && (
-                  <>
-                    {DOMAIN_ORDER.map((dk) => {
-                      const items = byDomain?.[dk];
-                      if (!items?.length) return null;
-                      return (
-                        <Fragment key={dk}>
-                          <DomainSeparatorRow domainKey={dk} count={items.length} />
-                          {items.map((mat) => (
-                            <MatiereRow
-                              key={mat.id}
-                              mat={mat}
-                              onSelect={setDetailMat}
-                              onEdit={openEdit}
-                              onDelete={setDeleteId}
-                              onRemove={handleRemoveFromNiveau}
+                {!matiereState.loading &&
+                  isFiltered &&
+                  displayMatieres.length > 0 && (
+                    <>
+                      {DOMAIN_ORDER.map((dk) => {
+                        const items = byDomain?.[dk];
+                        if (!items?.length) return null;
+                        return (
+                          <Fragment key={dk}>
+                            <DomainSeparatorRow
+                              domainKey={dk}
+                              count={items.length}
                             />
-                          ))}
-                        </Fragment>
-                      );
-                    })}
-                  </>
-                )}
+                            {items.map((mat) => (
+                              <MatiereRow
+                                key={mat.id}
+                                mat={mat}
+                                onSelect={setDetailMat}
+                                onEdit={openEdit}
+                                onDelete={setDeleteId}
+                                onRemove={handleRemoveFromNiveau}
+                              />
+                            ))}
+                          </Fragment>
+                        );
+                      })}
+                    </>
+                  )}
               </tbody>
             </table>
           </div>
@@ -452,13 +540,20 @@ const MatieresPage = () => {
           {isFiltered && selectedNiveau && !matiereState.loading && (
             <div className="px-5 py-2.5 border-t border-gray-100 flex items-center gap-4 text-[11px] text-gray-400 bg-gray-50/50">
               <span>
-                <span className="font-semibold text-gray-600">{displayMatieres.length}</span> matières
+                <span className="font-semibold text-gray-600">
+                  {displayMatieres.length}
+                </span>{" "}
+                matières
               </span>
               <span className="text-gray-200">·</span>
               <span>
                 Max :{" "}
                 <span className="font-semibold text-gray-600">
-                  {displayMatieres.reduce((a, m) => a + (m.maxPointsPeriode ?? 0), 0)} pts
+                  {displayMatieres.reduce(
+                    (a, m) => a + (m.maxPointsPeriode ?? 0),
+                    0,
+                  )}{" "}
+                  pts
                 </span>
               </span>
             </div>
