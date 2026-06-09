@@ -26,7 +26,7 @@ const EMPTY_FORM = {
   prenom: "", nom: "", email: "", telephone: "", photoUrl: "",
   matricule: "", specialite: "", diplomeMax: "",
   typeContrat: "CDI", dateEmbauche: "", salaireBase: "",
-  motDePasse: "",
+  motDePasse: "", envoyerEmail: true,
 };
 
 const inputCls =
@@ -482,6 +482,22 @@ const StepAcces = ({ form, setField, errors, isEdit = false }) => {
         </button>
         {form.motDePasse && <PasswordStrength pwd={form.motDePasse} />}
       </Field>
+
+      {!isEdit && (
+        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+          <input
+            type="checkbox"
+            checked={form.envoyerEmail}
+            onChange={e => setField("envoyerEmail", e.target.checked)}
+            className="w-4 h-4 rounded accent-[#0b57cd] cursor-pointer"
+          />
+          <div>
+            <p className="text-[13px] font-semibold text-gray-700">Envoyer les identifiants par email</p>
+            <p className="text-[11px] text-gray-400">L'enseignant recevra ses accès à l'adresse indiquée</p>
+          </div>
+        </label>
+      )}
+
       <div className="bg-gray-50 rounded-xl border border-gray-100 p-3.5 space-y-1.5 text-[11px] text-gray-500">
         <p className="font-semibold text-gray-600 text-[12px] mb-2">Règles de sécurité</p>
         {[
@@ -615,13 +631,20 @@ const CreateEnseignantDrawer = ({ open, onClose, onSubmit, isSubmitting, editEns
     };
     // Mot de passe : requis en création, optionnel en édition
     if (form.motDePasse) payload.motDePasse = form.motDePasse;
+    if (!isEdit) payload.envoyerEmail = form.envoyerEmail;
 
-    const result = await onSubmit(payload);
-    if (result?.success) {
-      setSuccess(true);
-      setTimeout(onClose, 2800);
-    } else if (result?.error) {
-      setErrors({ _global: result.error });
+    try {
+      const result = await onSubmit(payload);
+      if (result?.success) {
+        setSuccess(true);
+        setTimeout(onClose, 2800);
+      } else if (result?.error) {
+        setErrors({ _global: result.error });
+      }
+    } catch (err) {
+      const raw = err?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : (raw ?? "Une erreur est survenue");
+      setErrors({ _global: msg });
     }
   };
 

@@ -24,13 +24,15 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { selectSelectedAnnee } from "../../features/annee-scolaire/slices/annee-selector.selectors";
-import { useBulletin } from "../../features/bulletin/hooks/useBulletin";
 import {
   calcPtsMatiere,
   calcPourcentageGeneral,
   getDecision,
   pctColor,
 } from "../../features/evaluation/utils/calcul";
+import { useBulletin } from "../../features/Bulletins/hooks/useBulletin";
+import { useClasse } from "../../features/classe/hooks/useClasse";
+import { periodeService } from "../../services/periode.service";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -961,9 +963,20 @@ export default function BulletinsPage() {
     publierBulletin,
     validerTous,
     publierTous,
-    classes,
-    periodes,
   } = useBulletin();
+
+  // ── Classes depuis le store Redux (chargées par useClasse) ──────────────────
+  const { classes } = useClasse();
+
+  // ── Périodes chargées depuis l'API selon l'année sélectionnée ──────────────
+  const [periodes, setPeriodes] = useState([]);
+  useEffect(() => {
+    if (!annee?.id) return;
+    periodeService
+      .getAll(annee.id)
+      .then((data) => setPeriodes(Array.isArray(data) ? data : []))
+      .catch(() => setPeriodes([]));
+  }, [annee?.id]);
 
   const [activeTab, setActiveTab] = useState("liste");
   const [classeId, setClasseId] = useState("");
@@ -1024,7 +1037,7 @@ export default function BulletinsPage() {
         {...fade(0)}
         className="relative rounded-lg overflow-hidden shadow-lg"
         style={{
-          background: "linear-gradient(135deg,#0C447C 0%,#185FA5 100%)",
+          background: "linear-gradient(135deg,#042C53 0%,#0C447C 100%)",
         }}
       >
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
@@ -1057,7 +1070,7 @@ export default function BulletinsPage() {
             <select
               value={classeId}
               onChange={(e) => setClasseId(e.target.value)}
-              className="h-9 px-3 rounded-lg bg-white/15 border border-white/25 text-white text-[12px] font-medium focus:outline-none"
+              className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
             >
               <option value="">Toutes les classes</option>
               {classes.map((c) => (
@@ -1069,7 +1082,7 @@ export default function BulletinsPage() {
             <select
               value={periodeId}
               onChange={(e) => setPeriodeId(e.target.value)}
-              className="h-9 px-3 rounded-lg bg-white/15 border border-white/25 text-white text-[12px] font-medium focus:outline-none"
+              className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
             >
               <option value="">Toutes les périodes</option>
               {periodes.map((p) => (
@@ -1134,7 +1147,7 @@ export default function BulletinsPage() {
       <motion.div {...fade(0.1)}>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Onglets */}
-          <div className="flex border-b border-gray-100 px-2 pt-1 overflow-x-auto">
+          <div className="flex border-b border-gray-100 px-2 pt-1 ">
             {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}

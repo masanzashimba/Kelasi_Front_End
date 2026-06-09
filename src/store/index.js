@@ -12,6 +12,7 @@ import niveauxReducer from "../features/niveaux/slices/niveau.slice";
 import classesReducer from "../features/classe/slices/classe.slice";
 import enseignantsReducer from "../features/enseignant/slices/enseignant.slice";
 import salleReducer from "../features/salle/slices/salle.slice";
+import evaluationReducer from "../features/evaluation/slices/evaluation.slice";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     classes: classesReducer,
     enseignants: enseignantsReducer,
     salles: salleReducer,
+    evaluation: evaluationReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

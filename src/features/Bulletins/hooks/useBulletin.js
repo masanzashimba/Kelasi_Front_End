@@ -1,6 +1,6 @@
 // src/features/bulletin/hooks/useBulletin.js
+import api from "../../../lib/axios";
 import { useReducer, useCallback, useMemo } from "react";
-import api from "../../../lib/api";
 
 const INITIAL = {
   bulletins: [],

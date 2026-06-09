@@ -30,6 +30,7 @@ import CoursPage from "./pages/Cours/CoursPage";
 import SallesPage from "./pages/Salles/SallesPage";
 import EvaluationsPage from "./pages/Evaluations/EvaluationsPage";
 import BulletinMINEDUC from "./pages/Resultat/bulletin";
+import BulletinsPage from "./pages/Bulletins/BulletinsPage";
 
 function App() {
   return (
@@ -272,6 +273,20 @@ function App() {
               <ProtectedRoute>
                 <DashboardLayout breadcrumbs={["Accueil"]}>
                   <BulletinMINEDUC />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* BULLETINS */}
+          <Route
+            path="/bulletins"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout
+                  breadcrumbs={["Accueil", "Académique", "Bulletins"]}
+                >
+                  <BulletinsPage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

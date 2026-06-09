@@ -131,7 +131,6 @@ export const SeedModal = ({
               <X className="w-4 h-4" />
             </button>
           </div>
-
           {/* Success / warning state */}
           {result ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 py-8 px-6">
@@ -216,7 +215,6 @@ export const SeedModal = ({
                   Aucun
                 </button>
               </div>
-
               {/* Niveau list */}
               <div className="flex-1 overflow-y-auto py-1">
                 {["PRIMAIRE", "TRONC_COMMUN", "HUMANITES"].map((groupKey) => {
@@ -224,7 +222,6 @@ export const SeedModal = ({
                   if (!groupNiveaux.length) return null;
                   const gm = SEED_GROUP_META[groupKey];
                   const GIcon = SEED_CYCLE_ICONS[groupKey];
-
                   return (
                     <div key={groupKey} className="mb-1">
                       {/* Group header */}
@@ -249,7 +246,6 @@ export const SeedModal = ({
                           {groupNiveaux.length}
                         </span>
                       </div>
-
                       {groupNiveaux.map((n) => {
                         const isSelected = selectedIds.includes(n.id);
                         const isMatched = n.id === matchedRefId;
@@ -273,7 +269,6 @@ export const SeedModal = ({
                                 <Check className="w-3 h-3 text-white" />
                               )}
                             </div>
-
                             <div className="flex-1 min-w-0 flex items-center gap-2">
                               <span className="text-[11px] font-bold font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
                                 {n.abreviation}
@@ -299,7 +294,6 @@ export const SeedModal = ({
                   );
                 })}
               </div>
-
               {/* Footer */}
               <div className="px-6 py-4 border-t border-gray-100 flex items-center gap-3 shrink-0">
                 <button

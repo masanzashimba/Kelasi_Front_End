@@ -18,7 +18,6 @@ import {
   Users,
 } from "lucide-react";
 import pupilImg from "../../assets/images/pupil.jpg";
-
 import { uploadService } from "../../services/upload.service";
 import { onboardingService } from "../../services/onboarding.service";
 import { useNavigate } from "react-router-dom";

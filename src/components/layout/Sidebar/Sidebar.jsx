@@ -41,6 +41,7 @@ const baseMenuItems = [
       { title: "Matières", path: "/matieres" },
       { title: "Emploi du temps", path: "/emploi-temps" },
       { title: "Évaluations", path: "/evaluations" },
+      { title: "Bulletins", path: "/bulletins" },
     ],
   },
   {

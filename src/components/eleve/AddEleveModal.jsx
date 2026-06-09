@@ -252,6 +252,7 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
   const [fieldErrors, setFieldErrors] = useState({});
   const [classes, setClasses]       = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", telephone: "",
@@ -263,6 +264,7 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
     classeId: "", anneeScolaireId: anneeId ?? "",
     numDossier: generateNumDossier(), montantInscription: "",
     motDePasse: generatePassword(),
+    envoyerEmail: true,
   });
 
   useEffect(() => {
@@ -347,12 +349,21 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
 
   const handleSubmit = async () => {
     if (!validateStep(isEdit ? 2 : 4)) return;
-    if (isEdit) {
-      // eslint-disable-next-line no-unused-vars
-      const { anneeScolaireId, numDossier, montantInscription, motDePasse, ...editableFields } = form;
-      await onSubmit(editableFields);
-    } else {
-      await onSubmit(form);
+    setSubmitError("");
+    try {
+      if (isEdit) {
+        // eslint-disable-next-line no-unused-vars
+        const { anneeScolaireId, numDossier, montantInscription, motDePasse, envoyerEmail, ...editableFields } = form;
+        await onSubmit(editableFields);
+      } else {
+        await onSubmit(form);
+      }
+    } catch (err) {
+      const raw = err?.response?.data?.message;
+      const msg = Array.isArray(raw)
+        ? raw[0]
+        : (raw ?? "Une erreur est survenue");
+      setSubmitError(msg);
     }
   };
 
@@ -415,14 +426,15 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
             <div className="flex-1 overflow-y-auto px-6 py-5">
               {/* Erreur globale */}
               <AnimatePresence>
-                {error && (
+                {(submitError || error) && (
                   <motion.div
                     initial={{ opacity: 0, y: -8, height: 0 }}
                     animate={{ opacity: 1, y: 0, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-red-600 text-[12px]"
+                    className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-red-600 text-[12px] font-medium"
                   >
-                    <AlertCircle className="w-4 h-4 shrink-0" />{error}
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {submitError || error}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -734,6 +746,20 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
                         </div>
                       </div>
                     </Field>
+
+                    {/* Case envoyer email */}
+                    <label className="flex items-center gap-3 cursor-pointer mt-2 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={form.envoyerEmail}
+                        onChange={e => set("envoyerEmail", e.target.checked)}
+                        className="w-4 h-4 rounded accent-[#0b57cd] cursor-pointer"
+                      />
+                      <div>
+                        <p className="text-[13px] font-semibold text-gray-700">Envoyer les identifiants par email</p>
+                        <p className="text-[11px] text-gray-400">L'élève recevra ses accès à l'adresse indiquée</p>
+                      </div>
+                    </label>
 
                     {form.motDePasse && (
                       <div className="space-y-1">
