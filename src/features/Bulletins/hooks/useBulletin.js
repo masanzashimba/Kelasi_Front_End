@@ -124,16 +124,16 @@ export function useBulletin() {
     [],
   );
 
-  // ── PATCH /bulletins/:id/valider ──────────────────────────
+  // ── PATCH /bulletins/:id/approuver  (DIRECTEUR → VALIDE) ─
   const validerBulletin = useCallback(async (id) => {
     dispatch({ type: "SUB_START" });
     try {
-      await api.patch(`/bulletins/${id}/valider`);
+      await api.patch(`/bulletins/${id}/approuver`);
       dispatch({ type: "VALIDE_ONE", payload: id });
     } catch (e) {
       dispatch({
         type: "SUB_ERR",
-        payload: e.response?.data?.message ?? "Erreur de validation",
+        payload: e.response?.data?.message ?? "Erreur d'approbation",
       });
       throw e;
     }
@@ -154,11 +154,11 @@ export function useBulletin() {
     }
   }, []);
 
-  // ── Valider TOUS les brouillons d'une classe/période ─────
+  // ── PATCH /bulletins/approuver-tous (DIRECTEUR) ──────────
   const validerTous = useCallback(async ({ classeId, periodeId }) => {
     dispatch({ type: "SUB_START" });
     try {
-      await api.patch("/bulletins/valider-tous", { classeId, periodeId });
+      await api.patch("/bulletins/approuver-tous", { classeId, periodeId });
       dispatch({ type: "BATCH_VALIDE" });
     } catch (e) {
       dispatch({

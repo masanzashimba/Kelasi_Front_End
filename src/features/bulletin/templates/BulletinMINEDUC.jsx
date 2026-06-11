@@ -5,16 +5,16 @@ import React from "react";
 
 // ─── Styles constants ─────────────────────────────────────────────────────────
 
-const B = "1px solid #555";
-const b = "0.5px solid #aaa";
-const bR = "1px solid #999";
+const B = "0.5px solid #000";
+const b = "0.5px solid #000";
+const bR = "0.5px solid #000";
 
 const hdrBase = {
-  padding: "2px 1px",
-  fontSize: 6.5,
-  fontWeight: 700,
+  padding: "4px 2px",
+  fontSize: 10,
+  fontWeight: 400,
   textAlign: "center",
-  background: "#d8d8d8",
+  background: "#fff",
   border: b,
   whiteSpace: "nowrap",
   verticalAlign: "middle",
@@ -66,25 +66,25 @@ function IL({ label, value }) {
     <div
       style={{
         display: "flex",
-        alignItems: "baseline",
-        gap: 3,
+        alignItems: "center",
         marginBottom: 2.5,
-        fontSize: 7.5,
+        fontSize: 10,
       }}
     >
-      <span style={{ fontWeight: 700, fontSize: 7, whiteSpace: "nowrap" }}>
-        {label} :
-      </span>
+      <span style={{ fontWeight: 900 }}>{label} :</span>
+
+      <span style={{ marginLeft: 2 }}>{value}</span>
+
       <span
         style={{
-          borderBottom: "0.5px solid #555",
           flex: 1,
-          minWidth: 40,
-          fontSize: 7.5,
-          paddingLeft: 2,
+          fontSize: 12,
+          fontWeight: 800,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
         }}
       >
-        {value || "\u00a0"}
+        {".".repeat(100)}
       </span>
     </div>
   );
@@ -96,13 +96,16 @@ function DomRow({ label }) {
       <td
         colSpan={22}
         style={{
-          fontSize: 7.5,
+          fontSize: 12,
           fontWeight: 800,
-          padding: "2px 4px",
-          background: "#1a237e",
-          color: "#fff",
+          padding: "0px 4px",
+          background: "#fff",
+          color: "#000",
           letterSpacing: ".05em",
           textTransform: "uppercase",
+          textAlign: "center",
+          borderTop: "2px solid #000",
+          borderBottom: "2px solid #000",
         }}
       >
         {label}
@@ -117,13 +120,16 @@ function GrpRow({ label }) {
       <td
         colSpan={22}
         style={{
-          fontSize: 7,
+          fontSize: 12,
           fontWeight: 700,
-          padding: "1px 10px",
-          background: "#dce3f0",
-          color: "#1a237e",
+          padding: "0px 4px",
+          background: "#d6dce4",
+          color: "#000",
           fontStyle: "italic",
-          borderTop: b,
+          borderBottom: "2px solid #000",
+          ...(["FRANÇAIS", "SCIENCES", "TECHNOLOGIE"].includes(label)
+            ? { borderTop: "2px solid #000" }
+            : {}),
         }}
       >
         {label}
@@ -133,10 +139,13 @@ function GrpRow({ label }) {
 }
 
 function DataRow({ nom, maxPer, maxEx, maxTrim, total, isSub, isMax, ligne }) {
-  const bg = isMax ? "#e8eaf6" : isSub ? "#f0f0f0" : "transparent";
+  const bg = isMax ? "#e8eaf6" : "transparent";
   const fw = isSub || isMax ? 700 : 400;
-  const fs = isMax ? 8 : isSub ? 7.5 : 7;
-  const gc = isMax ? "#cfd1e8" : "#e4e4e4";
+  const fs = 12;
+  const gc = isMax ? "#cfd1e8" : "#fff";
+
+  // Sous-total : bordure haute noire sur toute la ligne
+  const topB = isSub ? { borderTop: "2px solid #000" } : {};
 
   const nc = {
     fontSize: fs,
@@ -145,6 +154,13 @@ function DataRow({ nom, maxPer, maxEx, maxTrim, total, isSub, isMax, ligne }) {
     borderRight: B,
     background: bg,
     color: "#111",
+    ...topB,
+    ...(nom?.startsWith("LECT")
+      ? {
+          fontFamily: '"AgencyGothicCT-Condensed", sans-serif',
+          background: "#d6dce4",
+        }
+      : {}),
   };
   const gCl = {
     fontSize: fs,
@@ -153,6 +169,7 @@ function DataRow({ nom, maxPer, maxEx, maxTrim, total, isSub, isMax, ligne }) {
     background: gc,
     padding: "0 1px",
     border: b,
+    ...topB,
   };
   const vCl = {
     fontSize: fs,
@@ -162,8 +179,9 @@ function DataRow({ nom, maxPer, maxEx, maxTrim, total, isSub, isMax, ligne }) {
     padding: "0 1px",
     background: bg,
     color: "#111",
+    ...topB,
   };
-  const eCl = { border: b, padding: 0 };
+  const eCl = { border: b, padding: 0, ...topB };
 
   const p1 = ligne ? fmt(ligne.ptsP1) : "";
   const p2 = ligne ? fmt(ligne.ptsP2) : "";
@@ -188,30 +206,35 @@ function DataRow({ nom, maxPer, maxEx, maxTrim, total, isSub, isMax, ligne }) {
 
   return (
     <tr style={{ background: bg, borderBottom: b }}>
-      <td style={nc}>{nom}</td>
+      <td style={nc}>
+        {nom?.startsWith("LECT") ? (
+          <>
+            LECT. – ECRITURE EN<br />
+            LANGUES CONGOLAISES
+          </>
+        ) : (
+          nom
+        )}
+      </td>
       <td style={gCl}>{maxPer}</td>
-      {/* T1 */}
       <td style={p1 ? vCl : eCl}>{p1}</td>
       <td style={p2 ? vCl : eCl}>{p2}</td>
       <td style={gCl}>{maxEx}</td>
       <td style={ex1 ? vCl : eCl}>{ex1}</td>
       <td style={gCl}>{maxTrim}</td>
       <td style={tot1 ? vCl : eCl}>{tot1}</td>
-      {/* T2 */}
       <td style={p3 ? vCl : eCl}>{p3}</td>
       <td style={p4 ? vCl : eCl}>{p4}</td>
       <td style={gCl}>{maxEx}</td>
       <td style={ex2 ? vCl : eCl}>{ex2}</td>
       <td style={gCl}>{maxTrim}</td>
       <td style={tot2 ? vCl : eCl}>{tot2}</td>
-      {/* T3 */}
       <td style={p5 ? vCl : eCl}>{p5}</td>
       <td style={p6 ? vCl : eCl}>{p6}</td>
       <td style={gCl}>{maxEx}</td>
       <td style={ex3 ? vCl : eCl}>{ex3}</td>
       <td style={gCl}>{maxTrim}</td>
       <td style={tot3 ? vCl : eCl}>{tot3}</td>
-      {/* TOTAL */}
       <td style={{ ...gCl, fontWeight: 800 }}>{total}</td>
       <td style={totG ? { ...vCl, fontWeight: 800 } : eCl}>{totG}</td>
     </tr>
@@ -510,13 +533,14 @@ const BOT_ROWS = [
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-function bulletin({ bulletin }) {
+export default function BulletinMINEDUC({ bulletin, anneeScolaire }) {
   const lignes = bulletin?.lignes;
   const ins = bulletin?.inscription;
   const eleve = ins?.eleve;
   const util = eleve?.utilisateur;
   const ecole = ins?.classe?.niveau?.ecole;
-  const annee = bulletin?.periode?.anneeScolaire?.libelle ?? "";
+  const annee =
+    bulletin?.periode?.anneeScolaire?.libelle ?? anneeScolaire?.libelle ?? "";
 
   const nomEleve = util ? `${util.prenom ?? ""} ${util.nom ?? ""}`.trim() : "";
   const noPerm = eleve?.matricule ?? "";
@@ -543,10 +567,11 @@ function bulletin({ bulletin }) {
         color: "#111",
         fontSize: 8,
         position: "relative",
-        border: "3px solid #1a1a1a",
+        border: "2px solid #1a1a1a",
         outlineOffset: "-2.5px",
         boxShadow: "0 4px 20px rgba(0,0,0,.18)",
         background: "#fff",
+        overflow: "hidden",
       }}
     >
       {/* Watermark */}
@@ -591,16 +616,16 @@ function bulletin({ bulletin }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "12px 20px",
               gap: 12,
+              padding: "0px 14px",
             }}
           >
             <img
               src="/logo_drapeau.png"
               alt="Drapeau RDC"
               style={{
-                width: 96,
-                height: 65,
+                width: 90,
+                height: 60,
                 objectFit: "contain",
                 flexShrink: 0,
               }}
@@ -608,10 +633,10 @@ function bulletin({ bulletin }) {
             <div style={{ textAlign: "center", flex: 1 }}>
               <div
                 style={{
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: 900,
-                  letterSpacing: ".04em",
-                  lineHeight: 1.5,
+                  letterSpacing: ".02em",
+                  lineHeight: 0.5,
                   textTransform: "uppercase",
                 }}
               >
@@ -619,9 +644,9 @@ function bulletin({ bulletin }) {
               </div>
               <div
                 style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  letterSpacing: ".03em",
+                  fontSize: 18,
+                  fontWeight: 900,
+                  letterSpacing: ".02em",
                   lineHeight: 1.5,
                   textTransform: "uppercase",
                 }}
@@ -630,10 +655,10 @@ function bulletin({ bulletin }) {
               </div>
               <div
                 style={{
-                  fontSize: 16,
-                  fontWeight: 800,
+                  fontSize: 18,
+                  fontWeight: 900,
                   letterSpacing: ".02em",
-                  lineHeight: 1.5,
+                  lineHeight: 0.5,
                   textTransform: "uppercase",
                 }}
               >
@@ -644,8 +669,8 @@ function bulletin({ bulletin }) {
               src="/logo_min.jpg"
               alt="Logo MINEDUC"
               style={{
-                width: 84,
-                height: 84,
+                width: 76,
+                height: 76,
                 borderRadius: 100,
                 objectFit: "contain",
                 flexShrink: 0,
@@ -661,8 +686,7 @@ function bulletin({ bulletin }) {
             alignItems: "center",
             justifyContent: "center",
             borderBottom: "2px solid #1a1a1a",
-            padding: "5px 8px",
-            gap: 3,
+            padding: "8px 10px",
             position: "relative",
             overflow: "hidden",
           }}
@@ -680,7 +704,7 @@ function bulletin({ bulletin }) {
           <span
             style={{
               fontWeight: 900,
-              fontSize: 12,
+              fontSize: 16,
               whiteSpace: "nowrap",
               marginRight: 6,
               color: "#000",
@@ -690,14 +714,14 @@ function bulletin({ bulletin }) {
           >
             N° ID.
           </span>
-          {Array(22)
+          {Array(23)
             .fill(0)
             .map((_, i) => (
               <div
                 key={i}
                 style={{
-                  width: 22,
-                  height: 16,
+                  width: 33,
+                  height: 20,
                   border: "1px solid #000",
                   display: "flex",
                   alignItems: "center",
@@ -714,176 +738,416 @@ function bulletin({ bulletin }) {
         <div>
           {/* ── IDENTIFICATION ── */}
           <div
-            style={{
-              border: B,
-              borderBottom: "2px solid #1a1a1a",
-              marginBottom: 5,
-            }}
+            style={
+              {
+                // marginBottom: 5,
+                // paddingRight: 8,
+              }
+            }
           >
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                borderBottom: B,
+                gap: 4,
+                gridTemplateColumns: "1fr 2px 1fr",
+                width: "100%",
+                paddingRight: 15,
               }}
             >
               {/* Infos école */}
-              <div style={{ padding: "4px 8px", borderRight: B }}>
-                <IL
-                  label="PROVINCE EDUCATIONNELLE"
-                  value={ecole?.provinceEducationnelle}
-                />
-                <IL label="VILLE" value={ecole?.ville} />
-                <IL label="COMMUNE / TER. (1)" value={ecole?.commune} />
-                <IL label="ECOLE" value={ecole?.nom} />
-                <IL label="CODE" value={ecole?.code} />
-              </div>
-
-              {/* Infos élève */}
-              <div style={{ padding: "4px 8px" }}>
+              <div
+                style={{
+                  padding: "8px 0 8px 10px",
+                  minWidth: 0,
+                  paddingRight: 8,
+                  overflow: "hidden",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
-                    gap: 6,
+                    alignItems: "center",
                     marginBottom: 2.5,
-                    fontSize: 7.5,
+                    fontSize: 13,
+                    fontWeight: 900,
                   }}
                 >
                   <span
                     style={{
-                      fontWeight: 700,
-                      fontSize: 7,
+                      fontWeight: 900,
                       whiteSpace: "nowrap",
+                      paddingRight: 8,
+                    }}
+                  >
+                    PROVINCE EDUCATIONNELLE :
+                  </span>
+
+                  <span
+                    style={{
+                      marginLeft: 2,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {ecole?.provinceEducationnelle}
+                  </span>
+
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    .............................................................................................................
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span style={{ fontWeight: 900, paddingRight: 8 }}>
+                    VILLE :
+                  </span>
+                  <span style={{ marginLeft: 2 }}>{ecole?.ville}</span>
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    ....................................................................................................................................................
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span style={{ fontWeight: 900, paddingRight: 8 }}>
+                    COMMUNE / TER. (1) :
+                  </span>
+                  <span style={{ marginLeft: 2 }}>{ecole?.commune}</span>
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    ....................................................................................................................................................
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span style={{ fontWeight: 900, paddingRight: 8 }}>
+                    ECOLE :
+                  </span>
+                  <span style={{ marginLeft: 2 }}>{ecole?.nom}</span>
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    ....................................................................................................................................................
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span style={{ fontWeight: 900, paddingRight: 8 }}>
+                    CODE :
+                  </span>
+                  <div style={{ display: "flex", marginLeft: 6 }}>
+                    {Array(9)
+                      .fill(0)
+                      .map((_, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            width: 40,
+                            height: 25,
+                            borderTop: "1px solid #000",
+                            borderBottom: "1px solid #000",
+                            borderLeft: "1px solid #000",
+                            borderRight: i === 8 ? "1px solid #000" : "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 9,
+                            fontWeight: 700,
+                            background: "#fff",
+                          }}
+                        >
+                          {ecole?.code ? (ecole.code[i] ?? "") : ""}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  backgroundColor: "#000",
+                  width: "2px",
+                }}
+              />
+              {/* Infos élève — même style points */}
+              <div
+                style={{
+                  padding: "4px 0 4px 8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  minWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                      paddingRight: 8,
                     }}
                   >
                     ELEVE :
                   </span>
                   <span
                     style={{
-                      borderBottom: "0.5px solid #555",
-                      flex: 1,
-                      paddingLeft: 2,
-                      fontSize: 7.5,
+                      marginLeft: 2,
+                      whiteSpace: "nowrap",
+                      textTransform: "uppercase",
                     }}
                   >
-                    {nomEleve || "\u00a0"}
+                    {nomEleve}
                   </span>
                   <span
                     style={{
-                      fontWeight: 700,
-                      fontSize: 7,
+                      flex: 1,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      overflow: "hidden",
                       whiteSpace: "nowrap",
+                    }}
+                  >
+                    {".".repeat(400)}
+                  </span>
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                      marginLeft: 6,
+                      paddingRight: 3,
                     }}
                   >
                     SEXE :
                   </span>
                   <span
                     style={{
-                      borderBottom: "0.5px solid #555",
-                      width: 28,
-                      paddingLeft: 2,
-                      fontSize: 7.5,
+                      marginLeft: 2,
+                      whiteSpace: "nowrap",
+                      textTransform: "uppercase",
                     }}
                   >
-                    {util?.sexe || "\u00a0"}
+                    {util?.sexe || ""}
+                  </span>
+                  <span
+                    style={{
+                      width: 30,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {".".repeat(20)}
                   </span>
                 </div>
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
-                    gap: 6,
+                    alignItems: "center",
                     marginBottom: 2.5,
-                    fontSize: 7.5,
+                    fontSize: 13,
+                    fontWeight: 900,
                   }}
                 >
                   <span
                     style={{
-                      fontWeight: 700,
-                      fontSize: 7,
+                      fontWeight: 900,
                       whiteSpace: "nowrap",
+                      paddingRight: 8,
                     }}
                   >
                     NE(E) A :
                   </span>
                   <span
                     style={{
-                      borderBottom: "0.5px solid #555",
-                      flex: 1,
-                      paddingLeft: 2,
-                      fontSize: 7.5,
+                      marginLeft: 2,
+                      whiteSpace: "nowrap",
+                      textTransform: "uppercase",
                     }}
                   >
-                    {eleve?.lieuNaissance || "\u00a0"}
+                    {eleve?.lieuNaissance || ""}
                   </span>
                   <span
                     style={{
-                      fontWeight: 700,
-                      fontSize: 7,
+                      flex: 1,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      overflow: "hidden",
                       whiteSpace: "nowrap",
+                    }}
+                  >
+                    {".".repeat(400)}
+                  </span>
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                      marginLeft: 6,
+                      paddingRight: 3,
                     }}
                   >
                     LE
                   </span>
+                  <span style={{ marginLeft: 2, whiteSpace: "nowrap" }}>
+                    {fmtDate(util?.dateNaissance) || ""}
+                  </span>
                   <span
                     style={{
-                      borderBottom: "0.5px solid #555",
-                      width: 65,
-                      paddingLeft: 2,
-                      fontSize: 7.5,
+                      width: 70,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {fmtDate(util?.dateNaissance) || "\u00a0"}
+                    {".".repeat(40)}
                   </span>
                 </div>
-                <IL label="CLASSE" value={ins?.classe?.nom} />
-
-                {/* N° PERM */}
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 3,
                     marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
                   }}
                 >
                   <span
                     style={{
-                      fontWeight: 700,
-                      fontSize: 7,
+                      fontWeight: 900,
                       whiteSpace: "nowrap",
+                      paddingRight: 8,
+                    }}
+                  >
+                    CLASSE :
+                  </span>
+                  <span style={{ marginLeft: 2, whiteSpace: "nowrap" }}>
+                    {ins?.classe?.nom}
+                  </span>
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {".".repeat(400)}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: 2.5,
+                    fontSize: 13,
+                    fontWeight: 900,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                      paddingRight: 8,
                     }}
                   >
                     N° PERM. :
                   </span>
-                  {noPerm ? (
-                    <span
-                      style={{
-                        fontSize: 7.5,
-                        borderBottom: "0.5px solid #555",
-                        paddingLeft: 2,
-                      }}
-                    >
-                      {noPerm}
-                    </span>
-                  ) : (
-                    Array(14)
+                  <div style={{ display: "flex", marginLeft: 2 }}>
+                    {Array(13)
                       .fill(0)
                       .map((_, i) => (
                         <div
                           key={i}
                           style={{
-                            width: 18,
-                            height: 15,
-                            border: "1px solid #444",
-                            flexShrink: 0,
+                            width: 28,
+                            height: 25,
+                            borderTop: "1px solid #000",
+                            borderBottom: "1px solid #000",
+                            borderLeft: "1px solid #000",
+                            borderRight: i === 12 ? "1px solid #000" : "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 9,
+                            fontWeight: 700,
                             background: "#fff",
                           }}
-                        />
-                      ))
-                  )}
+                        >
+                          {noPerm ? (String(noPerm)[i] ?? "") : ""}
+                        </div>
+                      ))}
+                  </div>
                 </div>
+                {/* <IL label="CLASSE" value={ins?.classe?.nom} />
+                <IL label="N° PERM." value={noPerm} /> */}
               </div>
             </div>
 
@@ -893,18 +1157,27 @@ function bulletin({ bulletin }) {
                 display: "flex",
                 alignItems: "center",
                 borderTop: "2px solid #1a1a1a",
+                borderBottom: "2px solid #1a1a1a",
                 justifyContent: "space-between",
                 padding: "4px 20px",
               }}
             >
               <span
-                style={{ fontSize: 9, fontWeight: 800, letterSpacing: ".04em" }}
+                style={{
+                  fontSize: 16,
+                  fontWeight: 900,
+                  letterSpacing: ".04em",
+                }}
               >
                 BULLETIN DE L'ELEVE DEGRE ELEMENTAIRE (1<sup>ère</sup>, 2
                 <sup>e</sup> ANNEE)<sup>(1)</sup>
               </span>
               <span
-                style={{ fontSize: 9, fontWeight: 800, letterSpacing: ".04em" }}
+                style={{
+                  fontSize: 16,
+                  fontWeight: 900,
+                  letterSpacing: ".04em",
+                }}
               >
                 ANNEE SCOLAIRE {annee || "_____ - _____"}
               </span>
@@ -945,37 +1218,58 @@ function bulletin({ bulletin }) {
                 <col style={{ width: 28 }} />
                 <col style={{ width: 24 }} />
               </colgroup>
-              <thead>
+              <thead
+                style={{
+                  background: "#fff",
+                  fontFamily: '"AgencyGothicCT-Condensed", sans-serif',
+                }}
+              >
                 <tr>
                   <Th
                     rowSpan={2}
-                    style={{ textAlign: "left", paddingLeft: 4, fontSize: 7 }}
+                    style={{
+                      textAlign: "center",
+                      verticalAlign: "top",
+                      paddingTop: 1,
+                      paddingLeft: 4,
+                      fontSize: 20,
+                      fontWeight: 400,
+                    }}
                   >
                     B R A N C H E S
                   </Th>
-                  <Th rowSpan={2} style={{ fontSize: 6 }}>
-                    MAX
-                    <br />
-                    per
-                  </Th>
-                  <Th colSpan={6} style={{ fontSize: 7 }}>
+
+                  <Th
+                    colSpan={6}
+                    style={{ fontSize: 14, borderBottom: "2px solid #000" }}
+                  >
                     PREMIER TRIMESTRE
                   </Th>
-                  <Th colSpan={6} style={{ fontSize: 7 }}>
-                    DEUXIEME
-                    <br />
-                    TRIMESTRE
+                  <Th
+                    colSpan={6}
+                    style={{ fontSize: 14, borderBottom: "2px solid #000" }}
+                  >
+                    DEUXIEME TRIMESTRE
                   </Th>
-                  <Th colSpan={6} style={{ fontSize: 7 }}>
-                    TROISIEME
-                    <br />
-                    TRIMESTRE
+                  <Th
+                    colSpan={6}
+                    style={{ fontSize: 14, borderBottom: "2px solid #000" }}
+                  >
+                    TROISIEME TRIMESTRE
                   </Th>
-                  <Th colSpan={2} style={{ fontSize: 7 }}>
+                  <Th
+                    colSpan={3}
+                    style={{ fontSize: 14, borderBottom: "2px solid #000" }}
+                  >
                     TOTAL
                   </Th>
                 </tr>
                 <tr>
+                  <Th style={{ fontSize: 10, fontWeight: 400 }}>
+                    MAX
+                    <br />
+                    per
+                  </Th>
                   <Th>
                     1ère
                     <br />
@@ -1006,7 +1300,6 @@ function bulletin({ bulletin }) {
                     <br />
                     OBT.
                   </Th>
-
                   <Th>
                     3è
                     <br />
@@ -1037,7 +1330,6 @@ function bulletin({ bulletin }) {
                     <br />
                     OBT.
                   </Th>
-
                   <Th>
                     5è
                     <br />
@@ -1068,7 +1360,6 @@ function bulletin({ bulletin }) {
                     <br />
                     OBT.
                   </Th>
-
                   <Th>MAX.</Th>
                   <Th>
                     PTS
@@ -1101,7 +1392,6 @@ function bulletin({ bulletin }) {
                     />
                   );
                 })}
-
                 {BOT_ROWS.map((label) => (
                   <BotRow key={label} label={label} value={botValues[label]} />
                 ))}
@@ -1119,6 +1409,7 @@ function bulletin({ bulletin }) {
               justifyContent: "space-between",
               alignItems: "flex-end",
               gap: 16,
+              padding: "0 4px",
             }}
           >
             <div style={{ fontSize: 7.5, lineHeight: 2.2 }}>
@@ -1142,7 +1433,6 @@ function bulletin({ bulletin }) {
                 }}
               />
             </div>
-
             <div style={{ textAlign: "center", fontSize: 7.5 }}>
               <div>
                 Fait à &nbsp;
@@ -1200,7 +1490,6 @@ function bulletin({ bulletin }) {
                 Noms &amp; Signature
               </div>
             </div>
-
             <div style={{ textAlign: "center", fontSize: 7.5 }}>
               <div style={{ fontWeight: 700, marginBottom: 6 }}>
                 Sceau de l'Ecole
@@ -1226,6 +1515,7 @@ function bulletin({ bulletin }) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-end",
+              padding: "0 4px",
             }}
           >
             <div style={{ fontSize: 6.5, color: "#444" }}>
@@ -1248,4 +1538,3 @@ function bulletin({ bulletin }) {
     </div>
   );
 }
-export default bulletin;

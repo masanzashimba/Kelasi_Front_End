@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "AgencyGothicCT-Condensed";
+  src: url("/agency-gothic-condensed.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Texte */
   --text: #64748b;

@@ -2,6 +2,7 @@
 // ─── Module Bulletins — page principale ──────────────────────────────────────
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
+import BulletinModal from "../../features/bulletin/components/BulletinModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
@@ -68,6 +69,18 @@ const STATUT_CFG = {
     color: "#5F5E5A",
     bg: "#F1EFE8",
     border: "#B4B2A9",
+  },
+  EN_ATTENTE_DIRECTEUR: {
+    label: "Chez le directeur",
+    color: "#1d4ed8",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+  },
+  EN_ATTENTE_TITULAIRE: {
+    label: "À réviser",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
   },
   VALIDE: {
     label: "Validé",
@@ -156,23 +169,26 @@ const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
 // ─── BulletinRow (liste) ──────────────────────────────────────────────────────
 
 const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
-  const { decision } = getDecision(bul.pourcentage) ?? {};
   const pct = bul.pourcentage;
+  // L'API retourne inscription.eleve.utilisateur.{prenom,nom} et inscription.eleve.matricule
+  const utilisateur = bul.inscription?.eleve?.utilisateur ?? {};
+  const prenom = utilisateur.prenom ?? "";
+  const nom = utilisateur.nom ?? "";
+  const matricule = bul.inscription?.eleve?.matricule ?? "—";
 
   return (
     <div className="flex items-center gap-0 px-4 py-3 border-b border-gray-50 hover:bg-blue-50/10 transition-colors">
       {/* Élève */}
       <div style={{ flex: 2 }} className="flex items-center gap-8">
         <div className="w-8 h-8 rounded-full bg-[#EEEDFE] flex items-center justify-center text-[10px] font-bold text-[#3C3489] shrink-0">
-          {(bul.eleve?.prenom?.[0] ?? "") + (bul.eleve?.nom?.[0] ?? "")}
+          {(prenom[0] ?? "").toUpperCase()}
+          {(nom[0] ?? "").toUpperCase()}
         </div>
         <div>
           <p className="text-[13px] font-semibold text-gray-900 leading-tight">
-            {bul.eleve?.prenom} {bul.eleve?.nom}
+            {prenom} {nom}
           </p>
-          <p className="text-[10px] text-gray-400 font-mono">
-            {bul.eleve?.matricule}
-          </p>
+          <p className="text-[10px] text-gray-400 font-mono">{matricule}</p>
         </div>
       </div>
       {/* % */}
@@ -204,7 +220,7 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
         <DecisionBadge pct={pct} />
       </div>
       {/* Statut */}
-      <div style={{ width: 76 }}>
+      <div style={{ width: 96 }}>
         <StatutBadge statut={bul.statut} />
       </div>
       {/* Actions */}
@@ -215,12 +231,12 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
         >
           <Eye className="w-3.5 h-3.5" /> Voir
         </button>
-        {bul.statut === "BROUILLON" && (
+        {bul.statut === "EN_ATTENTE_DIRECTEUR" && (
           <button
             onClick={() => onValider(bul.id)}
             className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#85B7EB] text-[11px] font-medium text-[#0C447C] bg-[#E6F1FB] hover:bg-[#d0e8f8] transition-colors"
           >
-            <Check className="w-3.5 h-3.5" /> Valider
+            <Check className="w-3.5 h-3.5" /> Approuver
           </button>
         )}
         {bul.statut === "VALIDE" && (
@@ -863,20 +879,24 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
         {/* Valider */}
         <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
           <p className="text-[13px] font-semibold text-gray-700 flex items-center gap-2">
-            <Check className="w-4 h-4 text-blue-600" /> Valider les bulletins
+            <Check className="w-4 h-4 text-blue-600" /> Approuver les bulletins
           </p>
           <p className="text-[12px] text-gray-500 leading-relaxed">
-            La validation confirme que les notes sont correctes. Un bulletin
-            validé ne peut plus être modifié sans réouverture.
+            L'approbation confirme que les bulletins transmis par les titulaires
+            sont corrects. Un bulletin approuvé passe au statut Validé.
           </p>
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 space-y-1.5 text-[12px]">
             {[
               {
-                label: "Brouillons",
+                label: "En attente d'approbation",
                 value: stats.brouillons,
-                color: "#5F5E5A",
+                color: "#1d4ed8",
               },
-              { label: "Déjà validés", value: stats.valides, color: "#3B6D11" },
+              {
+                label: "Déjà approuvés",
+                value: stats.valides,
+                color: "#3B6D11",
+              },
               { label: "Déjà publiés", value: stats.publies, color: "#0C447C" },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex justify-between">
@@ -897,7 +917,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
             ) : (
               <Check className="w-4 h-4" />
             )}
-            Valider les {stats.brouillons} brouillon
+            Approuver les {stats.brouillons} bulletin
             {stats.brouillons > 1 ? "s" : ""}
           </button>
         </div>
@@ -982,19 +1002,20 @@ export default function BulletinsPage() {
   const [classeId, setClasseId] = useState("");
   const [periodeId, setPeriodeId] = useState("");
   const [selectedBul, setSelectedBul] = useState(null);
+  const [viewBulletinId, setViewBulletinId] = useState(null);
 
   useEffect(() => {
-    if (classeId && periodeId) {
-      fetchBulletins({ classeId, periodeId });
-      fetchProgression({ classeId, periodeId });
-    }
+    fetchBulletins({ classeId, periodeId });
+    if (classeId && periodeId) fetchProgression({ classeId, periodeId });
   }, [classeId, periodeId]);
 
   // Stats pour le validateur
   const bulStats = useMemo(
     () => ({
-      brouillons: state.bulletins.filter((b) => b.statut === "BROUILLON")
-        .length,
+      // bulletins en attente d'approbation directeur (ex-"brouillons" dans l'ancien workflow)
+      brouillons: state.bulletins.filter(
+        (b) => b.statut === "EN_ATTENTE_DIRECTEUR",
+      ).length,
       valides: state.bulletins.filter((b) => b.statut === "VALIDE").length,
       publies: state.bulletins.filter((b) => b.statut === "PUBLIE").length,
       taux: (() => {
@@ -1026,8 +1047,7 @@ export default function BulletinsPage() {
   };
 
   const handleView = (bul) => {
-    setSelectedBul(bul);
-    setActiveTab("apercu");
+    setViewBulletinId(bul.id);
   };
 
   return (
@@ -1167,17 +1187,7 @@ export default function BulletinsPage() {
             {/* ══ Tab Liste ══ */}
             {activeTab === "liste" && (
               <div>
-                {!classeId || !periodeId ? (
-                  <div className="flex flex-col items-center py-14 gap-2">
-                    <BookOpen className="w-10 h-10 text-gray-200" />
-                    <p className="text-[14px] font-semibold text-gray-400">
-                      Sélectionnez une classe et une période
-                    </p>
-                    <p className="text-[12px] text-gray-300">
-                      Utilisez les filtres dans l'en-tête
-                    </p>
-                  </div>
-                ) : state.loading ? (
+                {state.loading ? (
                   <div className="flex items-center justify-center py-16">
                     <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                   </div>
@@ -1331,6 +1341,13 @@ export default function BulletinsPage() {
           <p className="text-[13px] text-red-700">{state.error}</p>
         </div>
       )}
+
+      {/* Viewer plein-écran bulletin */}
+      <BulletinModal
+        bulletinId={viewBulletinId ?? ""}
+        isOpen={!!viewBulletinId}
+        onClose={() => setViewBulletinId(null)}
+      />
     </div>
   );
 }
