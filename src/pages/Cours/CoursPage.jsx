@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
@@ -445,6 +445,32 @@ function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, 
   const selectedMatiere = matieres.find((m) => m.id === form.matiereId);
   const PreviewIcon = selectedMatiere ? getSubjectIcon(selectedMatiere.nom) : BookOpen;
 
+  // Niveaux distincts des classes sélectionnées
+  const selectedNiveauIds = useMemo(() => {
+    const ids = form.classeIds
+      .map((id) => classes.find((c) => c.id === id)?.niveau?.id)
+      .filter(Boolean);
+    return [...new Set(ids)];
+  }, [form.classeIds, classes]);
+
+  // Matières disponibles : rattachées à TOUS les niveaux sélectionnés
+  // (une matière sans niveau configuré reste disponible partout)
+  const matieresDisponibles = useMemo(() => {
+    const actives = matieres.filter((m) => m.active);
+    if (selectedNiveauIds.length === 0) return actives;
+    return actives.filter((m) => {
+      if (!m.niveauIds || m.niveauIds.length === 0) return true;
+      return selectedNiveauIds.every((nid) => m.niveauIds.includes(nid));
+    });
+  }, [matieres, selectedNiveauIds]);
+
+  // Réinitialiser la matière si elle n'est plus disponible pour la sélection
+  useEffect(() => {
+    if (form.matiereId && !matieresDisponibles.some((m) => m.id === form.matiereId)) {
+      setForm((f) => ({ ...f, matiereId: "" }));
+    }
+  }, [matieresDisponibles, form.matiereId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isEdit && form.classeIds.length === 0) { toast.error("Sélectionnez au moins une classe"); return; }
@@ -502,10 +528,20 @@ function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, 
                     <div>
                       <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Matière <span className="text-red-500">*</span></label>
                       <select value={form.matiereId} onChange={(e) => setForm((f) => ({ ...f, matiereId: e.target.value }))} required
-                        className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white">
+                        disabled={form.classeIds.length === 0}
+                        className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white disabled:opacity-60 disabled:cursor-not-allowed">
                         <option value="">— Sélectionner une matière —</option>
-                        {matieres.filter((m) => m.active).map((m) => <option key={m.id} value={m.id}>{m.nom} ({m.code})</option>)}
+                        {matieresDisponibles.map((m) => <option key={m.id} value={m.id}>{m.nom} ({m.code})</option>)}
                       </select>
+                      {form.classeIds.length === 0 ? (
+                        <p className="text-[11px] text-gray-400 mt-1">Sélectionnez d'abord une ou plusieurs classes.</p>
+                      ) : matieresDisponibles.length === 0 ? (
+                        <p className="text-[11px] text-amber-600 mt-1 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3 shrink-0" /> Aucune matière commune aux niveaux sélectionnés.
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-gray-400 mt-1">{matieresDisponibles.length} matière{matieresDisponibles.length > 1 ? "s" : ""} disponible{matieresDisponibles.length > 1 ? "s" : ""} pour la sélection.</p>
+                      )}
                     </div>
                   </>
                 )}

@@ -21,11 +21,10 @@ import BulletinTemplate from "../templates/BulletinTemplate";
 // ─── CSS impression ─────────────────────────────────────────────────────────────
 const PRINT_STYLE = `
   @media print {
-    /* Petite marge : empêche l'imprimante de couper la bordure du document.
-       Pas de margin:0 sinon le bord noir disparaît dans la zone non-imprimable. */
+    /* Marge minimale : empêche l'imprimante de couper la bordure du document. */
     @page {
       size: A4 portrait;
-      margin: 6mm;
+      margin: 2mm;
     }
 
     * {
@@ -66,15 +65,15 @@ const PRINT_STYLE = `
       -webkit-backdrop-filter: none !important;
     }
 
-    /* zoom réduit la BOÎTE + le visuel : le document tient sur A4
-       en gardant EXACTEMENT son apparence (bordures, hauteur, tableau). */
+    /* zoom calculé automatiquement (voir beforeprint) pour remplir la page
+       au maximum tout en gardant le footer. Repli 0.74 si non calculé. */
     .bm-doc {
       width: max-content !important;
       margin: 0 auto !important;
       padding: 0 !important;
       filter: none !important;
       box-sizing: border-box !important;
-      zoom: 0.78;
+      zoom: var(--bm-print-zoom, 0.74);
     }
 
     /* Le document reste tel quel : largeur 940px, bordure 2px, hauteur naturelle */
@@ -83,13 +82,10 @@ const PRINT_STYLE = `
       margin: 0 auto !important;
       box-shadow: none !important;
       box-sizing: border-box !important;
-      /* border et height NON touchés → on garde l'apparence d'origine */
-    }
-
-    /* Le tableau et ses lignes ne se cassent jamais en deux */
-    table {
       page-break-inside: avoid !important;
     }
+
+    /* Pas de coupure de lignes */
     tr, td, th {
       page-break-inside: avoid !important;
     }
@@ -239,6 +235,27 @@ export default function BulletinModal({ bulletinId, isOpen, onClose }) {
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [isOpen, onClose]);
+
+  // Zoom d'impression auto : remplit la page A4 au max tout en gardant le footer
+  useEffect(() => {
+    if (!isOpen) return;
+    const compute = () => {
+      const root = document.querySelector(".bulletin-root");
+      if (!root) return;
+      // A4 zone imprimable à 96dpi, marge @page 2mm de chaque côté
+      const PAGE_W = 793.7 - 15; // ~778px
+      const PAGE_H = 1122.5 - 15; // ~1107px
+      const w = root.scrollWidth || 940;
+      const hgt = root.scrollHeight || 1;
+      const z = Math.min(PAGE_W / w, PAGE_H / hgt, 1);
+      document.documentElement.style.setProperty(
+        "--bm-print-zoom",
+        String(Math.round(z * 1000) / 1000),
+      );
+    };
+    window.addEventListener("beforeprint", compute);
+    return () => window.removeEventListener("beforeprint", compute);
+  }, [isOpen, bulletin]);
 
   useEffect(() => {
     for (const [id, css] of [

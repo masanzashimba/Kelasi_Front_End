@@ -68,6 +68,17 @@ const CONTRAT_CFG = {
 const initiales = (prenom, nom) =>
   `${(prenom?.[0] ?? "").toUpperCase()}${(nom?.[0] ?? "").toUpperCase()}`;
 
+const AVATAR_COLORS = [
+  "#0b57cd",
+  "#7c3aed",
+  "#059669",
+  "#d97706",
+  "#dc2626",
+  "#0891b2",
+];
+const avatarBg = (id) =>
+  AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+
 const formatDate = (d) => {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("fr-FR", {
@@ -102,22 +113,19 @@ const StatutBadge = ({ actif }) =>
 // ── Skeleton ──────────────────────────────────────────────────
 
 const CardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-    <div className="h-1 bg-gray-200" />
-    <div className="p-4 space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-gray-200 shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-1/2" />
+  <div className="flex h-40 rounded-xl border border-gray-100 overflow-hidden bg-white animate-pulse">
+    <div className="w-1/2 shrink-0 bg-gray-100" />
+    <div className="flex-1 flex flex-col justify-between p-3 border-l border-gray-100">
+      <div className="space-y-1.5">
+        <div className="h-3.5 bg-gray-100 rounded w-3/4" />
+        <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+        <div className="mt-2 space-y-1.5">
+          <div className="h-2.5 bg-gray-100 rounded w-3/5" />
+          <div className="h-2.5 bg-gray-100 rounded w-4/5" />
+          <div className="h-2.5 bg-gray-100 rounded w-3/5" />
         </div>
       </div>
-      <div className="h-3 bg-gray-100 rounded w-2/3" />
-      <div className="h-3 bg-gray-100 rounded w-1/2" />
-      <div className="pt-2 border-t border-gray-100 flex gap-2">
-        <div className="h-5 bg-gray-100 rounded-full w-16" />
-        <div className="h-5 bg-gray-100 rounded-full w-12" />
-      </div>
+      <div className="h-2.5 bg-gray-100 rounded w-1/3" />
     </div>
   </div>
 );
@@ -144,75 +152,103 @@ const AvatarInitiales = ({
     </div>
   );
 
-const EnseignantCard = ({ ens, selected, onSelect }) => (
-  <motion.div
-    whileHover={{ y: -2 }}
-    onClick={() => onSelect(selected ? null : ens.id)}
-    className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
-      selected
-        ? "border-[#0b57cd] border-1 shadow-lg shadow-[#0b57cd]/10 ring-2 ring-[#0b57cd]/15"
-        : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
-    }`}
-  >
-    <div className="h-1 bg-[#0b57cd]" />
-    <div className="p-4">
-      {/* Avatar + Nom */}
-      <div className="flex items-start gap-3 mb-3">
-        <AvatarInitiales ens={ens} />
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
-            {ens.prenom} {ens.nom}
-          </h3>
-          <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-            {ens.specialite ?? "Spécialité non définie"}
-          </p>
-        </div>
-        <StatutBadge actif={ens.actif ?? true} />
+// ── EnseignantCard split 50/50 (calqué sur EleveCard) ──────────
+const EnseignantCard = ({ ens, selected, onSelect }) => {
+  const nom = `${ens.prenom ?? ""} ${ens.nom ?? ""}`.trim();
+  const color = avatarBg(ens.id);
+  const actif = ens.actif ?? true;
+
+  const infos = [
+    { Icon: Mail, val: ens.email },
+    { Icon: Phone, val: ens.telephone },
+    { Icon: Briefcase, val: CONTRAT_CFG[ens.typeContrat]?.label },
+    { Icon: Award, val: ens.diplomeMax },
+    {
+      Icon: Calendar,
+      val: ens.dateEmbauche ? `Embauche : ${formatDate(ens.dateEmbauche)}` : null,
+    },
+  ].filter((r) => r.val);
+
+  return (
+    <motion.div
+      onClick={() => onSelect(selected ? null : ens.id)}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      className={`flex h-40 rounded-xl border overflow-hidden bg-white cursor-pointer transition-colors ${
+        selected
+          ? "border-[#0C447C] ring-2 ring-[#0C447C]/20"
+          : "border-gray-100 hover:border-gray-200"
+      }`}
+    >
+      {/* ── Gauche : photo / avatar ── */}
+      <div
+        className="w-1/2 shrink-0 relative flex items-center justify-center text-white text-[28px] font-black"
+        style={ens.photoUrl ? undefined : { background: color }}
+      >
+        {ens.photoUrl ? (
+          <img
+            src={ens.photoUrl}
+            alt={nom}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span>{initiales(ens.prenom, ens.nom)}</span>
+        )}
+
+        {/* Point de statut clignotant */}
+        <span
+          className="absolute top-2 left-2 flex h-2.5 w-2.5"
+          title={actif ? "Actif" : "Inactif"}
+        >
+          {actif && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          )}
+          <span
+            className={`relative inline-flex rounded-full h-2.5 w-2.5 border border-white/70 ${
+              actif ? "bg-green-500" : "bg-gray-400"
+            }`}
+          />
+        </span>
       </div>
 
-      {/* Infos */}
-      <div className="space-y-1.5 mb-3">
-        <div className="flex items-center gap-2 text-[12px] text-gray-500">
-          <Mail className="w-3.5 h-3.5 shrink-0 text-gray-300" />
-          <span className="truncate">{ens.email}</span>
-        </div>
-        {ens.telephone && (
-          <div className="flex items-center gap-2 text-[12px] text-gray-500">
-            <Phone className="w-3.5 h-3.5 shrink-0 text-gray-300" />
-            <span>{ens.telephone}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2 text-[12px] text-gray-500">
-          <Calendar className="w-3.5 h-3.5 shrink-0 text-gray-300" />
-          <span>Embauche : {formatDate(ens.dateEmbauche)}</span>
-        </div>
-      </div>
+      {/* ── Droite : détails ── */}
+      <div className="flex-1 flex flex-col p-3 border-l border-gray-100 min-w-0">
+        <p className="text-[13px] font-semibold text-gray-900 truncate leading-tight">
+          {nom || "—"}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+          {ens.specialite ?? "Spécialité non définie"}
+        </p>
 
-      {/* Badges */}
-      <div className="pt-3 border-t border-gray-100 flex items-center gap-2 flex-wrap">
-        <ContratBadge type={ens.typeContrat} />
-        {ens.diplomeMax && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-slate-50 text-slate-600 border-slate-200">
-            {ens.diplomeMax}
-          </span>
-        )}
-        {ens.nombreClasses != null && (
-          <span className="text-[10px] font-semibold text-gray-400 ml-auto">
-            {ens.nombreClasses} classe{ens.nombreClasses !== 1 ? "s" : ""}
-          </span>
-        )}
+        <div className="mt-2 space-y-1 overflow-hidden">
+          {infos.slice(0, 4).map(({ Icon, val }, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-1.5 text-[11px] text-gray-500 overflow-hidden"
+            >
+              <Icon className="w-3 h-3 text-gray-300 shrink-0" />
+              <span className="truncate">{val}</span>
+            </div>
+          ))}
+        </div>
+
+        <span className="mt-auto text-[10px] text-[#0C447C] font-medium flex items-center gap-1">
+          Voir le détail
+          <ChevronRight className="w-3 h-3" />
+        </span>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const NewEnseignantCard = ({ onClick }) => (
   <motion.button
     whileHover={{ y: -2 }}
     onClick={onClick}
-    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-48 text-gray-400 hover:text-[#0b57cd] group"
+    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 h-40 text-gray-400 hover:text-[#0b57cd] group"
   >
-    <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+    <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
       <Plus className="w-5 h-5" />
     </div>
     <span className="text-[12px] font-semibold">Nouvel enseignant</span>

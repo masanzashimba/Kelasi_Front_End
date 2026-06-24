@@ -91,12 +91,13 @@ export function useBulletin() {
   }, []);
 
   // ── GET /stats/progression (état saisie des notes) ────────
+  // periodeId optionnel : vide = toutes les périodes (toutes les matières)
   const fetchProgression = useCallback(async ({ classeId, periodeId } = {}) => {
-    if (!classeId || !periodeId) return;
+    if (!classeId) return;
     try {
-      const { data } = await api.get("/stats/progression", {
-        params: { classeId, periodeId },
-      });
+      const params = { classeId };
+      if (periodeId) params.periodeId = periodeId;
+      const { data } = await api.get("/stats/progression", { params });
       dispatch({ type: "PROG_OK", payload: Array.isArray(data) ? data : [] });
     } catch (_) {}
   }, []);

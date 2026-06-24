@@ -99,140 +99,164 @@ const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
   </div>
 );
 
-// ── Card skeleton ─────────────────────────────────────────────
-const EleveCardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-    <div className="h-1 bg-gray-200" />
-    <div className="p-4 space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
-        <div className="flex-1 space-y-1.5">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-1/2" />
-        </div>
-      </div>
-      <div className="h-3 bg-gray-100 rounded w-1/3" />
-      <div className="flex gap-2 pt-2 border-t border-gray-100">
-        <div className="h-6 bg-gray-100 rounded w-1/2" />
-        <div className="h-6 bg-gray-100 rounded w-1/2" />
-      </div>
-    </div>
-  </div>
-);
+// ─── Palette avatars selon initiale du nom ────────────────────────────────────
+const AVATAR_PALETTE = [
+  { bg: "#E6F1FB", color: "#0C447C" },
+  { bg: "#EEEDFE", color: "#3C3489" },
+  { bg: "#EAF3DE", color: "#27500A" },
+  { bg: "#FAEEDA", color: "#633806" },
+  { bg: "#E1F5EE", color: "#085041" },
+  { bg: "#F1EFE8", color: "#5F5E5A" },
+];
 
-// ── Eleve card (grid) ─────────────────────────────────────────
+function getAvatarStyle(nom = "") {
+  const code = nom.charCodeAt(0);
+  const idx = Number.isNaN(code) ? 0 : code % AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[idx];
+}
+
+// ─── EleveCard split 50/50 ────────────────────────────────────────────────────
+
 const EleveCard = ({ eleve, selected, onSelect }) => {
-  const sKey = eleve.actif ? "ACTIF" : "INACTIF";
-  const s = statutConfig[sKey];
+  const nom = `${eleve.prenom ?? ""} ${eleve.nom ?? ""}`.trim();
   const color = avatarBg(eleve.id);
+  const actif = eleve.actif;
+
+  const age = eleve.dateNaissance
+    ? Math.floor(
+        (Date.now() - new Date(eleve.dateNaissance)) /
+          (1000 * 60 * 60 * 24 * 365.25),
+      )
+    : null;
+
+  const dateStr = eleve.dateNaissance
+    ? new Date(eleve.dateNaissance).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
+  const sexe =
+    eleve.sexe === "MASCULIN"
+      ? "Masculin"
+      : eleve.sexe === "FEMININ"
+        ? "Féminin"
+        : eleve.sexe || null;
+
+  const infos = [
+    { icon: "ti-id-badge", val: eleve.matricule },
+    { icon: "ti-mail", val: eleve.email },
+    { icon: "ti-phone", val: eleve.telephone },
+    { icon: "ti-gender-bigender", val: sexe },
+    { icon: "ti-map-pin", val: eleve.lieuNaissance },
+    {
+      icon: "ti-calendar",
+      val: dateStr ? `${dateStr}${age != null ? ` · ${age} ans` : ""}` : null,
+    },
+  ].filter((r) => r.val);
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      onClick={() => onSelect(selected ? null : eleve)}
-      className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
+      onClick={() => onSelect?.(eleve)}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      className={`flex h-40 rounded-xl border overflow-hidden bg-white cursor-pointer transition-colors ${
         selected
-          ? "border-primary shadow-lg shadow-[#0b57cd]/20 ring-2 ring-[#0b57cd]/15"
-          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+          ? "border-[#0C447C] ring-2 ring-[#0C447C]/20"
+          : "border-gray-100 hover:border-gray-200"
       }`}
     >
-      {/* Top bar — bleu pâle uniforme */}
-      <div className="h-1 bg-[#0b57cd]" />
+      {/* ── Gauche : photo / avatar ── */}
+      <div
+        className="w-1/2 shrink-0 relative flex items-center justify-center text-white text-[28px] font-black"
+        style={eleve.photoUrl ? undefined : { background: color }}
+      >
+        {eleve.photoUrl ? (
+          <img
+            src={eleve.photoUrl}
+            alt={nom}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span>{initiales(eleve.nom, eleve.prenom)}</span>
+        )}
 
-      <div className="p-4">
-        {/* Avatar + nom + statut */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden border border-gray-100">
-            {eleve.photoUrl ? (
-              <img
-                src={eleve.photoUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-white text-[14px] font-black"
-                style={{ background: color }}
-              >
-                {initiales(eleve.nom, eleve.prenom)}
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-1">
-              <h3 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
-                {eleve.prenom} {eleve.nom}
-              </h3>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${s.cls}`}
-              >
-                {s.label}
-              </span>
-            </div>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {eleve.sexe === "MASCULIN" ? "Masculin" : "Féminin"}
-            </p>
-          </div>
-        </div>
-
-        {/* Email */}
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Mail className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-[11px] text-gray-400 truncate">
-            {eleve.email}
-          </span>
-        </div>
-
-        {/* Matricule */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <Hash className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-[11px] font-mono text-gray-400 truncate">
-            {eleve.matricule}
-          </span>
-        </div>
-
-        {/* Classe + niveau */}
-        <div className="mb-3">
-          {eleve.classeActuelle ? (
-            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-[#0b57cd] font-semibold">
-              {eleve.classeActuelle.nom}
-              {eleve.classeActuelle.niveau && (
-                <span className="text-blue-300 font-normal">
-                  · {eleve.classeActuelle.niveau}
-                </span>
-              )}
-            </span>
-          ) : (
-            <span className="text-[11px] text-amber-600 font-medium">
-              Sans classe
-            </span>
+        {/* Point de statut clignotant */}
+        <span
+          className="absolute top-2 left-2 flex h-2.5 w-2.5"
+          title={actif ? "Actif" : "Inactif"}
+        >
+          {actif && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           )}
+          <span
+            className={`relative inline-flex rounded-full h-2.5 w-2.5 border border-white/70 ${
+              actif ? "bg-green-500" : "bg-gray-400"
+            }`}
+          />
+        </span>
+      </div>
+
+      {/* ── Droite : détails ── */}
+      <div className="flex-1 flex flex-col p-3 border-l border-gray-100 min-w-0">
+        <p className="text-[13px] font-semibold text-gray-900 truncate leading-tight">
+          {nom || "—"}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+          {eleve.classeActuelle?.nom ?? "Sans classe"}
+        </p>
+
+        <div className="mt-2 space-y-1 overflow-hidden">
+          {infos.slice(0, 4).map(({ icon, val }) => (
+            <div
+              key={icon}
+              className="flex items-center gap-1.5 text-[11px] text-gray-500 overflow-hidden"
+            >
+              <i
+                className={`ti ${icon} text-[12px] text-gray-300 shrink-0`}
+                aria-hidden="true"
+              />
+              <span className="truncate">{val}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Mini stats */}
-        <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-          <div className="flex-1 text-center bg-gray-50 rounded-lg py-1.5">
-            <p className="text-[14px] font-black text-[#185fa5] leading-none">
-              {eleve.nombreInscriptions}
-            </p>
-            <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">
-              Inscr.
-            </p>
-          </div>
-          <div className="flex-1 text-center bg-gray-50 rounded-lg py-1.5">
-            <p className="text-[14px] font-black text-[#534ab7] leading-none">
-              {eleve.nombreNotes}
-            </p>
-            <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">
-              Notes
-            </p>
-          </div>
-        </div>
+        <span className="mt-auto text-[10px] text-[#0C447C] font-medium flex items-center gap-1">
+          Voir le détail
+          <i className="ti ti-arrow-right text-[11px]" aria-hidden="true" />
+        </span>
       </div>
     </motion.div>
   );
 };
 
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const EleveCardSkeleton = () => (
+  <div className="flex h-40 rounded-xl border border-gray-100 overflow-hidden bg-white animate-pulse">
+    <div className="w-1/2 shrink-0 bg-gray-100" />
+    <div className="flex-1 flex flex-col justify-between p-3 border-l border-gray-100">
+      <div className="space-y-1.5">
+        <div className="h-3.5 bg-gray-100 rounded w-3/4" />
+        <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+        <div className="mt-2 space-y-1.5">
+          <div className="h-2.5 bg-gray-100 rounded w-3/5" />
+          <div className="h-2.5 bg-gray-100 rounded w-4/5" />
+          <div className="h-2.5 bg-gray-100 rounded w-3/5" />
+        </div>
+      </div>
+      <div>
+        <div className="h-px bg-gray-100 my-2" />
+        <div className="flex gap-1.5">
+          <div className="h-6 flex-1 bg-gray-100 rounded-md" />
+          <div className="h-6 flex-1 bg-gray-100 rounded-md" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 // ── New eleve card ────────────────────────────────────────────
 const NewEleveCard = ({ onClick }) => (
   <motion.button

@@ -1949,9 +1949,13 @@ export default function EvaluationsPage() {
 
   const handleSaveNotes = useCallback(
     async (notes) => {
-      if (!state.noteEvalId) return;
+      const evalId = detailEval?.id ?? state.noteEvalId;
+      if (!evalId) return;
       try {
-        const result = await saveNotes(state.noteEvalId, notes);
+        const result = await saveNotes(evalId, notes);
+        if (result?.error || result?.meta?.requestStatus === "rejected") {
+          throw new Error(result?.payload ?? "rejected");
+        }
         const count = result?.payload?.count ?? notes.length;
         toast.success(
           `${count} note${count > 1 ? "s" : ""} enregistrée${count > 1 ? "s" : ""}`,
@@ -1960,7 +1964,7 @@ export default function EvaluationsPage() {
         toast.error("Erreur lors de l'enregistrement des notes");
       }
     },
-    [saveNotes, state.noteEvalId],
+    [saveNotes, detailEval?.id, state.noteEvalId],
   );
 
   const handleDeleteEval = useCallback(async () => {

@@ -12,7 +12,7 @@ export const evaluationService = {
   getStats: (classeId, pid) =>
     api.get(`/stats/classe/${classeId}/periode/${pid}`).then((r) => r.data),
   batchNotes: (evalId, notes) =>
-    api.put(`/notes/${evalId}/batch`, { notes }).then((r) => r.data),
+    api.post(`/note/evaluation/${evalId}`, { notes }).then((r) => r.data),
   getCarnetClasse: (classeId, periodeId, anneeScolaireId) => {
     const params = new URLSearchParams({ periodeId });
     if (anneeScolaireId) params.set("anneeScolaireId", anneeScolaireId);

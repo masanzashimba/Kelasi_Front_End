@@ -175,6 +175,12 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
   const prenom = utilisateur.prenom ?? "";
   const nom = utilisateur.nom ?? "";
   const matricule = bul.inscription?.eleve?.matricule ?? "—";
+  // Infos classe / période / effectif
+  const classe = bul.inscription?.classe ?? {};
+  const classeNom = classe.nom ?? "—";
+  const niveauAbrev = classe.niveau?.abreviation ?? classe.niveau?.libelle ?? "";
+  const effectif = bul.effectifClasse;
+  const sexe = bul.inscription?.eleve?.sexe;
 
   return (
     <div className="flex items-center gap-0 px-4 py-3 border-b border-gray-50 hover:bg-blue-50/10 transition-colors">
@@ -187,9 +193,23 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
         <div>
           <p className="text-[13px] font-semibold text-gray-900 leading-tight">
             {prenom} {nom}
+            {sexe && (
+              <span className="ml-1.5 text-[10px] font-medium text-gray-400">
+                ({sexe === "FEMININ" ? "F" : "M"})
+              </span>
+            )}
           </p>
           <p className="text-[10px] text-gray-400 font-mono">{matricule}</p>
         </div>
+      </div>
+      {/* Classe */}
+      <div style={{ width: 120 }}>
+        <p className="text-[12px] font-semibold text-gray-700 leading-tight">
+          {classeNom}
+        </p>
+        {niveauAbrev && (
+          <p className="text-[10px] text-gray-400">{niveauAbrev}</p>
+        )}
       </div>
       {/* % */}
       <div style={{ width: 64, textAlign: "center" }}>
@@ -210,10 +230,15 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
         </span>
       </div>
       {/* Rang */}
-      <div style={{ width: 48, textAlign: "center" }}>
+      <div style={{ width: 64, textAlign: "center" }}>
         <span className="text-[12px] font-bold text-gray-500">
           {bul.rang ?? "—"}
         </span>
+        {effectif != null && (
+          <span className="text-[10px] font-medium text-gray-400">
+            /{effectif}
+          </span>
+        )}
       </div>
       {/* Décision */}
       <div style={{ width: 96 }}>
@@ -585,17 +610,41 @@ function GenerateurPanel({
   classes,
   periodes,
   progression,
+  progLoading,
+  onSelection,
   onGenerer,
   generating,
   result,
 }) {
   const [classeId, setClasseId] = useState("");
+  const [cycle, setCycle] = useState("");
   const [periodeId, setPeriodeId] = useState("");
   const [ecraser, setEcraser] = useState(false);
 
   const ready = classeId && periodeId;
   const nbComplets = progression?.filter((p) => p.pct >= 100).length ?? 0;
   const nbTotal = progression?.length ?? 0;
+
+  // Cycles disponibles + périodes filtrées par cycle
+  const cycles = useMemo(
+    () => [...new Set(periodes.map((p) => p.niveauCycle).filter(Boolean))],
+    [periodes],
+  );
+  const periodesFiltrees = useMemo(
+    () => (cycle ? periodes.filter((p) => p.niveauCycle === cycle) : periodes),
+    [periodes, cycle],
+  );
+
+  // Sélection par défaut : 1ʳᵉ classe (période = toutes par défaut)
+  useEffect(() => {
+    if (!classeId && classes?.length) setClasseId(classes[0].id);
+  }, [classes, classeId]);
+
+  // Charge l'état de saisie dès qu'une classe est choisie
+  // (periodeId vide = toutes les périodes → toutes les matières)
+  useEffect(() => {
+    if (classeId) onSelection?.({ classeId, periodeId });
+  }, [classeId, periodeId, onSelection]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -625,21 +674,47 @@ function GenerateurPanel({
 
         <div>
           <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-            Période
+            Cycle
           </label>
           <select
-            value={periodeId}
-            onChange={(e) => setPeriodeId(e.target.value)}
+            value={cycle}
+            onChange={(e) => {
+              setCycle(e.target.value);
+              setPeriodeId("");
+            }}
             className="w-full h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white"
           >
-            <option value="">— Sélectionner —</option>
-            {periodes.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.libelle}
+            <option value="">Tous les cycles</option>
+            {cycles.map((c) => (
+              <option key={c} value={c}>
+                {c}
               </option>
             ))}
           </select>
         </div>
+
+        {cycle && (
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+              Période
+            </label>
+            <select
+              value={periodeId}
+              onChange={(e) => setPeriodeId(e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white"
+            >
+              <option value="">Toutes les périodes</option>
+              {periodesFiltrees.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.libelle}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-400 mt-1">
+              Choisissez une période précise pour générer les bulletins.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-100">
           <p className="text-[11px] font-semibold text-gray-600">Options</p>
@@ -716,25 +791,37 @@ function GenerateurPanel({
         <p className="text-[13px] font-semibold text-gray-700 mb-3">
           État de la saisie des notes
         </p>
-        {!progression ? (
+        {!progression && progLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+          </div>
+        ) : !progression ? (
           <p className="text-[13px] text-gray-400 text-center py-8">
-            Sélectionnez une classe et une période
+            Sélectionnez une classe
+          </p>
+        ) : progression.length === 0 ? (
+          <p className="text-[13px] text-gray-400 text-center py-8">
+            Aucune matière pour cette classe
           </p>
         ) : (
           <div className="space-y-2">
-            {progression.map((p) => (
+            {progression.map((p) => {
+              const aucuneEval = p.total === 0;
+              return (
               <div
                 key={p.matiereId}
                 className="p-2.5 rounded-lg border"
                 style={{
-                  background:
-                    p.pct >= 100
+                  background: aucuneEval
+                    ? "#F3F4F6"
+                    : p.pct >= 100
                       ? "#EAF3DE"
                       : p.pct >= 80
                         ? "var(--color-background-secondary)"
                         : "#FEF2F2",
-                  borderColor:
-                    p.pct >= 100
+                  borderColor: aucuneEval
+                    ? "#E5E7EB"
+                    : p.pct >= 100
                       ? "#97C459"
                       : p.pct >= 80
                         ? "var(--color-border-tertiary)"
@@ -748,36 +835,47 @@ function GenerateurPanel({
                   <span
                     className="text-[11px] font-semibold"
                     style={{
-                      color:
-                        p.pct >= 100
+                      color: aucuneEval
+                        ? "#9CA3AF"
+                        : p.pct >= 100
                           ? "#3B6D11"
                           : p.pct >= 80
                             ? "#BA7517"
                             : "#dc2626",
                     }}
                   >
-                    {p.notes}/{p.total} notés
+                    {aucuneEval ? "Aucune éval." : `${p.notes}/${p.total} notés`}
                   </span>
                 </div>
                 <ProgressBar
-                  value={p.pct}
+                  value={aucuneEval ? 0 : p.pct}
                   color={
-                    p.pct >= 100
-                      ? "#3B6D11"
-                      : p.pct >= 80
-                        ? "#BA7517"
-                        : "#E24B4A"
+                    aucuneEval
+                      ? "#D1D5DB"
+                      : p.pct >= 100
+                        ? "#3B6D11"
+                        : p.pct >= 80
+                          ? "#BA7517"
+                          : "#E24B4A"
                   }
                 />
-                {p.pct < 100 && (
-                  <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                {aucuneEval ? (
+                  <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    {p.total - p.notes} note{p.total - p.notes > 1 ? "s" : ""}{" "}
-                    manquante{p.total - p.notes > 1 ? "s" : ""}
+                    Aucune évaluation créée
                   </p>
+                ) : (
+                  p.pct < 100 && (
+                    <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      {p.total - p.notes} note{p.total - p.notes > 1 ? "s" : ""}{" "}
+                      manquante{p.total - p.notes > 1 ? "s" : ""}
+                    </p>
+                  )
                 )}
               </div>
-            ))}
+              );
+            })}
             <div className="pt-2 border-t border-gray-100 text-[12px] text-gray-500">
               {nbComplets === nbTotal ? (
                 <span className="text-green-600 font-semibold flex items-center gap-1">
@@ -1000,9 +1098,20 @@ export default function BulletinsPage() {
 
   const [activeTab, setActiveTab] = useState("liste");
   const [classeId, setClasseId] = useState("");
+  const [cycle, setCycle] = useState("");
   const [periodeId, setPeriodeId] = useState("");
   const [selectedBul, setSelectedBul] = useState(null);
   const [viewBulletinId, setViewBulletinId] = useState(null);
+
+  // Cycles disponibles (dérivés des périodes) + périodes filtrées par cycle
+  const cycles = useMemo(
+    () => [...new Set(periodes.map((p) => p.niveauCycle).filter(Boolean))],
+    [periodes],
+  );
+  const periodesFiltrees = useMemo(
+    () => (cycle ? periodes.filter((p) => p.niveauCycle === cycle) : periodes),
+    [periodes, cycle],
+  );
 
   useEffect(() => {
     fetchBulletins({ classeId, periodeId });
@@ -1057,7 +1166,7 @@ export default function BulletinsPage() {
         {...fade(0)}
         className="relative rounded-lg overflow-hidden shadow-lg"
         style={{
-          background: "linear-gradient(135deg,#042C53 0%,#0C447C 100%)",
+          background: "linear-gradient(35deg,#0C447C 0%,#0C447C 100%)",
         }}
       >
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
@@ -1100,17 +1209,34 @@ export default function BulletinsPage() {
               ))}
             </select>
             <select
-              value={periodeId}
-              onChange={(e) => setPeriodeId(e.target.value)}
+              value={cycle}
+              onChange={(e) => {
+                setCycle(e.target.value);
+                setPeriodeId("");
+              }}
               className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
             >
-              <option value="">Toutes les périodes</option>
-              {periodes.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.libelle}
+              <option value="">Tous les cycles</option>
+              {cycles.map((c) => (
+                <option key={c} value={c}>
+                  {c}
                 </option>
               ))}
             </select>
+            {cycle && (
+              <select
+                value={periodeId}
+                onChange={(e) => setPeriodeId(e.target.value)}
+                className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
+              >
+                <option value="">Toutes les périodes</option>
+                {periodesFiltrees.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.libelle}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               onClick={() => fetchBulletins({ classeId, periodeId })}
               disabled={state.loading}
@@ -1216,6 +1342,12 @@ export default function BulletinsPage() {
                           Élève
                         </div>
                         <div
+                          style={{ width: 120 }}
+                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                        >
+                          Classe
+                        </div>
+                        <div
                           style={{ width: 64, textAlign: "center" }}
                           className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
                         >
@@ -1228,7 +1360,7 @@ export default function BulletinsPage() {
                           /20
                         </div>
                         <div
-                          style={{ width: 48, textAlign: "center" }}
+                          style={{ width: 64, textAlign: "center" }}
                           className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
                         >
                           Rang
@@ -1287,6 +1419,8 @@ export default function BulletinsPage() {
                 classes={classes}
                 periodes={periodes}
                 progression={state.progression}
+                progLoading={state.loading}
+                onSelection={fetchProgression}
                 onGenerer={handleGenerer}
                 generating={state.generating}
                 result={state.generateResult}

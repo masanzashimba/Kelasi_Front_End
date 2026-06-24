@@ -109,89 +109,105 @@ const StatusBadge = ({ nombreEleves, capaciteMax }) => {
 // ── Skeleton ──────────────────────────────────────────────────
 
 const ClassCardSkeleton = () => (
-  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-    <div className="h-1 bg-gray-200" />
-    <div className="p-4 space-y-3">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gray-200 shrink-0" />
-        <div className="flex-1 space-y-1.5">
-          <div className="h-4 bg-gray-200 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-1/3" />
-        </div>
+  <div className="bg-white rounded-lg border border-gray-200/80 p-4 animate-pulse">
+    <div className="flex items-start gap-3">
+      <div className="w-11 h-11 rounded-lg bg-gray-100 shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-4 bg-gray-100 rounded w-3/4" />
+        <div className="h-2.5 bg-gray-100 rounded w-1/3" />
       </div>
-      <div className="h-3 bg-gray-100 rounded" />
-      <div className="h-1.5 bg-gray-100 rounded-full" />
-      <div className="pt-2 border-t border-gray-100 h-4 bg-gray-100 rounded w-2/3" />
     </div>
+    <div className="mt-4 space-y-2">
+      <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+      <div className="h-1.5 bg-gray-100 rounded-full" />
+    </div>
+    <div className="mt-4 pt-3 border-t border-gray-100 h-4 bg-gray-100 rounded w-2/3" />
   </div>
 );
 
 // ── ClassCard (grid) ──────────────────────────────────────────
 
 const ClassCard = ({ cls, selected, onSelect }) => {
-  const nc = nCfg();
   const pct = Math.round((cls.nombreEleves / (cls.capaciteMax || 1)) * 100);
+  const full = pct >= 100;
   return (
     <motion.div
       whileHover={{ y: -2 }}
       onClick={() => onSelect(selected ? null : cls.id)}
-      className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
+      className={`group bg-white rounded-lg border cursor-pointer transition-all p-4 ${
         selected
-          ? "border-[#0b57cd] shadow-lg shadow-[#0b57cd]/10 ring-2 ring-[#0b57cd]/15"
-          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+          ? "border-[#0b57cd] ring-1 ring-[#0b57cd]/15 shadow-md"
+          : "border-gray-200/80 hover:border-gray-300 hover:shadow-sm"
       }`}
     >
-      {/* Bande de couleur primaire en haut */}
-      <div className="h-1 bg-[#0b57cd]" />
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#0b57cd] flex items-center justify-center text-white text-[13px] font-black shadow-sm shrink-0">
-              {cls.nom.slice(0, 2).toUpperCase()}
-            </div>
-            <div>
-              <h3 className="text-[14px] font-bold text-gray-900 leading-none">
-                {cls.nom}
-              </h3>
-              <span
-                className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${nc.bg} ${nc.text} mt-1 inline-block`}
-              >
-                {cls.niveau?.libelle ?? "—"}
-              </span>
-            </div>
+      {/* En-tête : avatar + nom + statut discret */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-lg bg-[#0b57cd] flex items-center justify-center text-white text-[13px] font-semibold shrink-0">
+            {cls.nom.slice(0, 2).toUpperCase()}
           </div>
-          <StatusBadge
-            nombreEleves={cls.nombreEleves}
-            capaciteMax={cls.capaciteMax}
+          <div className="min-w-0">
+            <h3 className="text-[14px] font-semibold text-gray-900 leading-tight truncate">
+              {cls.nom}
+            </h3>
+            <p className="text-[10px] text-gray-400 mt-1 truncate uppercase tracking-wider font-medium">
+              {cls.niveau?.libelle ?? "—"}
+            </p>
+          </div>
+        </div>
+        <span className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400 shrink-0">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${full ? "bg-[#0b57cd]" : "bg-gray-300"}`}
+          />
+          {full ? "Pleine" : "Ouverte"}
+        </span>
+      </div>
+
+      {/* Effectif + barre de remplissage neutre */}
+      <div className="mt-4">
+        <div className="flex items-baseline justify-between mb-1.5">
+          <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-gray-300" /> Effectif
+          </span>
+          <span className="text-[12px] font-semibold text-gray-800 tabular-nums">
+            {cls.nombreEleves}
+            <span className="text-gray-300"> / {cls.capaciteMax}</span>
+          </span>
+        </div>
+        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${
+              full ? "bg-gray-400" : "bg-[#0b57cd]"
+            }`}
+            style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
+      </div>
 
-        <div className="flex items-center justify-between text-[12px] mb-2">
-          <span className="text-gray-400 flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" /> Élèves
-          </span>
-          <span className="font-bold text-gray-700">
-            {cls.nombreEleves} / {cls.capaciteMax}
-          </span>
-        </div>
-        <FillBar pct={pct} />
-
-        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 min-h-7">
-          {cls.titulaire ? (
-            <>
-              <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+      {/* Titulaire */}
+      <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2 min-h-7">
+        {cls.titulaire ? (
+          <>
+            {cls.titulaire.photoUrl ? (
+              <img
+                src={cls.titulaire.photoUrl}
+                alt={`${cls.titulaire.prenom} ${cls.titulaire.nom}`}
+                className="w-6 h-6 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-[9px] font-bold shrink-0">
                 {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
               </div>
-              <span className="text-[12px] text-gray-600 truncate font-medium">
-                {cls.titulaire.prenom} {cls.titulaire.nom}
-              </span>
-            </>
-          ) : (
-            <span className="text-[11px] text-amber-600 font-medium flex items-center gap-1.5">
-              <UserX className="w-3.5 h-3.5" /> Sans titulaire
+            )}
+            <span className="text-[12px] text-gray-600 truncate font-medium">
+              {cls.titulaire.prenom} {cls.titulaire.nom}
             </span>
-          )}
-        </div>
+          </>
+        ) : (
+          <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+            <UserX className="w-3.5 h-3.5 text-gray-300" /> Sans titulaire
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -201,9 +217,9 @@ const NewClassCard = ({ onClick }) => (
   <motion.button
     whileHover={{ y: -2 }}
     onClick={onClick}
-    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-40 text-gray-400 hover:text-[#0b57cd] group"
+    className="bg-white rounded-lg border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-40 text-gray-400 hover:text-[#0b57cd] group"
   >
-    <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+    <div className="w-11 h-11 rounded-lg bg-gray-100 group-hover:bg-[#0b57cd] group-hover:text-white flex items-center justify-center transition-colors">
       <Plus className="w-5 h-5" />
     </div>
     <span className="text-[12px] font-semibold">Nouvelle classe</span>
@@ -251,9 +267,17 @@ const ClassRow = ({ cls, selected, onSelect, onEdit, onDelete }) => {
       <td className="px-5 py-3.5">
         {cls.titulaire ? (
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
-              {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
-            </div>
+            {cls.titulaire.photoUrl ? (
+              <img
+                src={cls.titulaire.photoUrl}
+                alt={`${cls.titulaire.prenom} ${cls.titulaire.nom}`}
+                className="w-6 h-6 rounded-full object-cover shrink-0 shadow-sm"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-white text-[9px] font-bold shrink-0">
+                {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
+              </div>
+            )}
             <span className="text-[12px] text-gray-600 font-medium">
               {cls.titulaire.prenom} {cls.titulaire.nom}
             </span>
@@ -385,9 +409,17 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
                 </p>
                 {cls.titulaire ? (
                   <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
-                    <div className="w-9 h-9 rounded-full bg-slate-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
-                      {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
-                    </div>
+                    {cls.titulaire.photoUrl ? (
+                      <img
+                        src={cls.titulaire.photoUrl}
+                        alt={`${cls.titulaire.prenom} ${cls.titulaire.nom}`}
+                        className="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-slate-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+                        {initiales(cls.titulaire.prenom, cls.titulaire.nom)}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="text-[13px] font-semibold text-gray-800 truncate">
                         {cls.titulaire.prenom} {cls.titulaire.nom}
