@@ -69,50 +69,23 @@ const DomainSeparatorRow = ({ domainKey, count }) => {
   );
 };
 
-// ─── Stats bar ────────────────────────────────────────────────
+// ─── Stats bar (style page Classes) ───────────────────────────
 const StatsBar = ({ stats, loading }) => {
   const items = [
-    {
-      label: "Total",
-      value: stats.total,
-      color: "#2563EB",
-      bg: "#EFF6FF",
-      Icon: BookOpen,
-    },
-    {
-      label: "Actives",
-      value: stats.actives,
-      color: "#16A34A",
-      bg: "#F0FDF4",
-      Icon: ToggleRight,
-    },
-    {
-      label: "Inactives",
-      value: stats.inactives,
-      color: "#6B7280",
-      bg: "#F3F4F6",
-      Icon: ToggleLeft,
-    },
-    {
-      label: "Avec cours",
-      value: stats.avecCours ?? 0,
-      color: "#D97706",
-      bg: "#FFFBEB",
-      Icon: GraduationCap,
-    },
+    { label: "Total matières", value: stats.total, Icon: BookOpen },
+    { label: "Actives", value: stats.actives, Icon: ToggleRight },
+    { label: "Inactives", value: stats.inactives, Icon: ToggleLeft },
+    { label: "Avec cours", value: stats.avecCours ?? 0, Icon: GraduationCap },
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {items.map(({ label, value, color, bg, Icon }) => (
+      {items.map(({ label, value, Icon }) => (
         <div
           key={label}
-          className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3"
+          className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs"
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: bg }}
-          >
-            <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#eff4ff]">
+            <Icon className="w-5 h-5 text-[#0b57cd]" strokeWidth={2} />
           </div>
           <div>
             {loading ? (
@@ -264,31 +237,22 @@ const MatieresPage = () => {
   // ── Render ────────────────────────────────────────────────
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] flex flex-col gap-4">
-        {/* Hero header */}
+      <div className="min-h-full space-y-3">
+        {/* Hero header (style page Classes) */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-xl overflow-hidden shadow-lg"
-          style={{
-            background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
-          }}
+          className="relative rounded-lg overflow-hidden bg-white"
         >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-          <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-
-          <div className="relative px-6 py-5 flex items-center justify-between gap-4">
+          <div className="relative px-3 py-5 flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <BookOpen className="w-6 h-6 text-white" strokeWidth={1.8} />
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <BookOpen className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
               </div>
               <div className="min-w-0">
-                <p className="text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  Pédagogie
-                </p>
-                <h1 className="text-xl font-bold text-white leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   Gestion des Matières
                 </h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
+                <p className="text-gray-400 text-[12px] mt-0.5">
                   {matiereState.loading
                     ? "Chargement…"
                     : isFiltered
@@ -299,34 +263,40 @@ const MatieresPage = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleRefresh}
                 disabled={matiereState.loading}
                 title="Rafraîchir"
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${matiereState.loading ? "animate-spin" : ""}`}
                 />
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => setSeedModalOpen(true)}
                 disabled={matiereState.seeding}
-                className="flex items-center gap-2 bg-white/15 text-white border border-white/25 px-4 py-2.5 rounded-xl text-[13px] font-semibold hover:bg-white/25 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 {matiereState.seeding ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Sparkles className="w-4 h-4" />
                 )}
-                Générer
-              </button>
-              <button
+                <span className="hidden sm:inline">Générer</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={openCreate}
-                className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl text-[13px] font-semibold text-blue-700 shadow-md shadow-black/10 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
               >
                 <Plus className="w-4 h-4" /> Nouvelle matière
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.div>
@@ -339,7 +309,7 @@ const MatieresPage = () => {
         {/* Panneau principal */}
         <motion.div
           {...fade(0.1)}
-          className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
+          className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden"
         >
           {/* Toolbar — recherche + filtre sur une ligne */}
           <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 flex-wrap">
@@ -351,7 +321,7 @@ const MatieresPage = () => {
                   setNiveauFilter(e.target.value);
                   setSearch("");
                 }}
-                className="h-9 pl-3 pr-8 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all appearance-none cursor-pointer min-w-52"
+                className="h-9 pl-3 pr-8 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all appearance-none cursor-pointer min-w-52"
               >
                 <option value="Tous">Tous les niveaux</option>
                 {["MATERNELLE", "PRIMAIRE", "SECONDAIRE"].map((cycle) => {
@@ -404,7 +374,7 @@ const MatieresPage = () => {
                     ? `Rechercher dans ${selectedNiveau?.libelle ?? "ce niveau"}…`
                     : "Rechercher une matière…"
                 }
-                className="w-full h-9 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all"
+                className="w-full h-9 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
               />
               {search && (
                 <button
@@ -469,14 +439,15 @@ const MatieresPage = () => {
                         {isFiltered ? (
                           <button
                             onClick={() => setSeedModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-[13px] font-semibold border border-blue-200 hover:bg-blue-100 transition-colors mt-1"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#eff4ff] text-[#0b57cd] text-[13px] font-semibold border border-[#0b57cd]/20 hover:bg-[#e0eaff] transition-colors mt-1"
                           >
-                            <Sparkles className="w-4 h-4" /> Générer depuis IGE
+                            <Sparkles className="w-4 h-4" /> Générer
+                            Automatiquement
                           </button>
                         ) : (
                           <button
                             onClick={openCreate}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[13px] font-semibold rounded-xl hover:bg-blue-700 transition-colors mt-1"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors mt-1"
                           >
                             <Plus className="w-4 h-4" /> Ajouter une matière
                           </button>
@@ -563,7 +534,7 @@ const MatieresPage = () => {
         {matiereState.error && (
           <motion.div
             {...fade()}
-            className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3"
+            className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3"
           >
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
             <p className="text-[13px] text-red-700">{matiereState.error}</p>

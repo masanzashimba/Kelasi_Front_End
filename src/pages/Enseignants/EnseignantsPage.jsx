@@ -28,13 +28,16 @@ import {
   ToggleLeft,
   ToggleRight,
   User,
+  MapPin,
+  Globe,
+  FileText,
 } from "lucide-react";
 import { useEnseignant } from "../../features/enseignant/hooks/useEnseignant";
+import { exportEnseignantsToExcel } from "../../features/enseignant/utils/exportEnseignants";
+import StatutToggle from "../../components/common/StatutToggle";
 import EnseignantDrawer from "./CreateEnseignantDrawer";
 
 // ── Constantes ────────────────────────────────────────────────
-
-const CONTRATS = ["Tous", "CDI", "CDD", "VACATAIRE", "BENEVOLE"];
 
 const CONTRAT_CFG = {
   CDI: {
@@ -110,6 +113,27 @@ const StatutBadge = ({ actif }) =>
     </span>
   );
 
+// ── StatCard (identique à la page Élèves) ─────────────────────
+
+const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
+    <div
+      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+      style={{ background: bg }}
+    >
+      <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
+    </div>
+    <div>
+      {loading ? (
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
+      ) : (
+        <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
+      )}
+      <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
+    </div>
+  </div>
+);
+
 // ── Skeleton ──────────────────────────────────────────────────
 
 const CardSkeleton = () => (
@@ -165,7 +189,9 @@ const EnseignantCard = ({ ens, selected, onSelect }) => {
     { Icon: Award, val: ens.diplomeMax },
     {
       Icon: Calendar,
-      val: ens.dateEmbauche ? `Embauche : ${formatDate(ens.dateEmbauche)}` : null,
+      val: ens.dateEmbauche
+        ? `Embauche : ${formatDate(ens.dateEmbauche)}`
+        : null,
     },
   ].filter((r) => r.val);
 
@@ -257,7 +283,7 @@ const NewEnseignantCard = ({ onClick }) => (
 
 // ── EnseignantRow (list) ──────────────────────────────────────
 
-const EnseignantRow = ({ ens, selected, onSelect, onEdit, onDelete }) => (
+const EnseignantRow = ({ ens, selected, onSelect, onEdit, onDelete, onToggle }) => (
   <motion.tr
     initial={{ opacity: 0, y: 4 }}
     animate={{ opacity: 1, y: 0 }}
@@ -291,26 +317,27 @@ const EnseignantRow = ({ ens, selected, onSelect, onEdit, onDelete }) => (
         {formatDate(ens.dateEmbauche)}
       </span>
     </td>
-    <td className="px-5 py-3.5">
-      <StatutBadge actif={ens.actif ?? true} />
+    <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
+      <StatutToggle
+        actif={ens.actif ?? true}
+        onToggle={() => onToggle(ens)}
+        titleOn="Désactiver l'enseignant"
+        titleOff="Activer l'enseignant"
+      />
     </td>
-    <td className="px-5 py-3.5">
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+    <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-1">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(ens);
-          }}
-          className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+          onClick={() => onEdit(ens)}
+          title="Modifier"
+          className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"
         >
           <Edit2 className="w-3.5 h-3.5" />
         </button>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(ens.id);
-          }}
-          className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+          onClick={() => onDelete(ens.id)}
+          title="Supprimer"
+          className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-red-50 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -321,7 +348,15 @@ const EnseignantRow = ({ ens, selected, onSelect, onEdit, onDelete }) => (
 
 // ── DetailPanel (portal drawer) ───────────────────────────────
 
-const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, isUpdating }) => {
+const DetailPanel = ({
+  isOpen,
+  ens,
+  onClose,
+  onEdit,
+  onDelete,
+  onToggleActif,
+  isUpdating,
+}) => {
   if (!ens) return null;
   return createPortal(
     <AnimatePresence>
@@ -334,7 +369,10 @@ const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, is
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[9979]"
-            style={{ background: "rgba(0,0,0,0.32)", backdropFilter: "blur(3px)" }}
+            style={{
+              background: "rgba(0,0,0,0.32)",
+              backdropFilter: "blur(3px)",
+            }}
             onClick={onClose}
           />
           <motion.div
@@ -348,7 +386,9 @@ const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, is
             {/* Header */}
             <div
               className="shrink-0 px-5 py-5 relative"
-              style={{ background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)" }}
+              style={{
+                background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
+              }}
             >
               <button
                 onClick={onClose}
@@ -388,12 +428,29 @@ const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, is
               {/* Stats */}
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "Matricule", value: ens.matricule ?? "—", color: "text-[#0b57cd]" },
-                  { label: "Classes", value: ens.nombreClasses ?? 0, color: "text-slate-600" },
+                  {
+                    label: "Matricule",
+                    value: ens.matricule ?? "—",
+                    color: "text-[#0b57cd]",
+                  },
+                  {
+                    label: "Classes",
+                    value: ens.nombreClasses ?? 0,
+                    color: "text-slate-600",
+                  },
                 ].map((s) => (
-                  <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                    <p className={`text-[14px] font-black ${s.color} leading-none font-mono`}>{s.value}</p>
-                    <p className="text-[10px] text-gray-400 mt-1 font-medium">{s.label}</p>
+                  <div
+                    key={s.label}
+                    className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"
+                  >
+                    <p
+                      className={`text-[14px] font-black ${s.color} leading-none font-mono`}
+                    >
+                      {s.value}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                      {s.label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -401,18 +458,106 @@ const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, is
               {/* Informations */}
               <div className="rounded-xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
                 {[
-                  { icon: Mail, label: ens.email },
-                  { icon: Phone, label: ens.telephone ?? "Pas de téléphone" },
-                  { icon: Calendar, label: `Embauché le ${formatDate(ens.dateEmbauche)}` },
-                  { icon: Award, label: ens.diplomeMax ?? "Diplôme non renseigné" },
-                  { icon: Briefcase, label: CONTRAT_CFG[ens.typeContrat]?.label ?? ens.typeContrat },
-                ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-3 px-3.5 py-2.5">
-                    <Icon className="w-4 h-4 text-gray-300 shrink-0" />
-                    <span className="text-[12.5px] text-gray-600 break-all">{label}</span>
-                  </div>
-                ))}
+                  {
+                    icon: Briefcase,
+                    label: ens.fonction,
+                    show: !!ens.fonction,
+                  },
+                  { icon: Mail, label: ens.email, show: true },
+                  {
+                    icon: Phone,
+                    label: ens.telephone ?? "Pas de téléphone",
+                    show: true,
+                  },
+                  {
+                    icon: User,
+                    label:
+                      ens.sexe === "FEMININ"
+                        ? "Féminin"
+                        : ens.sexe === "MASCULIN"
+                          ? "Masculin"
+                          : null,
+                    show: !!ens.sexe,
+                  },
+                  {
+                    icon: Globe,
+                    label: ens.nationalite,
+                    show: !!ens.nationalite,
+                  },
+                  {
+                    icon: MapPin,
+                    label: ens.lieuNaissance
+                      ? `Né(e) à ${ens.lieuNaissance}`
+                      : null,
+                    show: !!ens.lieuNaissance,
+                  },
+                  { icon: MapPin, label: ens.adresse, show: !!ens.adresse },
+                  {
+                    icon: Calendar,
+                    label: `Embauché le ${formatDate(ens.dateEmbauche)}`,
+                    show: true,
+                  },
+                  {
+                    icon: Award,
+                    label: ens.diplomeMax ?? "Diplôme non renseigné",
+                    show: true,
+                  },
+                  {
+                    icon: FileText,
+                    label:
+                      CONTRAT_CFG[ens.typeContrat]?.label ?? ens.typeContrat,
+                    show: true,
+                  },
+                ]
+                  .filter((r) => r.show)
+                  .map(({ icon: Icon, label }, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 px-3.5 py-2.5"
+                    >
+                      <Icon className="w-4 h-4 text-gray-300 shrink-0" />
+                      <span className="text-[12.5px] text-gray-600 break-all">
+                        {label}
+                      </span>
+                    </div>
+                  ))}
               </div>
+
+              {/* Documents */}
+              {(ens.cvUrl ||
+                ens.diplomeUrl ||
+                ens.contratUrl ||
+                ens.pieceIdentiteUrl) && (
+                <div>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    Documents
+                  </p>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: "CV", url: ens.cvUrl },
+                      { label: "Copie du diplôme", url: ens.diplomeUrl },
+                      { label: "Contrat de travail", url: ens.contratUrl },
+                      { label: "Pièce d'identité", url: ens.pieceIdentiteUrl },
+                    ]
+                      .filter((d) => d.url)
+                      .map((d) => (
+                        <a
+                          key={d.label}
+                          href={d.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 hover:bg-blue-50 hover:border-blue-100 transition-colors group"
+                        >
+                          <FileText className="w-4 h-4 text-[#0b57cd] shrink-0" />
+                          <span className="flex-1 text-[12.5px] text-gray-700 group-hover:text-[#0b57cd] font-medium">
+                            {d.label}
+                          </span>
+                          <Download className="w-3.5 h-3.5 text-gray-300 group-hover:text-[#0b57cd]" />
+                        </a>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
@@ -423,20 +568,30 @@ const DetailPanel = ({ isOpen, ens, onClose, onEdit, onDelete, onToggleActif, is
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 text-gray-700 text-[13px] font-semibold hover:bg-gray-100 transition-colors border border-gray-200 disabled:opacity-50"
               >
                 {ens.actif !== false ? (
-                  <><ToggleLeft className="w-4 h-4" /> Désactiver</>
+                  <>
+                    <ToggleLeft className="w-4 h-4" /> Désactiver
+                  </>
                 ) : (
-                  <><ToggleRight className="w-4 h-4 text-[#0b57cd]" /> Activer</>
+                  <>
+                    <ToggleRight className="w-4 h-4 text-[#0b57cd]" /> Activer
+                  </>
                 )}
               </button>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => { onDelete(ens.id); onClose(); }}
+                  onClick={() => {
+                    onDelete(ens.id);
+                    onClose();
+                  }}
                   className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-red-50 text-red-600 text-[13px] font-semibold hover:bg-red-100 transition-colors border border-red-100"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Supprimer
                 </button>
                 <button
-                  onClick={() => { onEdit(ens); onClose(); }}
+                  onClick={() => {
+                    onEdit(ens);
+                    onClose();
+                  }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
                 >
                   <Edit2 className="w-3.5 h-3.5" /> Modifier
@@ -541,7 +696,6 @@ const EnseignantsPage = () => {
   } = useEnseignant();
 
   const [search, setSearch] = useState("");
-  const [contratFilter, setFilter] = useState("Tous");
   const [statutFilter, setStatut] = useState("Tous"); // Tous | Actifs | Inactifs
   const [view, setView] = useState("grid");
   const [selectedId, setSelectedId] = useState(null);
@@ -558,8 +712,6 @@ const EnseignantsPage = () => {
 
   const filtered = useMemo(() => {
     let list = enseignants;
-    if (contratFilter !== "Tous")
-      list = list.filter((e) => e.typeContrat === contratFilter);
     if (statutFilter === "Actifs") list = list.filter((e) => e.actif !== false);
     if (statutFilter === "Inactifs")
       list = list.filter((e) => e.actif === false);
@@ -575,7 +727,7 @@ const EnseignantsPage = () => {
       );
     }
     return list;
-  }, [enseignants, search, contratFilter, statutFilter]);
+  }, [enseignants, search, statutFilter]);
 
   // Stats
   const totalActifs = enseignants.filter((e) => e.actif !== false).length;
@@ -627,36 +779,23 @@ const EnseignantsPage = () => {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
+      <div className="min-h-full space-y-3">
         {/* ── Hero header ── */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
-          style={{
-            background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
-          }}
+          className="relative rounded-lg overflow-hidden bg-white"
         >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5" />
-          <div className="absolute  top-4   right-32  w-16 h-16 rounded-full bg-white/5" />
-          <div className="relative px-6 py-5 flex items-center justify-between">
+          <div className="relative px-3 py-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 text-white" strokeWidth={1.8} />
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  <span>Gestion</span>
-                  <ChevronRight className="w-3 h-3" />
-                  <span>Enseignants</span>
-                </div>
-                <h1 className="text-xl font-bold text-white leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   Gestion des Enseignants
                 </h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
-                  {isLoading
-                    ? "Chargement…"
-                    : `${enseignants.length} enseignant${enseignants.length > 1 ? "s" : ""} · ${totalActifs} actif${totalActifs > 1 ? "s" : ""}`}
+                <p className="text-gray-400 text-[12px] mt-0.5">
+                  Gérez les profils, contrats et affectations de vos enseignants
                 </p>
               </div>
             </div>
@@ -666,7 +805,7 @@ const EnseignantsPage = () => {
                 whileTap={{ scale: 0.97 }}
                 onClick={fetchEnseignants}
                 disabled={isLoading}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
                 title="Rafraîchir"
               >
                 <RefreshCw
@@ -676,7 +815,14 @@ const EnseignantsPage = () => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 bg-white/10 text-white px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-white/20 hover:bg-white/20 transition-colors"
+                onClick={() => exportEnseignantsToExcel(filtered)}
+                disabled={isLoading || filtered.length === 0}
+                title={
+                  filtered.length === 0
+                    ? "Aucun enseignant à exporter"
+                    : `Exporter ${filtered.length} enseignant(s) en Excel`
+                }
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Exporter</span>
@@ -685,7 +831,7 @@ const EnseignantsPage = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setModal({ mode: "create" })}
-                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
               >
                 <Plus className="w-4 h-4" /> Nouvel enseignant
               </motion.button>
@@ -698,144 +844,111 @@ const EnseignantsPage = () => {
           {...fade(0.06)}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3"
         >
-          {[
-            {
-              icon: Users,
-              label: "Total",
-              value: enseignants.length,
-              color: "#0b57cd",
-              bg: "#eff4ff",
-            },
-            {
-              icon: UserCheck,
-              label: "Actifs",
-              value: totalActifs,
-              color: "#0b57cd",
-              bg: "#eff4ff",
-            },
-            {
-              icon: Briefcase,
-              label: "CDI",
-              value: totalCDI,
-              color: "#d97706",
-              bg: "#fffbeb",
-            },
-            {
-              icon: BookOpen,
-              label: "Spécialités",
-              value: specialites,
-              color: "#475569",
-              bg: "#f1f5f9",
-            },
-          ].map(({ icon: Icon, label, value, color, bg }) => (
-            <div
-              key={label}
-              className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4"
-            >
-              <div
-                className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: bg }}
-              >
-                <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
-              </div>
-              <div>
-                {isLoading ? (
-                  <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
-                ) : (
-                  <p className="text-xl font-black text-gray-700 leading-none">
-                    {value}
-                  </p>
-                )}
-                <p className="text-[12px] text-gray-500 mt-0.5 font-medium">
-                  {label}
-                </p>
-              </div>
-            </div>
-          ))}
+          <StatCard
+            icon={Users}
+            label="Total"
+            value={enseignants.length}
+            color="#0b57cd"
+            bg="#eff4ff"
+            loading={isLoading}
+          />
+          <StatCard
+            icon={UserCheck}
+            label="Actifs"
+            value={totalActifs}
+            color="#0b57cd"
+            bg="#eff4ff"
+            loading={isLoading}
+          />
+          <StatCard
+            icon={Briefcase}
+            label="CDI"
+            value={totalCDI}
+            color="#0b57cd"
+            bg="#eff4ff"
+            loading={isLoading}
+          />
+          <StatCard
+            icon={BookOpen}
+            label="Spécialités"
+            value={specialites}
+            color="#0b57cd"
+            bg="#eff4ff"
+            loading={isLoading}
+          />
         </motion.div>
 
-        {/* ── Toolbar ── */}
+        {/* ── Liste des enseignants + recherche (une seule carte) ── */}
         <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Nom, spécialité, matricule, email…"
-                  className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+          <div className="bg-white rounded-lg border border-gray-100 shadow-sm">
+            {/* En-tête : titre à gauche · recherche + toggles à droite */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-900 leading-tight">
+                    Liste des enseignants
+                  </h2>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
+                    {isLoading
+                      ? "Chargement…"
+                      : `${filtered.length} enseignant${filtered.length > 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="relative w-48 sm:w-56">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Rechercher…"
+                      className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
 
-              {/* Statut toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
-                {["Tous", "Actifs", "Inactifs"].map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatut(s)}
-                    className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all ${statutFilter === s ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+                  {/* Statut toggle */}
+                  <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
+                    {["Tous", "Actifs", "Inactifs"].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setStatut(s)}
+                        className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all ${statutFilter === s ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* Vue grid/list */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                >
-                  <List className="w-4 h-4" />
-                </button>
+                  {/* Toggle vue */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
+                    <button
+                      onClick={() => setView("grid")}
+                      className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue cartes"
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setView("list")}
+                      className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue tableau"
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Filtres type contrat */}
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              {CONTRATS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setFilter(c)}
-                  className={`px-3 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
-                    contratFilter === c
-                      ? "bg-[#0b57cd] text-white border-[#0b57cd] shadow-sm"
-                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  {c === "Tous"
-                    ? "Tous les contrats"
-                    : (CONTRAT_CFG[c]?.label ?? c)}
-                  {c !== "Tous" && (
-                    <span className="ml-1.5 opacity-60">
-                      {enseignants.filter((e) => e.typeContrat === c).length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Contenu ── */}
-        <motion.div {...fade(0.14)}>
-          <div className="flex gap-4 items-start">
-            <div className="flex-1 min-w-0 w-full">
+            {/* Corps : liste des enseignants */}
+            <div className="p-4">
               {view === "grid" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {isLoading ? (
@@ -894,14 +1007,7 @@ const EnseignantsPage = () => {
                   )}
                 </div>
               ) : (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-gray-100">
-                    <p className="text-[13px] font-semibold text-gray-700">
-                      {isLoading
-                        ? "Chargement…"
-                        : `${filtered.length} enseignant${filtered.length > 1 ? "s" : ""}${search || contratFilter !== "Tous" ? " trouvé" + (filtered.length > 1 ? "s" : "") : " au total"}`}
-                    </p>
-                  </div>
+                <div className="rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -963,6 +1069,7 @@ const EnseignantsPage = () => {
                                   setModal({ mode: "edit", ens: e })
                                 }
                                 onDelete={setDeleteId}
+                                onToggle={handleToggleActif}
                               />
                             ))}
                           </AnimatePresence>
@@ -994,7 +1101,9 @@ const EnseignantsPage = () => {
         ens={selectedEns}
         onClose={() => setSelectedId(null)}
         onEdit={(e) => setModal({ mode: "edit", ens: e })}
-        onDelete={(id) => { setDeleteId(id); }}
+        onDelete={(id) => {
+          setDeleteId(id);
+        }}
         onToggleActif={handleToggleActif}
         isUpdating={isUpdating}
       />

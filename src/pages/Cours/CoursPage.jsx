@@ -71,8 +71,8 @@ const avatarBg = (id) => AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.
 // ── StatCard ─────────────────────────────────────────────────────────────────
 
 const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
-    <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: bg }}>
+  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-4 flex items-center gap-3">
+    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: bg }}>
       <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
     </div>
     <div>
@@ -358,10 +358,19 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
                         ? <img src={cours.enseignantPhoto} alt="" className="w-full h-full object-cover" />
                         : initiales(cours.enseignantNom)}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Enseignant attribué</p>
                       <p className="text-[13px] font-semibold text-gray-800 truncate mt-0.5">{cours.enseignantNom}</p>
                     </div>
+                    {cours.estTitulaire ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0b57cd] border border-blue-200 shrink-0 flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5" /> Titulaire
+                      </span>
+                    ) : cours.enseignantImpose ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                        Prof spécifique
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -471,12 +480,25 @@ function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, 
     }
   }, [matieresDisponibles, form.matiereId]);
 
+  // Maternelle/primaire : le titulaire enseigne toutes les matières.
+  // → l'enseignant devient optionnel (défaut = titulaire) ; le renseigner
+  //   revient à confier ce cours précis à un autre professeur (override).
+  const selectedClasses = useMemo(
+    () => form.classeIds.map((id) => classes.find((c) => c.id === id)).filter(Boolean),
+    [form.classeIds, classes],
+  );
+  const isMono = (c) =>
+    c?.niveau?.cycle === "MATERNELLE" || c?.niveau?.cycle === "PRIMAIRE";
+  const enseignantOptional = isEdit
+    ? cours?.cycle === "MATERNELLE" || cours?.cycle === "PRIMAIRE"
+    : selectedClasses.length > 0 && selectedClasses.every(isMono);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isEdit && form.classeIds.length === 0) { toast.error("Sélectionnez au moins une classe"); return; }
     const dto = isEdit
       ? { enseignantId: form.enseignantId || undefined, coefficient: Number(form.coefficient) || 1, volumeHoraireHebdo: form.volumeHoraireHebdo ? Number(form.volumeHoraireHebdo) : undefined }
-      : { classeIds: form.classeIds, matiereId: form.matiereId, enseignantId: form.enseignantId, coefficient: Number(form.coefficient) || 1, volumeHoraireHebdo: form.volumeHoraireHebdo ? Number(form.volumeHoraireHebdo) : undefined };
+      : { classeIds: form.classeIds, matiereId: form.matiereId, enseignantId: form.enseignantId || undefined, coefficient: Number(form.coefficient) || 1, volumeHoraireHebdo: form.volumeHoraireHebdo ? Number(form.volumeHoraireHebdo) : undefined };
     await onSubmit(dto);
   };
 
@@ -546,14 +568,29 @@ function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, 
                   </>
                 )}
                 <div>
-                  <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">Enseignant <span className="text-red-500">*</span></label>
-                  <select value={form.enseignantId} onChange={(e) => setForm((f) => ({ ...f, enseignantId: e.target.value }))} required
+                  <label className="block text-[13px] font-semibold text-gray-700 mb-1.5">
+                    Enseignant{" "}
+                    {enseignantOptional ? (
+                      <span className="text-gray-400 font-normal">(optionnel)</span>
+                    ) : (
+                      <span className="text-red-500">*</span>
+                    )}
+                  </label>
+                  <select value={form.enseignantId} onChange={(e) => setForm((f) => ({ ...f, enseignantId: e.target.value }))} required={!enseignantOptional}
                     className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white">
-                    <option value="">— Sélectionner un enseignant —</option>
+                    <option value="">
+                      {enseignantOptional ? "— Titulaire de la classe (par défaut) —" : "— Sélectionner un enseignant —"}
+                    </option>
                     {enseignants.filter((e) => e.actif !== false).map((e) => (
                       <option key={e.id} value={e.id}>{e.prenom} {e.nom}{e.specialite ? ` — ${e.specialite}` : ""}</option>
                     ))}
                   </select>
+                  {enseignantOptional && (
+                    <p className="text-[11px] text-[#0b57cd] mt-1 flex items-start gap-1">
+                      <BookOpen className="w-3 h-3 mt-0.5 shrink-0" />
+                      Maternelle/primaire : laissez vide pour le titulaire, ou choisissez un autre professeur pour confier cette matière précise.
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -958,37 +995,31 @@ export default function CoursPage() {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
+      <div className="min-h-full space-y-3">
 
-        {/* ── Hero ── */}
-        <motion.div {...fade(0)} className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
-          style={{ background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)" }}>
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-8 -right-4 w-32 h-32 rounded-full bg-white/5" />
-          <div className="absolute top-4 right-32 w-16 h-16 rounded-full bg-white/5" />
-          <div className="relative px-6 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <BookOpen className="w-6 h-6 text-white" strokeWidth={1.8} />
+        {/* ── Hero (style page Classes) ── */}
+        <motion.div {...fade(0)} className="relative rounded-lg overflow-hidden bg-white">
+          <div className="relative px-3 py-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <BookOpen className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
               </div>
-              <div>
-                <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  <span>Académique</span><ChevronRight className="w-3 h-3" /><span>Cours</span>
-                </div>
-                <h1 className="text-xl font-bold text-white leading-tight">Gestion des Cours</h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">Gestion des Cours</h1>
+                <p className="text-gray-400 text-[12px] mt-0.5">
                   {state.loading ? "Chargement…" : `${stats.total} cours attribué${stats.total > 1 ? "s" : ""}`}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={fetchCours} disabled={state.loading}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50">
+                title="Rafraîchir"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50">
                 <RefreshCw className={`w-4 h-4 ${state.loading ? "animate-spin" : ""}`} />
               </motion.button>
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 onClick={() => { setRefLoaded(false); dispatch({ type: "OPEN_MODAL", payload: { mode: "create" } }); }}
-                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-bold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors">
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors">
                 <Plus className="w-4 h-4" /> Nouveau cours
               </motion.button>
             </div>
@@ -998,10 +1029,10 @@ export default function CoursPage() {
         {/* ── Stats ── */}
         <motion.div {...fade(0.06)} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard icon={BookOpen}  label="Total cours"     value={stats.total}         color="#0b57cd" bg="#eff4ff" loading={state.loading} />
-          <StatCard icon={Calendar}  label="Avec créneaux"   value={stats.avecCreneaux}  color="#059669" bg="#ecfdf5" loading={state.loading}
+          <StatCard icon={Calendar}  label="Avec créneaux"   value={stats.avecCreneaux}  color="#0b57cd" bg="#eff4ff" loading={state.loading}
             sub={stats.total > 0 ? `${Math.round((stats.avecCreneaux / stats.total) * 100)}% planifiés` : undefined} />
-          <StatCard icon={Layers}    label="Matières"         value={stats.matieres}      color="#7c3aed" bg="#f5f3ff" loading={state.loading} />
-          <StatCard icon={User}      label="Enseignants"      value={stats.enseignants}   color="#d97706" bg="#fffbeb" loading={state.loading} />
+          <StatCard icon={Layers}    label="Matières"         value={stats.matieres}      color="#0b57cd" bg="#eff4ff" loading={state.loading} />
+          <StatCard icon={User}      label="Enseignants"      value={stats.enseignants}   color="#0b57cd" bg="#eff4ff" loading={state.loading} />
         </motion.div>
 
         {/* ── Toolbar ── */}

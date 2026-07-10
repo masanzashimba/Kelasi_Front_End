@@ -16,6 +16,7 @@ import {
   Mail,
   Phone,
   X,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   RefreshCw,
@@ -39,6 +40,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useEleve } from "../../features/eleve/hooks/useEleve";
+import { exportElevesToExcel } from "../../features/eleve/utils/exportEleves";
 import { AddEleveModal } from "../../components/eleve/AddEleveModal";
 import { useSelector } from "react-redux";
 import { selectAnneeActive } from "../../features/annee-scolaire/slices/annee-scolaire.selectors";
@@ -76,29 +78,24 @@ const AVATAR_COLORS = [
 const avatarBg = (id) =>
   AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 
-// ── Stat card ─────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
+const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
     <div
-      className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
       style={{ background: bg }}
     >
       <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
     </div>
     <div>
       {loading ? (
-        <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
       ) : (
         <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
       )}
       <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
-      {sub && !loading && (
-        <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
-      )}
     </div>
   </div>
 );
-
 // ─── Palette avatars selon initiale du nom ────────────────────────────────────
 const AVATAR_PALETTE = [
   { bg: "#E6F1FB", color: "#0C447C" },
@@ -117,7 +114,7 @@ function getAvatarStyle(nom = "") {
 
 // ─── EleveCard split 50/50 ────────────────────────────────────────────────────
 
-const EleveCard = ({ eleve, selected, onSelect }) => {
+const EleveCard = ({ eleve, selected, onSelect, onViewImage }) => {
   const nom = `${eleve.prenom ?? ""} ${eleve.nom ?? ""}`.trim();
   const color = avatarBg(eleve.id);
   const actif = eleve.actif;
@@ -170,15 +167,34 @@ const EleveCard = ({ eleve, selected, onSelect }) => {
     >
       {/* ── Gauche : photo / avatar ── */}
       <div
-        className="w-1/2 shrink-0 relative flex items-center justify-center text-white text-[28px] font-black"
+        onClick={
+          eleve.photoUrl
+            ? (e) => {
+                e.stopPropagation();
+                onViewImage?.(eleve);
+              }
+            : undefined
+        }
+        className={`group w-1/2 shrink-0 relative flex items-center justify-center overflow-hidden text-white text-[28px] font-black ${
+          eleve.photoUrl ? "cursor-zoom-in" : ""
+        }`}
         style={eleve.photoUrl ? undefined : { background: color }}
       >
         {eleve.photoUrl ? (
-          <img
-            src={eleve.photoUrl}
-            alt={nom}
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img
+              src={eleve.photoUrl}
+              alt={nom}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            />
+            {/* Voile + label au survol */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/45 transition-colors duration-200">
+              <span className="flex items-center gap-1 text-white text-[11px] font-semibold opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+                <i className="ti ti-eye text-[13px]" aria-hidden="true" />
+                Voir l'image
+              </span>
+            </div>
+          </>
         ) : (
           <span>{initiales(eleve.nom, eleve.prenom)}</span>
         )}
@@ -231,6 +247,41 @@ const EleveCard = ({ eleve, selected, onSelect }) => {
     </motion.div>
   );
 };
+
+// ─── Modal image en grand ─────────────────────────────────────────────────────
+const ImageModal = ({ src, alt, onClose }) =>
+  createPortal(
+    <AnimatePresence>
+      {src && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)" }}
+          onClick={onClose}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 text-white flex items-center justify-center hover:bg-white/25 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <motion.img
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.92, opacity: 0 }}
+            transition={{ type: "spring", damping: 26, stiffness: 300 }}
+            src={src}
+            alt={alt}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -976,12 +1027,87 @@ const ConfirmDeleteModal = ({ open, onClose, onConfirm, isDeleting }) => {
   );
 };
 
+// ── Pagination ────────────────────────────────────────────────
+const Pagination = ({ page, totalPages, pageSize, total, onPage }) => {
+  // Toujours visible dès qu'il y a au moins un élève (même sur une seule page).
+  if (total === 0) return null;
+
+  const safeTotalPages = Math.max(1, totalPages);
+
+  // Fenêtre de pages compacte autour de la page courante
+  const pages = [];
+  const push = (p) => pages.push(p);
+  const window = 1; // pages de part et d'autre de la courante
+  push(1);
+  const start = Math.max(2, page - window);
+  const end = Math.min(safeTotalPages - 1, page + window);
+  if (start > 2) push("…");
+  for (let p = start; p <= end; p++) push(p);
+  if (end < safeTotalPages - 1) push("…");
+  if (safeTotalPages > 1) push(safeTotalPages);
+
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
+  return (
+    <div className="flex items-center justify-between gap-3 flex-wrap pt-1">
+      <p className="text-[12px] text-gray-400">
+        {from}–{to} sur {total}
+      </p>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPage(page - 1)}
+          disabled={page <= 1}
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title="Précédent"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        {pages.map((p, i) =>
+          p === "…" ? (
+            <span
+              key={`gap-${i}`}
+              className="h-8 px-2 flex items-center justify-center text-[12px] text-gray-300"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPage(p)}
+              className={`h-8 min-w-8 px-2 flex items-center justify-center rounded-lg text-[12px] font-semibold transition-colors ${
+                p === page
+                  ? "bg-[#0b57cd] text-white"
+                  : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {p}
+            </button>
+          ),
+        )}
+        <button
+          onClick={() => onPage(page + 1)}
+          disabled={page >= safeTotalPages}
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          title="Suivant"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ── Page principale ───────────────────────────────────────────
 const ElevesPage = () => {
   const {
     state,
     dispatch,
     filteredEleves,
+    paginatedEleves,
+    currentPage,
+    totalPages,
+    pageSize,
     classes,
     stats,
     fetchEleves,
@@ -995,6 +1121,7 @@ const ElevesPage = () => {
   const anneeActive = useSelector(selectAnneeActive);
 
   const [view, setView] = useState("grid");
+  const [imageModal, setImageModal] = useState(null);
 
   useEffect(() => {
     if (anneeId) fetchEleves();
@@ -1020,38 +1147,26 @@ const ElevesPage = () => {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
+      <div className="min-h-full space-y-3">
         {/* ── Hero header ── */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
-          style={{
-            background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
-          }}
+          className="relative rounded-lg overflow-hidden bg-white"
         >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5" />
-          <div className="absolute  top-4   right-32  w-16 h-16 rounded-full bg-white/5" />
-          <div className="relative px-6 py-5 flex items-center justify-between">
+          <div className="relative px-3 py-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 text-white" strokeWidth={1.8} />
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  <span>Gestion</span>
-                  <ChevronRight className="w-3 h-3" />
-                  <span>Élèves</span>
-                </div>
-                <h1 className="text-xl font-bold text-white leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   Gestion des Élèves
                 </h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
-                  {state.loading
-                    ? "Chargement…"
-                    : `${stats.total} élève${stats.total > 1 ? "s" : ""} inscrits`}
+                <p className="text-gray-400 text-[12px] mt-0.5">
+                  Gérez les inscriptions, dossiers et suivi de vos élèves
                   {anneeActive && (
-                    <span className="ml-2 opacity-70">
+                    <span className="text-gray-300">
+                      {" "}
                       · {anneeActive.libelle}
                     </span>
                   )}
@@ -1064,7 +1179,7 @@ const ElevesPage = () => {
                 whileTap={{ scale: 0.97 }}
                 onClick={fetchEleves}
                 disabled={state.loading}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
                 title="Rafraîchir"
               >
                 <RefreshCw
@@ -1074,7 +1189,18 @@ const ElevesPage = () => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 bg-white/10 text-white px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-white/20 hover:bg-white/20 transition-colors"
+                onClick={() =>
+                  exportElevesToExcel(filteredEleves, {
+                    anneeLibelle: anneeActive?.libelle,
+                  })
+                }
+                disabled={state.loading || filteredEleves.length === 0}
+                title={
+                  filteredEleves.length === 0
+                    ? "Aucun élève à exporter"
+                    : `Exporter ${filteredEleves.length} élève(s) en Excel`
+                }
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Exporter</span>
@@ -1086,7 +1212,7 @@ const ElevesPage = () => {
                   dispatch({ type: "OPEN_MODAL", payload: { mode: "add" } })
                 }
                 disabled={!anneeId}
-                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" /> Nouvel élève
               </motion.button>
@@ -1125,8 +1251,8 @@ const ElevesPage = () => {
             icon={UserCheck}
             label="Actifs"
             value={stats.actifs}
-            color="#059669"
-            bg="#ecfdf5"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
             sub={`${stats.total > 0 ? Math.round((stats.actifs / stats.total) * 100) : 0}% du total`}
           />
@@ -1134,211 +1260,259 @@ const ElevesPage = () => {
             icon={UserX}
             label="Inactifs"
             value={stats.inactifs}
-            color="#dc2626"
-            bg="#fef2f2"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
           <StatCard
             icon={School}
             label="Sans classe"
             value={stats.sansClasse}
-            color="#7c3aed"
-            bg="#f5f3ff"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
         </motion.div>
 
-        {/* ── Toolbar ── */}
+        {/* ── Liste des élèves + recherche ── */}
         <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
-            <div className="flex gap-2 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  value={state.search}
-                  onChange={(e) =>
-                    dispatch({ type: "SET_SEARCH", payload: e.target.value })
-                  }
-                  placeholder="Rechercher par nom, prénom ou matricule…"
-                  className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
-                />
-                {state.search && (
-                  <button
-                    onClick={() =>
-                      dispatch({ type: "SET_SEARCH", payload: "" })
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={() => dispatch({ type: "TOGGLE_FILTERS" })}
-                className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
-                  state.showFilters
-                    ? "bg-blue-50 text-[#0b57cd] border-blue-200"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Filter className="w-4 h-4" /> Filtres
-              </button>
-              {/* Toggle vue */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
-                <button
-                  onClick={() => handleSetView("grid")}
-                  className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue cartes"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleSetView("list")}
-                  className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue tableau"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {state.showFilters && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-3 gap-3">
-                    {[
-                      {
-                        label: "Classe",
-                        value: state.selectedClasse,
-                        action: "SET_CLASSE",
-                        options: classes.map((c) => ({ value: c, label: c })),
-                      },
-                      {
-                        label: "Statut",
-                        value: state.selectedStatut,
-                        action: "SET_STATUT",
-                        options: STATUTS.map((s) => ({
-                          value: s,
-                          label:
-                            s === "Tous"
-                              ? "Tous"
-                              : s === "ACTIF"
-                                ? "Actif"
-                                : "Inactif",
-                        })),
-                      },
-                      {
-                        label: "Sexe",
-                        value: state.selectedSexe,
-                        action: "SET_SEXE",
-                        options: [
-                          { value: "Tous", label: "Tous" },
-                          { value: "MASCULIN", label: "Masculin" },
-                          { value: "FEMININ", label: "Féminin" },
-                        ],
-                      },
-                    ].map(({ label, value, action, options }) => (
-                      <div key={label}>
-                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
-                          {label}
-                        </label>
-                        <select
-                          value={value}
-                          onChange={(e) =>
-                            dispatch({ type: action, payload: e.target.value })
-                          }
-                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
-                        >
-                          {options.map((o) => (
-                            <option key={o.value} value={o.value}>
-                              {o.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ))}
+          <div className="bg-white rounded-lg">
+            {/* En-tête : titre à gauche · recherche + vue à droite */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-900 leading-tight">
+                    Liste des élèves
+                  </h2>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
+                    {state.loading
+                      ? "Chargement…"
+                      : `${filteredEleves.length} élève${filteredEleves.length > 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="relative w-48 sm:w-56">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      value={state.search}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_SEARCH",
+                          payload: e.target.value,
+                        })
+                      }
+                      placeholder="Rechercher…"
+                      className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                    />
+                    {state.search && (
+                      <button
+                        onClick={() =>
+                          dispatch({ type: "SET_SEARCH", payload: "" })
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                   <button
-                    onClick={() => dispatch({ type: "RESET_FILTERS" })}
-                    className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                    onClick={() => dispatch({ type: "TOGGLE_FILTERS" })}
+                    className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
+                      state.showFilters
+                        ? "bg-blue-50 text-[#0b57cd] border-blue-200"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
                   >
-                    Réinitialiser les filtres
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filtres</span>
                   </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+                  {/* Toggle vue */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
+                    <button
+                      onClick={() => handleSetView("grid")}
+                      className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue cartes"
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleSetView("list")}
+                      className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue tableau"
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-        {/* ── Contenu ── */}
-        <motion.div {...fade(0.14)}>
-          <div>
-            <div>
+              <AnimatePresence>
+                {state.showFilters && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        {
+                          label: "Cycle",
+                          value: state.selectedCycle,
+                          action: "SET_CYCLE",
+                          options: [
+                            { value: "Tous", label: "Tous" },
+                            { value: "MATERNELLE", label: "Maternelle" },
+                            { value: "PRIMAIRE", label: "Primaire" },
+                            { value: "SECONDAIRE", label: "Secondaire" },
+                          ],
+                        },
+                        {
+                          label: "Classe",
+                          value: state.selectedClasse,
+                          action: "SET_CLASSE",
+                          options: classes.map((c) => ({ value: c, label: c })),
+                        },
+                        {
+                          label: "Statut",
+                          value: state.selectedStatut,
+                          action: "SET_STATUT",
+                          options: STATUTS.map((s) => ({
+                            value: s,
+                            label:
+                              s === "Tous"
+                                ? "Tous"
+                                : s === "ACTIF"
+                                  ? "Actif"
+                                  : "Inactif",
+                          })),
+                        },
+                        {
+                          label: "Sexe",
+                          value: state.selectedSexe,
+                          action: "SET_SEXE",
+                          options: [
+                            { value: "Tous", label: "Tous" },
+                            { value: "MASCULIN", label: "Masculin" },
+                            { value: "FEMININ", label: "Féminin" },
+                          ],
+                        },
+                      ].map(({ label, value, action, options }) => (
+                        <div key={label}>
+                          <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                            {label}
+                          </label>
+                          <select
+                            value={value}
+                            onChange={(e) =>
+                              dispatch({
+                                type: action,
+                                payload: e.target.value,
+                              })
+                            }
+                            className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                          >
+                            {options.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => dispatch({ type: "RESET_FILTERS" })}
+                      className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* ── Corps : liste des élèves ── */}
+            <div className="p-4">
               {/* ══ VUE CARTES ══ */}
               {view === "grid" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {state.loading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <EleveCardSkeleton key={i} />
-                    ))
-                  ) : filteredEleves.length === 0 ? (
-                    <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
-                      <Users className="w-10 h-10 text-gray-200" />
-                      <p className="text-[14px] font-semibold text-gray-400">
-                        {state.eleves.length === 0
-                          ? "Aucun élève pour cette année"
-                          : "Aucun élève trouvé"}
-                      </p>
-                      {state.eleves.length === 0 && anneeId && (
-                        <button
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {state.loading ? (
+                      Array.from({ length: 6 }).map((_, i) => (
+                        <EleveCardSkeleton key={i} />
+                      ))
+                    ) : filteredEleves.length === 0 ? (
+                      <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+                        <Users className="w-10 h-10 text-gray-200" />
+                        <p className="text-[14px] font-semibold text-gray-400">
+                          {state.eleves.length === 0
+                            ? "Aucun élève pour cette année"
+                            : "Aucun élève trouvé"}
+                        </p>
+                        {state.eleves.length === 0 && anneeId && (
+                          <button
+                            onClick={() =>
+                              dispatch({
+                                type: "OPEN_MODAL",
+                                payload: { mode: "add" },
+                              })
+                            }
+                            className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" /> Inscrire un élève
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <AnimatePresence>
+                        {paginatedEleves.map((eleve, i) => (
+                          <motion.div
+                            key={eleve.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ delay: i * 0.03 }}
+                          >
+                            <EleveCard
+                              eleve={eleve}
+                              selected={state.drawerEleve?.id === eleve.id}
+                              onSelect={(e) => {
+                                if (e === null) closeDetail();
+                                else openDetail(e);
+                              }}
+                              onViewImage={(e) =>
+                                setImageModal({
+                                  src: e.photoUrl,
+                                  alt: `${e.prenom ?? ""} ${e.nom ?? ""}`.trim(),
+                                })
+                              }
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    )}
+                    {!state.loading &&
+                      anneeId &&
+                      currentPage === totalPages && (
+                        <NewEleveCard
                           onClick={() =>
                             dispatch({
                               type: "OPEN_MODAL",
                               payload: { mode: "add" },
                             })
                           }
-                          className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
-                        >
-                          <Plus className="w-4 h-4" /> Inscrire un élève
-                        </button>
+                        />
                       )}
-                    </div>
-                  ) : (
-                    <AnimatePresence>
-                      {filteredEleves.map((eleve, i) => (
-                        <motion.div
-                          key={eleve.id}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ delay: i * 0.03 }}
-                        >
-                          <EleveCard
-                            eleve={eleve}
-                            selected={state.drawerEleve?.id === eleve.id}
-                            onSelect={(e) => {
-                              if (e === null) closeDetail();
-                              else openDetail(e);
-                            }}
-                          />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  )}
-                  {!state.loading && anneeId && (
-                    <NewEleveCard
-                      onClick={() =>
-                        dispatch({
-                          type: "OPEN_MODAL",
-                          payload: { mode: "add" },
-                        })
-                      }
+                  </div>
+                  {!state.loading && (
+                    <Pagination
+                      page={currentPage}
+                      totalPages={totalPages}
+                      pageSize={pageSize}
+                      total={filteredEleves.length}
+                      onPage={(p) => dispatch({ type: "SET_PAGE", payload: p })}
                     />
                   )}
                 </div>
@@ -1346,14 +1520,7 @@ const ElevesPage = () => {
 
               {/* ══ VUE TABLEAU ══ */}
               {view === "list" && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-gray-100">
-                    <p className="text-[13px] font-semibold text-gray-700">
-                      {state.loading
-                        ? "Chargement…"
-                        : `${filteredEleves.length} élève${filteredEleves.length > 1 ? "s" : ""}`}
-                    </p>
-                  </div>
+                <div className="rounded-lg  overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -1362,10 +1529,10 @@ const ElevesPage = () => {
                             "Élève",
                             "Matricule",
                             "Classe",
-                            "Inscr.",
-                            "Notes",
+                            "Parent",
+                            "Tél. parent",
                             "Statut",
-                            "",
+                            "Actions",
                           ].map((h) => (
                             <th
                               key={h}
@@ -1394,7 +1561,7 @@ const ElevesPage = () => {
                           </tr>
                         ) : (
                           <AnimatePresence>
-                            {filteredEleves.map((eleve, i) => {
+                            {paginatedEleves.map((eleve, i) => {
                               const sKey = eleve.actif ? "ACTIF" : "INACTIF";
                               const s = statutConfig[sKey];
                               const isActive =
@@ -1459,47 +1626,96 @@ const ElevesPage = () => {
                                     )}
                                   </td>
                                   <td className="px-5 py-3.5">
-                                    <span className="text-[13px] font-bold text-[#185fa5]">
-                                      {eleve.nombreInscriptions}
-                                    </span>
+                                    {eleve.parent ? (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[12.5px] text-gray-700">
+                                          {eleve.parent}
+                                        </span>
+                                        {eleve.nombreParents > 1 && (
+                                          <span className="text-[10px] font-semibold text-[#0b57cd] bg-blue-50 px-1.5 py-0.5 rounded-full">
+                                            +{eleve.nombreParents - 1}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-[11px] text-gray-300 italic">
+                                        Aucun parent
+                                      </span>
+                                    )}
                                   </td>
                                   <td className="px-5 py-3.5">
-                                    <span className="text-[13px] font-bold text-[#534ab7]">
-                                      {eleve.nombreNotes}
-                                    </span>
+                                    {eleve.parentTelephone ? (
+                                      <a
+                                        href={`tel:${eleve.parentTelephone}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="inline-flex items-center gap-1.5 text-[12.5px] text-gray-600 hover:text-[#0b57cd] transition-colors"
+                                      >
+                                        <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                        {eleve.parentTelephone}
+                                      </a>
+                                    ) : (
+                                      <span className="text-[11px] text-gray-300 italic">
+                                        —
+                                      </span>
+                                    )}
                                   </td>
-                                  <td className="px-5 py-3.5">
-                                    <span
-                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}
-                                    >
-                                      {s.label}
-                                    </span>
-                                  </td>
-                                  <td className="px-5 py-3.5">
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <td
+                                    className="px-5 py-3.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="flex items-center gap-2">
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
+                                        onClick={() =>
+                                          updateEleve(eleve.id, {
+                                            actif: !eleve.actif,
+                                          })
+                                        }
+                                        title={
+                                          eleve.actif
+                                            ? "Désactiver l'élève"
+                                            : "Activer l'élève"
+                                        }
+                                        aria-label={
+                                          eleve.actif
+                                            ? "Désactiver l'élève"
+                                            : "Activer l'élève"
+                                        }
+                                        className={`relative inline-flex h-4 w-11 items-center rounded-full transition-colors shrink-0 ${eleve.actif ? "bg-[#0b57cd]" : "bg-gray-300"}`}
+                                      >
+                                        <span
+                                          className={`inline-block h-3 w-4 transform rounded-full bg-white shadow transition-transform ${eleve.actif ? "translate-x-6" : "translate-x-1"}`}
+                                        />
+                                      </button>
+                                      <span
+                                        className={`text-[5px] font-semibold ${eleve.actif ? "text-emerald-600" : "text-gray-400"}`}
+                                      >
+                                        {/* {s.label} */}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td
+                                    className="px-5 py-3.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() =>
                                           dispatch({
                                             type: "OPEN_MODAL",
                                             payload: { mode: "edit", eleve },
-                                          });
-                                        }}
-                                        className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+                                          })
+                                        }
+                                        title="Modifier"
+                                        className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"
                                       >
                                         <Edit2 className="w-3.5 h-3.5" />
                                       </button>
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          dispatch({
-                                            type: "SET_DELETE_CONFIRM",
-                                            payload: eleve.id,
-                                          });
-                                        }}
-                                        className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+                                        onClick={() => openDetail(eleve)}
+                                        title="Voir la fiche"
+                                        className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-blue-50 flex items-center justify-center text-gray-500 hover:text-[#0b57cd] transition-colors"
                                       >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <ChevronRight className="w-4 h-4" />
                                       </button>
                                     </div>
                                   </td>
@@ -1513,9 +1729,15 @@ const ElevesPage = () => {
                   </div>
                   {!state.loading && filteredEleves.length > 0 && (
                     <div className="px-5 py-3 border-t border-gray-100">
-                      <p className="text-[12px] text-gray-400">
-                        {filteredEleves.length} sur {state.eleves.length} élèves
-                      </p>
+                      <Pagination
+                        page={currentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        total={filteredEleves.length}
+                        onPage={(p) =>
+                          dispatch({ type: "SET_PAGE", payload: p })
+                        }
+                      />
                     </div>
                   )}
                 </div>
@@ -1576,6 +1798,13 @@ const ElevesPage = () => {
         onClose={() => dispatch({ type: "SET_DELETE_CONFIRM", payload: null })}
         onConfirm={() => deleteEleve(state.deleteConfirmId)}
         isDeleting={state.submitting}
+      />
+
+      {/* ── Image élève en grand ── */}
+      <ImageModal
+        src={imageModal?.src}
+        alt={imageModal?.alt}
+        onClose={() => setImageModal(null)}
       />
     </>
   );

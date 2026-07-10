@@ -21,6 +21,7 @@ import {
   selectClasseError,
 } from "../slices/classe.selectors";
 import { useAnneeSelector } from "../../annee-scolaire/hooks/useAnneeSelector";
+import { classeService } from "../services/classe.service";
 
 // ── Wrapper générique ─────────────────────────────────────────
 const wrap = async (dispatch, thunk, arg) => {
@@ -87,6 +88,13 @@ export const useClasse = () => {
 
   const clearError = useCallback(() => dispatch(clearClasseError()), [dispatch]);
 
+  // Génère 1 classe par niveau actif puis rafraîchit la liste.
+  const genererClasses = useCallback(async () => {
+    const data = await classeService.generer(selectedAnneeId);
+    await dispatch(fetchClassesThunk(selectedAnneeId ?? undefined));
+    return data;
+  }, [dispatch, selectedAnneeId]);
+
   return {
     // State
     classes,
@@ -108,6 +116,7 @@ export const useClasse = () => {
     updateClasse,
     deleteClasse,
     assignerTitulaire,
+    genererClasses,
     clearError,
   };
 };

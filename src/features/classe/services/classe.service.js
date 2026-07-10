@@ -16,6 +16,10 @@ export const classeService = {
   // POST /classes
   create: (dto) => api.post(BASE, dto).then((r) => r.data),
 
+  // POST /classes/generer — 1 classe par niveau actif (nom = « libellé A »)
+  generer: (anneeScolaireId) =>
+    api.post(`${BASE}/generer`, { anneeScolaireId }).then((r) => r.data),
+
   // PATCH /classes/:id
   update: (id, dto) => api.patch(`${BASE}/${id}`, dto).then((r) => r.data),
 

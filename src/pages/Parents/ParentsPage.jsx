@@ -26,6 +26,7 @@ import {
   List,
 } from "lucide-react";
 import { useParent } from "../../features/parent/hooks/useParent";
+import StatutToggle from "../../components/common/StatutToggle";
 import { ParentDrawer } from "../../components/parent/ParentDrawer";
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -64,25 +65,21 @@ const AVATAR_COLORS = [
 const avatarBg = (id) =>
   AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
 
-// ── Stat card ─────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
+const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
     <div
-      className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
       style={{ background: bg }}
     >
       <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
     </div>
     <div>
       {loading ? (
-        <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
       ) : (
         <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
       )}
       <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
-      {sub && !loading && (
-        <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
-      )}
     </div>
   </div>
 );
@@ -106,112 +103,92 @@ const ParentCardSkeleton = () => (
   </div>
 );
 
-// ── Parent card (grid) ────────────────────────────────────────
+// ── Parent card (grid, split 50/50 comme EnseignantCard) ──────
 const ParentCard = ({ parent, selected, onSelect }) => {
-  const sKey = parent.actif ? "ACTIF" : "INACTIF";
-  const s = statutConfig[sKey];
+  const nom = `${parent.prenom ?? ""} ${parent.nom ?? ""}`.trim();
   const color = avatarBg(parent.id);
+  const actif = parent.actif ?? true;
+
+  const infos = [
+    { Icon: Mail, val: parent.email },
+    { Icon: Phone, val: parent.telephone },
+    {
+      Icon: Users,
+      val:
+        parent.nombreEnfants != null
+          ? `${parent.nombreEnfants} enfant${parent.nombreEnfants > 1 ? "s" : ""} lié${parent.nombreEnfants > 1 ? "s" : ""}`
+          : null,
+    },
+  ].filter((r) => r.val);
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
       onClick={() => onSelect(selected ? null : parent)}
-      className={`bg-white rounded-xl border cursor-pointer transition-all overflow-hidden ${
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      className={`flex h-40 rounded-xl border overflow-hidden bg-white cursor-pointer transition-colors ${
         selected
-          ? "border-[#0b57cd] shadow-lg shadow-[#0b57cd]/10 ring-2 ring-[#0b57cd]/15"
-          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+          ? "border-[#0C447C] ring-2 ring-[#0C447C]/20"
+          : "border-gray-100 hover:border-gray-200"
       }`}
     >
-      <div className="h-1 bg-[#0b57cd]" />
-      <div className="p-4">
-        {/* Avatar + nom + statut */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden border border-gray-100">
-            {parent.photoUrl ? (
-              <img
-                src={parent.photoUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-white text-[14px] font-black"
-                style={{ background: color }}
-              >
-                {initiales(parent.nom, parent.prenom)}
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-1">
-              <h3 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
-                {parent.prenom} {parent.nom}
-              </h3>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${s.cls}`}
-              >
-                {s.label}
-              </span>
-            </div>
-            {parent.profession && (
-              <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-                {parent.profession}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Email */}
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Mail className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-[11px] text-gray-400 truncate">
-            {parent.email}
-          </span>
-        </div>
-
-        {/* Téléphone */}
-        {parent.telephone && (
-          <div className="flex items-center gap-1.5 mb-2">
-            <Phone className="w-3 h-3 text-gray-300 shrink-0" />
-            <span className="text-[11px] text-gray-400 truncate">
-              {parent.telephone}
-            </span>
-          </div>
+      {/* ── Gauche : photo / avatar ── */}
+      <div
+        className="w-1/2 shrink-0 relative flex items-center justify-center text-white text-[28px] font-black"
+        style={parent.photoUrl ? undefined : { background: color }}
+      >
+        {parent.photoUrl ? (
+          <img
+            src={parent.photoUrl}
+            alt={nom}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span>{initiales(parent.nom, parent.prenom)}</span>
         )}
 
-        {/* Enfants */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
-              Enfants
-            </span>
-            <span className="text-[10px] font-bold text-[#0b57cd] bg-blue-50 px-2 py-0.5 rounded-full">
-              {parent.nombreEnfants}
-            </span>
-          </div>
-          {parent.enfants?.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {parent.enfants.slice(0, 3).map((e) => (
-                <span
-                  key={e.eleveId}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium"
-                >
-                  {e.elevePrenom} · {LIEN_LABELS[e.lien] ?? e.lien}
-                  {e.tuteurLegal && " ★"}
-                </span>
-              ))}
-              {parent.enfants.length > 3 && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
-                  +{parent.enfants.length - 3}
-                </span>
-              )}
-            </div>
-          ) : (
-            <span className="text-[11px] text-gray-300 italic">
-              Aucun enfant lié
-            </span>
+        {/* Point de statut clignotant */}
+        <span
+          className="absolute top-2 left-2 flex h-2.5 w-2.5"
+          title={actif ? "Actif" : "Inactif"}
+        >
+          {actif && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           )}
+          <span
+            className={`relative inline-flex rounded-full h-2.5 w-2.5 border border-white/70 ${
+              actif ? "bg-green-500" : "bg-gray-400"
+            }`}
+          />
+        </span>
+      </div>
+
+      {/* ── Droite : détails ── */}
+      <div className="flex-1 flex flex-col p-3 border-l border-gray-100 min-w-0">
+        <p className="text-[13px] font-semibold text-gray-900 truncate leading-tight">
+          {nom || "—"}
+        </p>
+        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+          {parent.profession ?? "Profession non renseignée"}
+        </p>
+
+        <div className="mt-2 space-y-1 overflow-hidden">
+          {infos.slice(0, 4).map(({ Icon, val }, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-1.5 text-[11px] text-gray-500 overflow-hidden"
+            >
+              <Icon className="w-3 h-3 text-gray-300 shrink-0" />
+              <span className="truncate">{val}</span>
+            </div>
+          ))}
         </div>
+
+        <span className="mt-auto text-[10px] text-[#0C447C] font-medium flex items-center gap-1">
+          Voir le détail
+          <ChevronRight className="w-3 h-3" />
+        </span>
       </div>
     </motion.div>
   );
@@ -222,7 +199,7 @@ const NewParentCard = ({ onClick }) => (
   <motion.button
     whileHover={{ y: -2 }}
     onClick={onClick}
-    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-[180px] text-gray-400 hover:text-[#0b57cd] group"
+    className="bg-white rounded-xl border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 h-40 text-gray-400 hover:text-[#0b57cd] group"
   >
     <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
       <Plus className="w-5 h-5" />
@@ -576,36 +553,23 @@ const ParentsPage = () => {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
-        {/* ── Hero header ── */}
+      <div className="min-h-full space-y-3">
+        {/* ── Hero header (comme Élèves) ── */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
-          style={{
-            background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
-          }}
+          className="relative rounded-lg overflow-hidden bg-white"
         >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5" />
-          <div className="absolute  top-4   right-32  w-16 h-16 rounded-full bg-white/5" />
-          <div className="relative px-6 py-5 flex items-center justify-between">
+          <div className="relative px-3 py-5 flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 text-white" strokeWidth={1.8} />
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  <span>Gestion</span>
-                  <ChevronRight className="w-3 h-3" />
-                  <span>Parents</span>
-                </div>
-                <h1 className="text-xl font-bold text-white leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   Gestion des Parents
                 </h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
-                  {state.loading
-                    ? "Chargement…"
-                    : `${stats.total} parent${stats.total > 1 ? "s" : ""} enregistrés`}
+                <p className="text-gray-400 text-[12px] mt-0.5">
+                  Gérez les parents et leurs liens avec les élèves
                 </p>
               </div>
             </div>
@@ -615,7 +579,7 @@ const ParentsPage = () => {
                 whileTap={{ scale: 0.97 }}
                 onClick={fetchParents}
                 disabled={state.loading}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
                 title="Rafraîchir"
               >
                 <RefreshCw
@@ -625,7 +589,7 @@ const ParentsPage = () => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 bg-white/10 text-white px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-white/20 hover:bg-white/20 transition-colors"
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Exporter</span>
@@ -636,7 +600,7 @@ const ParentsPage = () => {
                 onClick={() =>
                   dispatch({ type: "OPEN_MODAL", payload: { mode: "add" } })
                 }
-                className="flex items-center gap-2 bg-white text-[#0b57cd] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
               >
                 <Plus className="w-4 h-4" /> Nouveau parent
               </motion.button>
@@ -661,8 +625,8 @@ const ParentsPage = () => {
             icon={UserCheck}
             label="Actifs"
             value={stats.actifs}
-            color="#059669"
-            bg="#ecfdf5"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
             sub={`${stats.total > 0 ? Math.round((stats.actifs / stats.total) * 100) : 0}% du total`}
           />
@@ -670,351 +634,335 @@ const ParentsPage = () => {
             icon={UserX}
             label="Inactifs"
             value={stats.inactifs}
-            color="#dc2626"
-            bg="#fef2f2"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
           <StatCard
             icon={Shield}
             label="Tuteurs légaux"
             value={stats.tuteursLegaux}
-            color="#7c3aed"
-            bg="#f5f3ff"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
         </motion.div>
 
-        {/* ── Toolbar ── */}
+        {/* ── Liste des parents + recherche (une seule carte, comme Élèves) ── */}
         <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
-            <div className="flex gap-2 items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  value={state.search}
-                  onChange={(e) =>
-                    dispatch({ type: "SET_SEARCH", payload: e.target.value })
-                  }
-                  placeholder="Rechercher par nom, prénom, email…"
-                  className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
-                />
-                {state.search && (
-                  <button
-                    onClick={() =>
-                      dispatch({ type: "SET_SEARCH", payload: "" })
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => dispatch({ type: "TOGGLE_FILTERS" })}
-                className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
-                  state.showFilters
-                    ? "bg-blue-50 text-[#0b57cd] border-blue-200"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Filter className="w-4 h-4" /> Filtres
-              </button>
-
-              <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
-                <button
-                  onClick={() => handleSetView("grid")}
-                  className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue cartes"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleSetView("list")}
-                  className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue tableau"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {state.showFilters && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
-                        Statut
-                      </label>
-                      <select
-                        value={state.selectedStatut}
-                        onChange={(e) =>
-                          dispatch({
-                            type: "SET_STATUT",
-                            payload: e.target.value,
-                          })
-                        }
-                        className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
-                      >
-                        {STATUTS.map((s) => (
-                          <option key={s} value={s}>
-                            {s === "Tous"
-                              ? "Tous"
-                              : s === "ACTIF"
-                                ? "Actif"
-                                : "Inactif"}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => dispatch({ type: "RESET_FILTERS" })}
-                    className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
-                  >
-                    Réinitialiser
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* ── Contenu ── */}
-        <motion.div {...fade(0.14)}>
-          <div>
-            {/* ══ VUE CARTES ══ */}
-            {view === "grid" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {state.loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <ParentCardSkeleton key={i} />
-                  ))
-                ) : filteredParents.length === 0 ? (
-                  <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
-                    <Users className="w-10 h-10 text-gray-200" />
-                    <p className="text-[14px] font-semibold text-gray-400">
-                      {state.parents.length === 0
-                        ? "Aucun parent enregistré"
-                        : "Aucun parent trouvé"}
-                    </p>
-                    {state.parents.length === 0 && (
-                      <button
-                        onClick={() =>
-                          dispatch({
-                            type: "OPEN_MODAL",
-                            payload: { mode: "add" },
-                          })
-                        }
-                        className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
-                      >
-                        <Plus className="w-4 h-4" /> Ajouter un parent
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <AnimatePresence>
-                    {filteredParents.map((parent, i) => (
-                      <motion.div
-                        key={parent.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ delay: i * 0.03 }}
-                      >
-                        <ParentCard
-                          parent={parent}
-                          selected={state.drawerParent?.id === parent.id}
-                          onSelect={(p) => {
-                            if (p === null) closeDetail();
-                            else openDetail(p);
-                          }}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
-                {!state.loading && (
-                  <NewParentCard
-                    onClick={() =>
-                      dispatch({ type: "OPEN_MODAL", payload: { mode: "add" } })
-                    }
-                  />
-                )}
-              </div>
-            )}
-
-            {/* ══ VUE TABLEAU ══ */}
-            {view === "list" && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-100">
-                  <p className="text-[13px] font-semibold text-gray-700">
+          <div className="bg-white rounded-lg h-screen border border-gray-100 shadow-sm">
+            {/* En-tête : titre + recherche + filtres + vue */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-900 leading-tight">
+                    Liste des parents
+                  </h2>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
                     {state.loading
                       ? "Chargement…"
                       : `${filteredParents.length} parent${filteredParents.length > 1 ? "s" : ""}`}
                   </p>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50/60">
-                        {[
-                          "Parent",
-                          "Email",
-                          "Téléphone",
-                          "Profession",
-                          "Enfants",
-                          "Statut",
-                          "",
-                        ].map((h) => (
-                          <th
-                            key={h}
-                            className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {state.loading ? (
-                        Array.from({ length: 5 }).map((_, i) => (
-                          <SkeletonRow key={i} />
-                        ))
-                      ) : filteredParents.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="text-center py-14">
-                            <div className="flex flex-col items-center gap-2">
-                              <Users className="w-10 h-10 text-gray-200" />
-                              <p className="text-[14px] font-semibold text-gray-400">
-                                Aucun parent trouvé
-                              </p>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        <AnimatePresence>
-                          {filteredParents.map((parent, i) => {
-                            const sKey = parent.actif ? "ACTIF" : "INACTIF";
-                            const s = statutConfig[sKey];
-                            const isActive =
-                              state.drawerParent?.id === parent.id;
-                            return (
-                              <motion.tr
-                                key={parent.id}
-                                initial={{ opacity: 0, y: 4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.02 }}
-                                className={`border-b border-gray-50 cursor-pointer group transition-colors hover:bg-blue-50/20 ${isActive ? "bg-blue-50/30" : ""}`}
-                                onClick={() =>
-                                  isActive ? closeDetail() : openDetail(parent)
-                                }
-                              >
-                                <td className="px-5 py-3.5">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden border border-gray-100">
-                                      {parent.photoUrl ? (
-                                        <img
-                                          src={parent.photoUrl}
-                                          alt=""
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <div
-                                          className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold"
-                                          style={{
-                                            background: avatarBg(parent.id),
-                                          }}
-                                        >
-                                          {initiales(parent.nom, parent.prenom)}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <p className="text-[13px] font-semibold text-gray-900">
-                                      {parent.prenom} {parent.nom}
-                                    </p>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <span className="text-[12px] text-gray-500">
-                                    {parent.email}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <span className="text-[12px] text-gray-500">
-                                    {parent.telephone ?? "—"}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <span className="text-[12px] text-gray-500">
-                                    {parent.profession ?? "—"}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <span className="text-[12px] font-bold text-[#185fa5]">
-                                    {parent.nombreEnfants}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <span
-                                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.cls}`}
-                                  >
-                                    {s.label}
-                                  </span>
-                                </td>
-                                <td className="px-5 py-3.5">
-                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        dispatch({
-                                          type: "OPEN_MODAL",
-                                          payload: { mode: "edit", parent },
-                                        });
-                                      }}
-                                      className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
-                                    >
-                                      <Edit2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        dispatch({
-                                          type: "SET_DELETE_CONFIRM",
-                                          payload: parent.id,
-                                        });
-                                      }}
-                                      className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </motion.tr>
-                            );
-                          })}
-                        </AnimatePresence>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {!state.loading && filteredParents.length > 0 && (
-                  <div className="px-5 py-3 border-t border-gray-100">
-                    <p className="text-[12px] text-gray-400">
-                      {filteredParents.length} sur {state.parents.length}{" "}
-                      parents
-                    </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="relative w-48 sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      value={state.search}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_SEARCH",
+                          payload: e.target.value,
+                        })
+                      }
+                      placeholder="Rechercher…"
+                      className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                    />
+                    {state.search && (
+                      <button
+                        onClick={() =>
+                          dispatch({ type: "SET_SEARCH", payload: "" })
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {/* Statut toggle (comme Enseignant) */}
+                  <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
+                    {[
+                      { key: "Tous", label: "Tous" },
+                      { key: "ACTIF", label: "Actifs" },
+                      { key: "INACTIF", label: "Inactifs" },
+                    ].map((st) => (
+                      <button
+                        key={st.key}
+                        onClick={() =>
+                          dispatch({ type: "SET_STATUT", payload: st.key })
+                        }
+                        className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all ${state.selectedStatut === st.key ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
+                    <button
+                      onClick={() => handleSetView("grid")}
+                      className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue cartes"
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleSetView("list")}
+                      className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                      title="Vue tableau"
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            <div className="p-4">
+              {/* ══ VUE CARTES ══ */}
+              {view === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {state.loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <ParentCardSkeleton key={i} />
+                    ))
+                  ) : filteredParents.length === 0 ? (
+                    <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+                      <Users className="w-10 h-10 text-gray-200" />
+                      <p className="text-[14px] font-semibold text-gray-400">
+                        {state.parents.length === 0
+                          ? "Aucun parent enregistré"
+                          : "Aucun parent trouvé"}
+                      </p>
+                      {state.parents.length === 0 && (
+                        <button
+                          onClick={() =>
+                            dispatch({
+                              type: "OPEN_MODAL",
+                              payload: { mode: "add" },
+                            })
+                          }
+                          className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
+                        >
+                          <Plus className="w-4 h-4" /> Ajouter un parent
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <AnimatePresence>
+                      {filteredParents.map((parent, i) => (
+                        <motion.div
+                          key={parent.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ delay: i * 0.03 }}
+                        >
+                          <ParentCard
+                            parent={parent}
+                            selected={state.drawerParent?.id === parent.id}
+                            onSelect={(p) => {
+                              if (p === null) closeDetail();
+                              else openDetail(p);
+                            }}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  )}
+                  {!state.loading && (
+                    <NewParentCard
+                      onClick={() =>
+                        dispatch({
+                          type: "OPEN_MODAL",
+                          payload: { mode: "add" },
+                        })
+                      }
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* ══ VUE TABLEAU ══ */}
+              {view === "list" && (
+                <div className="rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50/60">
+                          {[
+                            "Parent",
+                            "Email",
+                            "Téléphone",
+                            "Profession",
+                            "Enfants",
+                            "Statut",
+                            "Actions",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {state.loading ? (
+                          Array.from({ length: 5 }).map((_, i) => (
+                            <SkeletonRow key={i} />
+                          ))
+                        ) : filteredParents.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="text-center py-14">
+                              <div className="flex flex-col items-center gap-2">
+                                <Users className="w-10 h-10 text-gray-200" />
+                                <p className="text-[14px] font-semibold text-gray-400">
+                                  Aucun parent trouvé
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          <AnimatePresence>
+                            {filteredParents.map((parent, i) => {
+                              const sKey = parent.actif ? "ACTIF" : "INACTIF";
+                              const s = statutConfig[sKey];
+                              const isActive =
+                                state.drawerParent?.id === parent.id;
+                              return (
+                                <motion.tr
+                                  key={parent.id}
+                                  initial={{ opacity: 0, y: 4 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.02 }}
+                                  className={`border-b border-gray-50 cursor-pointer group transition-colors hover:bg-blue-50/20 ${isActive ? "bg-blue-50/30" : ""}`}
+                                  onClick={() =>
+                                    isActive
+                                      ? closeDetail()
+                                      : openDetail(parent)
+                                  }
+                                >
+                                  <td className="px-5 py-3.5">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden border border-gray-100">
+                                        {parent.photoUrl ? (
+                                          <img
+                                            src={parent.photoUrl}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <div
+                                            className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold"
+                                            style={{
+                                              background: avatarBg(parent.id),
+                                            }}
+                                          >
+                                            {initiales(
+                                              parent.nom,
+                                              parent.prenom,
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <p className="text-[13px] font-semibold text-gray-900">
+                                        {parent.prenom} {parent.nom}
+                                      </p>
+                                    </div>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[12px] text-gray-500">
+                                      {parent.email}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[12px] text-gray-500">
+                                      {parent.telephone ?? "—"}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[12px] text-gray-500">
+                                      {parent.profession ?? "—"}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="text-[12px] font-bold text-[#185fa5]">
+                                      {parent.nombreEnfants}
+                                    </span>
+                                  </td>
+                                  <td
+                                    className="px-5 py-3.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <StatutToggle
+                                      actif={parent.actif}
+                                      onToggle={() =>
+                                        updateParent(parent.id, {
+                                          actif: !parent.actif,
+                                        })
+                                      }
+                                      titleOn="Désactiver le parent"
+                                      titleOff="Activer le parent"
+                                    />
+                                  </td>
+                                  <td
+                                    className="px-5 py-3.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() =>
+                                          dispatch({
+                                            type: "OPEN_MODAL",
+                                            payload: { mode: "edit", parent },
+                                          })
+                                        }
+                                        title="Modifier"
+                                        className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => openDetail(parent)}
+                                        title="Voir la fiche"
+                                        className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-blue-50 flex items-center justify-center text-gray-500 hover:text-[#0b57cd] transition-colors"
+                                      >
+                                        <ChevronRight className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </motion.tr>
+                              );
+                            })}
+                          </AnimatePresence>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  {!state.loading && filteredParents.length > 0 && (
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <p className="text-[12px] text-gray-400">
+                        {filteredParents.length} sur {state.parents.length}{" "}
+                        parents
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </motion.div>
 

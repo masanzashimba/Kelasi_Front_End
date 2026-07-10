@@ -50,8 +50,8 @@ export const useNiveau = () => {
   const updateNiveau  = useCallback((id, dto)  => wrap(dispatch, updateNiveauThunk, { id, dto }),   [dispatch]);
   const deleteNiveau  = useCallback((id)       => wrap(dispatch, deleteNiveauThunk, id),            [dispatch]);
 
-  const seedDefaut = useCallback(async (cycleList) => {
-    const r = await wrap(dispatch, seedNiveauxThunk, cycleList);
+  const seedDefaut = useCallback(async (payload) => {
+    const r = await wrap(dispatch, seedNiveauxThunk, payload);
     if (r.success) dispatch(fetchNiveauxThunk());
     return r;
   }, [dispatch]);

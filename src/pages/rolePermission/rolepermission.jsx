@@ -21,6 +21,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { useRoles } from "../../features/roles/hooks/useRoles";
 import { usePermissions } from "../../features/permissions/hooks/usePermissions";
@@ -131,6 +133,24 @@ const FormField = ({ label, required, hint, children }) => (
       {hint && <span className="text-[11px] text-gray-400">{hint}</span>}
     </div>
     {children}
+  </div>
+);
+
+// ── StatCard (identique à la page Élèves) ─────────────────────────────────────
+
+const StatCard = ({ icon: Icon, label, value, loading }) => (
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
+    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[#eff4ff]">
+      <Icon className="w-5 h-5 text-[#0b57cd]" strokeWidth={2} />
+    </div>
+    <div>
+      {loading ? (
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
+      ) : (
+        <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
+      )}
+      <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
+    </div>
   </div>
 );
 
@@ -306,23 +326,51 @@ const RoleModal = ({
   existingRoles,
 }) => {
   const isEdit = !!initialData;
+  // Édition d'un rôle système : on autorise les permissions/description/couleur,
+  // mais le NOM est verrouillé (référencé par le code métier : ELEVE, ENSEIGNANT…).
+  const isSystemEdit = isEdit && !!initialData?.estSysteme;
   const allPerms = Object.values(permissionsGroupees).flat();
 
   const [nom, setNom] = useState(initialData?.nom ?? "");
   const [description, setDesc] = useState(initialData?.description ?? "");
   const [couleur, setCouleur] = useState(initialData?.couleur ?? "#6366f1");
-  const [selected, setSelected] = useState(() => {
+  // Le rendu, les toggles et l'envoi utilisent les IDs de permissions.
+  // initialData.permissions peut être :
+  //   - des codes (forme liste : ["eleves:gerer", …])
+  //   - des objets { id, code, … } (forme détail)
+  // On résout vers les IDs via allPerms (qui contient id + code).
+  const [selected, setSelected] = useState(new Set());
+  const initRef = useRef(false);
+
+  useEffect(() => {
+    if (initRef.current) return;
+    if (!allPerms.length) return; // attendre le chargement des permissions
     const perms = initialData?.permissions ?? [];
-    const codes = perms.map((p) => (typeof p === "string" ? p : p.code));
-    return new Set(codes);
-  });
+    const wanted = new Set(
+      perms.map((p) => (typeof p === "string" ? p : (p.id ?? p.code))),
+    );
+    const ids = allPerms
+      .filter((p) => wanted.has(p.id) || wanted.has(p.code))
+      .map((p) => p.id);
+    setSelected(new Set(ids));
+    initRef.current = true;
+  }, [allPerms, initialData]);
 
   // Vérifie si le nom est déjà pris par un autre rôle (système ou custom)
-  const isDuplicate = nom.trim().length > 0 && (existingRoles ?? []).some(
-    (r) => r.nom.toLowerCase() === nom.trim().toLowerCase() && r.id !== initialData?.id,
-  );
+  const isDuplicate =
+    !isSystemEdit &&
+    nom.trim().length > 0 &&
+    (existingRoles ?? []).some(
+      (r) =>
+        r.nom.toLowerCase() === nom.trim().toLowerCase() &&
+        r.id !== initialData?.id,
+    );
   const duplicateRole = isDuplicate
-    ? (existingRoles ?? []).find((r) => r.nom.toLowerCase() === nom.trim().toLowerCase() && r.id !== initialData?.id)
+    ? (existingRoles ?? []).find(
+        (r) =>
+          r.nom.toLowerCase() === nom.trim().toLowerCase() &&
+          r.id !== initialData?.id,
+      )
     : null;
   const [expandedModules, setExpandedModules] = useState(
     new Set(["SCOLARITE", "PEDAGOGIE"]),
@@ -376,11 +424,18 @@ const RoleModal = ({
               Nom du rôle<span className="text-red-400 ml-0.5">*</span>
             </label>
             <input
-              className={`${inputCls} ${isDuplicate ? "border-red-300 focus:border-red-400 focus:ring-red-500/20" : ""}`}
+              className={`${inputCls} ${isDuplicate ? "border-red-300 focus:border-red-400 focus:ring-red-500/20" : ""} ${isSystemEdit ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
               placeholder="ex: Surveillant"
               value={nom}
               onChange={(e) => setNom(e.target.value)}
+              disabled={isSystemEdit}
             />
+            {isSystemEdit && (
+              <p className="text-[11px] text-gray-400">
+                Le nom d'un rôle système ne peut pas être modifié — vous pouvez
+                ajuster ses permissions.
+              </p>
+            )}
             {isDuplicate && (
               <div className="flex items-center gap-1.5 text-[11px] text-red-600">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -682,17 +737,15 @@ const RoleDetailModal = ({
             >
               Fermer
             </button>
-            {!role.estSysteme && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onEdit(role);
-                }}
-                className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5"
-              >
-                <Edit2 className="w-3.5 h-3.5" /> Modifier le rôle
-              </button>
-            )}
+            <button
+              onClick={() => {
+                onClose();
+                onEdit(role);
+              }}
+              className="h-8 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+            >
+              <Edit2 className="w-3.5 h-3.5" /> Modifier le rôle
+            </button>
           </div>
         </div>
       )}
@@ -961,7 +1014,7 @@ const RoleCard = ({ role, onAction, permissionsGroupees }) => {
       label: "Voir les détails",
       onClick: () => onAction("detail", role),
     },
-    !role.estSysteme && {
+    {
       icon: <Edit2 className="w-3.5 h-3.5" />,
       label: "Modifier",
       onClick: () => onAction("edit", role),
@@ -989,35 +1042,34 @@ const RoleCard = ({ role, onAction, permissionsGroupees }) => {
   return (
     <motion.div
       layout
-      className="border border-gray-200 rounded-lg p-4 bg-white hover:border-gray-300 transition-all group"
+      className="border border-gray-200 rounded-xl p-5 bg-white hover:border-gray-300 hover:shadow-sm transition-all flex flex-col"
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3">
+      {/* En-tête : icône colorée + nom + badge + menu */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
             style={{
-              background: `${role.couleur}18`,
+              background: `${role.couleur}1a`,
               border: `1.5px solid ${role.couleur}40`,
             }}
           >
-            <Shield className="w-4 h-4" style={{ color: role.couleur }} />
+            <Shield className="w-5 h-5" style={{ color: role.couleur }} />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[14px] font-semibold text-gray-900">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-[15px] font-bold text-gray-900 truncate">
                 {role.nom}
-              </span>
+              </h3>
               {role.estSysteme && (
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 shrink-0">
                   Système
                 </span>
               )}
             </div>
-            {role.description && (
-              <p className="text-[12px] text-gray-400 mt-0.5">
-                {role.description}
-              </p>
-            )}
+            <p className="text-[12.5px] text-gray-500 mt-0.5 line-clamp-1">
+              {role.description || "Aucune description"}
+            </p>
           </div>
         </div>
         <div className="relative shrink-0">
@@ -1026,9 +1078,10 @@ const RoleCard = ({ role, onAction, permissionsGroupees }) => {
               e.stopPropagation();
               setMenu((v) => !v);
             }}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            aria-label="Plus d'actions"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <MoreHorizontal className="w-5 h-5" />
           </button>
           <AnimatePresence>
             {menu && (
@@ -1038,49 +1091,72 @@ const RoleCard = ({ role, onAction, permissionsGroupees }) => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {modulesSummary.map((mod) => {
-          const col = MODULE_COLORS[mod];
-          return (
-            <span
-              key={mod}
-              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${col.bg} ${col.text}`}
-            >
-              {MODULE_LABELS[mod]}
-            </span>
-          );
-        })}
+      {/* Modules couverts */}
+      <div className="flex flex-wrap gap-1.5 mt-3.5">
+        {modulesSummary.map((mod) => (
+          <span
+            key={mod}
+            className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-[#0b57cd]"
+          >
+            {MODULE_LABELS[mod]}
+          </span>
+        ))}
         {modulesSummary.length === 0 && (
-          <span className="text-[11px] text-gray-400 italic">
+          <span className="text-[12px] text-gray-400 italic">
             Aucune permission
           </span>
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
-        <div className="flex items-center gap-3 text-[12px] text-gray-500">
-          <span className="flex items-center gap-1">
-            <Key className="w-3 h-3" />
-            {role.nombrePermissions} permissions
+      {/* Pied : compteurs + actions bien visibles */}
+      <div className="flex items-center justify-between mt-4 pt-3.5 border-t border-gray-100">
+        <div className="flex items-center gap-4 text-[12.5px] text-gray-500">
+          <span className="flex items-center gap-1.5" title="Permissions">
+            <Key className="w-3.5 h-3.5 text-gray-400" />
+            <strong className="font-semibold text-gray-700">
+              {role.nombrePermissions}
+            </strong>{" "}
+            perms
           </span>
-          <span className="flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            {role.nombreUtilisateurs} utilisateur
-            {role.nombreUtilisateurs > 1 ? "s" : ""}
+          <span className="flex items-center gap-1.5" title="Utilisateurs">
+            <Users className="w-3.5 h-3.5 text-gray-400" />
+            <strong className="font-semibold text-gray-700">
+              {role.nombreUtilisateurs}
+            </strong>{" "}
+            util.
           </span>
         </div>
-        <button
-          onClick={() => onAction("detail", role)}
-          className="text-[11px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          Voir <ChevronRight className="w-3 h-3" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onAction("detail", role)}
+            className="h-8 px-3 rounded-lg text-[12px] font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+          >
+            <Info className="w-3.5 h-3.5" /> Détails
+          </button>
+          <button
+            onClick={() => onAction("edit", role)}
+            className="h-8 px-3 rounded-lg text-[12px] font-semibold text-white bg-[#0b57cd] hover:bg-[#0947ab] transition-colors flex items-center gap-1.5 shadow-sm shadow-[#0b57cd]/20"
+          >
+            <Edit2 className="w-3.5 h-3.5" /> Modifier
+          </button>
+        </div>
       </div>
     </motion.div>
   );
 };
 
 // ── PermissionsView ───────────────────────────────────────────────────────────
+
+// Puce libellée = nom du rôle (auto-explicite, style bleu uniforme sans bordure)
+const RoleChip = ({ role }) => (
+  <span
+    className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b57cd] whitespace-nowrap"
+    title={role.nom}
+  >
+    <span className="w-1.5 h-1.5 rounded-full bg-[#0b57cd] shrink-0" />
+    {role.nom}
+  </span>
+);
 
 const PermissionsView = ({ grouped, roles }) => {
   const [expanded, setExpanded] = useState(new Set(["SCOLARITE"]));
@@ -1092,26 +1168,26 @@ const PermissionsView = ({ grouped, roles }) => {
     });
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+    <div className="rounded-xl overflow-hidden divide-y divide-gray-100">
       {MODULES.map((mod) => {
         const perms = grouped[mod] ?? [];
-        const col = MODULE_COLORS[mod];
+        if (!perms.length) return null;
         const isOpen = expanded.has(mod);
         return (
           <div key={mod}>
             <button
               onClick={() => toggleMod(mod)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors text-left"
             >
               <ChevronRight
-                className={`w-4 h-4 text-gray-400 transition-transform shrink-0 ${isOpen ? "rotate-90" : ""}`}
+                className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${isOpen ? "rotate-90" : ""}`}
               />
-              <div className={`w-2 h-2 rounded-full shrink-0 ${col.dot}`} />
-              <span className="text-[13px] font-semibold text-gray-800 flex-1">
+              <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b57cd]">
                 {MODULE_LABELS[mod]}
               </span>
-              <span className="text-[12px] text-gray-400">
-                {perms.length} permissions
+              <span className="flex-1" />
+              <span className="text-[12.5px] text-gray-500 font-medium">
+                {perms.length} permission{perms.length > 1 ? "s" : ""}
               </span>
             </button>
             <AnimatePresence initial={false}>
@@ -1122,37 +1198,41 @@ const PermissionsView = ({ grouped, roles }) => {
                   exit={{ height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-4 pb-3 bg-gray-50/40">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
-                      {perms.map((p) => (
+                  <div className="divide-y divide-gray-50 bg-gray-50/40">
+                    {perms.map((p) => {
+                      const rolesAvecPerm = roles.filter((r) =>
+                        r.permissions?.includes(p.code),
+                      );
+                      return (
                         <div
                           key={p.id}
-                          className="flex items-center gap-2.5 py-1.5 px-2 rounded-md hover:bg-white transition-colors"
+                          className="flex items-start justify-between gap-4 px-4 py-3"
                         >
-                          <Key className="w-3 h-3 text-gray-300 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[12px] text-gray-700">
-                              {p.description}
-                            </p>
-                            <p className="text-[10px] font-mono text-gray-400">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <Key className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <p className="text-[13px] font-medium text-gray-800">
+                                {p.description}
+                              </p>
+                            </div>
+                            <p className="text-[11px] font-mono text-gray-400 mt-0.5 ml-5">
                               {p.code}
                             </p>
                           </div>
-                          <div className="flex gap-0.5">
-                            {roles
-                              .filter((r) => r.permissions?.includes(p.code))
-                              .map((r) => (
-                                <div
-                                  key={r.id}
-                                  title={r.nom}
-                                  className="w-4 h-4 rounded-full border-2 border-white"
-                                  style={{ background: r.couleur }}
-                                />
-                              ))}
+                          <div className="flex flex-wrap justify-end gap-1.5 max-w-[55%] shrink-0">
+                            {rolesAvecPerm.length ? (
+                              rolesAvecPerm.map((r) => (
+                                <RoleChip key={r.id} role={r} />
+                              ))
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic">
+                                Aucun rôle
+                              </span>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}
@@ -1164,10 +1244,147 @@ const PermissionsView = ({ grouped, roles }) => {
   );
 };
 
+// ── RolesTable (vue tableau, comme Élèves) ────────────────────────────────────
+
+const RoleRow = ({ role, onAction }) => {
+  const [menu, setMenu] = useState(false);
+  const menuItems = [
+    {
+      icon: <Info className="w-3.5 h-3.5" />,
+      label: "Voir les détails",
+      onClick: () => onAction("detail", role),
+    },
+    {
+      icon: <Edit2 className="w-3.5 h-3.5" />,
+      label: "Modifier",
+      onClick: () => onAction("edit", role),
+    },
+    {
+      icon: <UserPlus className="w-3.5 h-3.5" />,
+      label: "Assigner à un utilisateur",
+      onClick: () => onAction("assigner", role),
+    },
+    { separator: true },
+    !role.estSysteme && {
+      icon: <Trash2 className="w-3.5 h-3.5" />,
+      label: "Supprimer",
+      danger: true,
+      onClick: () => onAction("delete", role),
+    },
+  ].filter(Boolean);
+
+  return (
+    <tr className="hover:bg-blue-50/20 transition-colors">
+      <td className="px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+            style={{
+              background: `${role.couleur}1a`,
+              border: `1.5px solid ${role.couleur}40`,
+            }}
+          >
+            <Shield className="w-4 h-4" style={{ color: role.couleur }} />
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[13px] font-semibold text-gray-900 truncate">
+              {role.nom}
+            </span>
+            {role.estSysteme && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 shrink-0">
+                Système
+              </span>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="px-5 py-3.5 max-w-[220px]">
+        <span className="text-[12.5px] text-gray-500 line-clamp-1">
+          {role.description || "—"}
+        </span>
+      </td>
+      <td className="px-5 py-3.5 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1.5 text-[12.5px] text-gray-600">
+          <Key className="w-3.5 h-3.5 text-gray-400" />
+          <strong className="font-semibold text-gray-700">
+            {role.nombrePermissions}
+          </strong>
+        </span>
+      </td>
+      <td className="px-5 py-3.5 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1.5 text-[12.5px] text-gray-600">
+          <Users className="w-3.5 h-3.5 text-gray-400" />
+          <strong className="font-semibold text-gray-700">
+            {role.nombreUtilisateurs}
+          </strong>
+        </span>
+      </td>
+      <td className="px-5 py-3.5">
+        <div className="flex items-center gap-2 justify-end">
+          <button
+            onClick={() => onAction("detail", role)}
+            className="h-8 px-3 rounded-lg text-[12px] font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+          >
+            <Info className="w-3.5 h-3.5" /> Détails
+          </button>
+          <button
+            onClick={() => onAction("edit", role)}
+            className="h-8 px-3 rounded-lg text-[12px] font-semibold text-white bg-[#0b57cd] hover:bg-[#0947ab] transition-colors flex items-center gap-1.5 shadow-sm shadow-[#0b57cd]/20"
+          >
+            <Edit2 className="w-3.5 h-3.5" /> Modifier
+          </button>
+          <div className="relative shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenu((v) => !v);
+              }}
+              aria-label="Plus d'actions"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            <AnimatePresence>
+              {menu && (
+                <Dropdown items={menuItems} onClose={() => setMenu(false)} />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+const RolesTable = ({ roles, onAction }) => (
+  <div className="overflow-x-auto">
+    <table className="w-full">
+      <thead>
+        <tr className="bg-gray-50/60">
+          {["Rôle", "Description", "Perms", "Utilisateurs", ""].map((h) => (
+            <th
+              key={h}
+              className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-50">
+        {roles.map((role) => (
+          <RoleRow key={role.id} role={role} onAction={onAction} />
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
 // ── Page principale ───────────────────────────────────────────────────────────
 
 const RolesPermissionsPage = () => {
   const [tab, setTab] = useState("roles");
+  const [view, setView] = useState("grid"); // grid | list
   const [modal, setModal] = useState(null);
 
   const {
@@ -1279,168 +1496,180 @@ const RolesPermissionsPage = () => {
   const roleEnDetail =
     selectedRole?.id === modal?.data?.id ? selectedRole : modal?.data;
 
-  const statsBanner = [
-    {
-      label: "Rôles configurés",
-      value: stats.nombreRoles,
-      icon: Shield,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
-    },
-    {
-      label: "Permissions disponibles",
-      value: nombreTotalPermissions,
-      icon: Key,
-      color: "text-violet-600",
-      bg: "bg-violet-50",
-    },
-    {
-      label: "Utilisateurs avec rôle",
-      value: stats.nombreUtilisateurs,
-      icon: Users,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-    },
-  ];
-
   return (
-    <div className="min-h-full bg-[#f5f7fa] mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[22px] font-semibold text-gray-900">
-            Rôles & Permissions
-          </h1>
-          <p className="text-[14px] text-gray-500 mt-0.5">
-            Gérez les accès et droits des utilisateurs de votre établissement
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => handleAction("permission_directe")}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <Key className="w-4 h-4" /> Permission directe
-          </button>
-          <button
-            onClick={() => handleAction("assigner")}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <UserPlus className="w-4 h-4" /> Assigner un rôle
-          </button>
-          <button
-            onClick={() => handleAction("create")}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-lg text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> Nouveau rôle
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        {statsBanner.map((s) => (
-          <div
-            key={s.label}
-            className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3"
-          >
-            <div
-              className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center shrink-0`}
-            >
-              <s.icon className={`w-4 h-4 ${s.color}`} />
+    <div className="min-h-full space-y-3">
+      {/* ── Hero header (comme Élèves) ── */}
+      <div className="relative rounded-lg overflow-hidden bg-white">
+        <div className="relative px-3 py-5 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+              <Shield className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
             </div>
             <div>
-              <p className="text-[20px] font-bold text-gray-900 leading-none">
-                {s.value}
+              <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                Rôles &amp; Permissions
+              </h1>
+              <p className="text-gray-400 text-[12px] mt-0.5">
+                Gérez les accès et droits des utilisateurs de votre
+                établissement
               </p>
-              <p className="text-[11px] text-gray-500 mt-0.5">{s.label}</p>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-        {[
-          { id: "roles", label: "Rôles" },
-          { id: "permissions", label: "Toutes les permissions" },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`h-8 px-4 rounded-md text-[13px] font-medium transition-all ${tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait">
-        {tab === "roles" && (
-          <motion.div
-            key="roles"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
-          >
-            {loading && roles.length === 0
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="border border-gray-200 rounded-lg p-4 bg-white animate-pulse h-[140px]"
-                  />
-                ))
-              : roles.map((role) => (
-                  <RoleCard
-                    key={role.id}
-                    role={role}
-                    onAction={handleAction}
-                    permissionsGroupees={grouped}
-                  />
-                ))}
-            <motion.button
-              onClick={() => handleAction("create")}
-              className="border border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50/30 transition-all group min-h-[140px]"
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => handleAction("permission_directe")}
+              className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors"
             >
-              <div className="w-9 h-9 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                <Plus className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
-              </div>
-              <p className="text-[13px] font-medium text-gray-400 group-hover:text-blue-600 transition-colors">
-                Créer un rôle personnalisé
-              </p>
-            </motion.button>
-          </motion.div>
-        )}
-        {tab === "permissions" && (
-          <motion.div
-            key="permissions"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <Info className="w-4 h-4 text-gray-400" />
-              <p className="text-[12px] text-gray-500">
-                Les points colorés indiquent quels rôles possèdent chaque
-                permission.
-              </p>
-              <div className="flex items-center gap-2 ml-auto">
-                {roles.map((r) => (
-                  <span
-                    key={r.id}
-                    className="flex items-center gap-1 text-[11px] text-gray-500"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ background: r.couleur }}
-                    />
-                    {r.nom}
-                  </span>
-                ))}
-              </div>
+              <Key className="w-4 h-4" /> Permission directe
+            </button>
+            <button
+              onClick={() => handleAction("assigner")}
+              className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors"
+            >
+              <UserPlus className="w-4 h-4" /> Assigner un rôle
+            </button>
+            <button
+              onClick={() => handleAction("create")}
+              className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Nouveau rôle
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Stat cards (comme Élèves) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <StatCard
+          icon={Shield}
+          label="Rôles configurés"
+          value={stats.nombreRoles}
+          loading={loading}
+        />
+        <StatCard
+          icon={Key}
+          label="Permissions disponibles"
+          value={nombreTotalPermissions}
+          loading={loading}
+        />
+        <StatCard
+          icon={Users}
+          label="Utilisateurs avec rôle"
+          value={stats.nombreUtilisateurs}
+          loading={loading}
+        />
+      </div>
+
+      {/* ── Carte unique : onglets soulignés + contenu (comme Élèves) ── */}
+      <div className="bg-white rounded-lg border border-gray-100 shadow-sm">
+        {/* En-tête : onglets border-bottom + toggle vue */}
+        <div className="px-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-6">
+            {[
+              { id: "roles", label: "Rôles" },
+              { id: "permissions", label: "Toutes les permissions" },
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`relative h-12 text-[14px] font-semibold transition-colors border-b-2 -mb-px ${
+                  tab === t.id
+                    ? "border-[#0b57cd] text-[#0b57cd]"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {tab === "roles" && (
+            <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
+              <button
+                onClick={() => setView("grid")}
+                title="Vue cartes"
+                className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setView("list")}
+                title="Vue tableau"
+                className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <List className="w-4 h-4" />
+              </button>
             </div>
-            <PermissionsView grouped={grouped} roles={roles} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+
+        {/* Contenu */}
+        <div className="p-4">
+          <AnimatePresence mode="wait">
+            {tab === "roles" && (
+              <motion.div
+                key="roles"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                {loading && roles.length === 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="border border-gray-200 rounded-xl p-5 bg-white animate-pulse h-[168px]"
+                      />
+                    ))}
+                  </div>
+                ) : view === "grid" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {roles.map((role) => (
+                      <RoleCard
+                        key={role.id}
+                        role={role}
+                        onAction={handleAction}
+                        permissionsGroupees={grouped}
+                      />
+                    ))}
+                    <motion.button
+                      onClick={() => handleAction("create")}
+                      className="border-2 border-dashed border-gray-200 rounded-xl p-5 flex flex-col items-center justify-center gap-2.5 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all group min-h-[168px]"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                        <Plus className="w-5 h-5 text-gray-400 group-hover:text-[#0b57cd] transition-colors" />
+                      </div>
+                      <p className="text-[13px] font-semibold text-gray-400 group-hover:text-[#0b57cd] transition-colors">
+                        Créer un rôle personnalisé
+                      </p>
+                    </motion.button>
+                  </div>
+                ) : (
+                  <RolesTable roles={roles} onAction={handleAction} />
+                )}
+              </motion.div>
+            )}
+            {tab === "permissions" && (
+              <motion.div
+                key="permissions"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="flex items-start gap-2.5 mb-4 px-4 py-3 rounded-xl bg-blue-50">
+                  <Info className="w-4 h-4 text-[#0b57cd] shrink-0 mt-0.5" />
+                  <p className="text-[12.5px] text-blue-700 leading-relaxed">
+                    Dépliez un module pour voir ses permissions. À droite de
+                    chaque permission, les{" "}
+                    <strong>puces bleues nomment les rôles</strong> qui la
+                    possèdent.
+                  </p>
+                </div>
+                <PermissionsView grouped={grouped} roles={roles} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
       <AnimatePresence>
         {(modal?.type === "role_create" || modal?.type === "role_edit") && (

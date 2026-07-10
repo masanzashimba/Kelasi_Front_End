@@ -1,7 +1,10 @@
 // src/components/layout/Sidebar.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectSelectedAnneeId } from "../../../features/annee-scolaire/slices/annee-selector.selectors";
+import { eleveService } from "../../../services/eleve.service";
 import {
   LayoutDashboard,
   Users,
@@ -28,7 +31,7 @@ import { useAuth } from "../../../features/auth/hooks/useAuth";
 
 const baseMenuItems = [
   { title: "Tableau de bord", icon: LayoutDashboard, path: "/dashboard" },
-  { title: "Élèves", icon: Users, path: "/eleves", badge: "125" },
+  { title: "Élèves", icon: Users, path: "/eleves" },
   { title: "Enseignants", icon: GraduationCap, path: "/enseignants" },
   { title: "Classes", icon: Home, path: "/classes" },
   { title: "Salles", icon: DoorOpen, path: "/salles" },
@@ -55,10 +58,11 @@ const baseMenuItems = [
   },
   { title: "Résultats", icon: FileText, path: "/resultats" },
   { title: "Rapports", icon: BarChart3, path: "/rapports" },
-  // ── Paramètres avec sous-menu incluant Années scolaires ──
+  // ── Paramètres avec sous-menu réservé au directeur ──
   {
     title: "Paramètres",
     icon: Settings,
+    directorOnly: true,
     children: [
       { title: "Années scolaires", path: "/annees-scolaires", icon: Calendar },
       { title: "niveaux scolaires", path: "/niveau", icon: Footprints },
@@ -90,13 +94,44 @@ const groups = [
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
+  const [eleveCount, setEleveCount] = useState(null);
   const { user, logout, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const anneeId = useSelector(selectSelectedAnneeId);
+
+  // Nombre d'élèves de l'année sélectionnée — badge dynamique
+  useEffect(() => {
+    if (!anneeId) {
+      setEleveCount(null);
+      return;
+    }
+    let cancelled = false;
+    eleveService
+      .getAll()
+      .then((data) => {
+        if (!cancelled) setEleveCount(Array.isArray(data) ? data.length : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setEleveCount(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [anneeId]);
+
+  const isDirector = user?.roles?.includes("DIRECTEUR") || isSuperAdmin;
+
+  const visibleBaseItems = baseMenuItems.filter((item) => {
+    if (item.directorOnly) {
+      return isDirector;
+    }
+    return true;
+  });
 
   const allItems = isSuperAdmin
-    ? [baseMenuItems[0], adminMenuItem]
-    : baseMenuItems;
+    ? [visibleBaseItems[0], adminMenuItem]
+    : visibleBaseItems;
 
   const groupedItems = groups.map((group) => ({
     ...group,
@@ -180,6 +215,8 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                   const Icon = item.icon;
                   const active = isParentActive(item);
                   const open = isMenuOpen(item);
+                  const badgeValue =
+                    item.title === "Élèves" ? eleveCount : item.badge;
 
                   return (
                     <div key={item.title}>
@@ -218,9 +255,9 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
                               {item.title}
                             </span>
                             <div className="flex items-center gap-1.5">
-                              {item.badge && (
+                              {badgeValue != null && (
                                 <span className="text-[11px] font-bold tabular-nums bg-white/20 text-white px-2 py-0.5 rounded-md leading-none border border-white/25">
-                                  {item.badge}
+                                  {badgeValue}
                                 </span>
                               )}
                               {item.children && (

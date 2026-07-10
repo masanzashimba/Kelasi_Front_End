@@ -9,8 +9,8 @@ import {
   User,
   Mail,
   Settings,
-  Menu,
   ChevronDown,
+  ChevronRight,
   X,
   AlertTriangle,
 } from "lucide-react";
@@ -19,13 +19,13 @@ import { useAuth } from "../../../features/auth/hooks/useAuth";
 import AnneeSelector from "../../annee-scolaire/AnneeSelector";
 import { useAnneeSelector } from "../../../features/annee-scolaire/hooks/useAnneeSelector";
 
-const Navbar = ({ onToggleSidebar, collapsed }) => {
+const Navbar = ({ breadcrumbs = [] }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef(null);
-  const { user, logout, isSuperAdmin } = useAuth();
+  const { user, logout, isSuperAdmin, isDirecteur } = useAuth();
   const {
     anneeActive,
     anneesDisponibles,
@@ -106,12 +106,37 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
         <div className="flex items-center justify-between px-5 h-14">
           {/* ── LEFT ── */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={onToggleSidebar}
-              className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+            {breadcrumbs.length > 0 && (
+              <nav className="hidden sm:flex items-center gap-1.5">
+                {breadcrumbs.map((crumb, index) => {
+                  const isLast = index === breadcrumbs.length - 1;
+                  const label = crumb === "Accueil" ? "Kelasi" : crumb;
+                  return (
+                    <div key={index} className="flex items-center gap-1.5">
+                      {index > 0 && (
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                      )}
+                      {index === 0 ? (
+                        <Link
+                          to="/dashboard"
+                          className="text-[13px] font-semibold text-gray-700 hover:text-[#0b57cd] transition-colors"
+                        >
+                          {label}
+                        </Link>
+                      ) : (
+                        <span
+                          className={`text-[13px] font-medium ${
+                            isLast ? "text-[#0b57cd]" : "text-gray-400"
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
+            )}
 
             <div ref={searchRef} className="relative">
               <AnimatePresence initial={false} mode="wait">
@@ -346,7 +371,9 @@ const Navbar = ({ onToggleSidebar, collapsed }) => {
                         {[
                           { icon: User, label: "Mon profil" },
                           { icon: Mail, label: "Messages" },
-                          { icon: Settings, label: "Paramètres" },
+                          ...(isSuperAdmin || isDirecteur
+                            ? [{ icon: Settings, label: "Paramètres" }]
+                            : []),
                         ].map(({ icon: Icon, label }) => (
                           <button
                             key={label}

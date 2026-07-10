@@ -22,8 +22,14 @@ import {
   RefreshCw,
   AlertCircle,
   Calendar,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 import { useClasse } from "../../features/classe/hooks/useClasse";
+import { useSalle } from "../../features/salle/hooks/useSalle";
+import { exportClassesToExcel } from "../../features/classe/utils/exportClasses";
+import StatutToggle from "../../components/common/StatutToggle";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { selectNiveaux } from "../../features/niveaux/slices/niveau.selectors";
 import { fetchNiveauxThunk } from "../../features/niveaux/slices/niveau.slice";
@@ -50,24 +56,21 @@ const inputCls =
 
 // ── Primitives ────────────────────────────────────────────────
 
-const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
+const StatCard = ({ icon: Icon, label, value, color, bg, loading }) => (
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
     <div
-      className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
       style={{ background: bg }}
     >
       <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
     </div>
     <div>
       {loading ? (
-        <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
       ) : (
         <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
       )}
       <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{label}</p>
-      {sub && !loading && (
-        <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
-      )}
     </div>
   </div>
 );
@@ -228,7 +231,7 @@ const NewClassCard = ({ onClick }) => (
 
 // ── ClassRow (list) ───────────────────────────────────────────
 
-const ClassRow = ({ cls, selected, onSelect, onEdit, onDelete }) => {
+const ClassRow = ({ cls, selected, onSelect, onEdit, onDelete, onToggle }) => {
   const nc = nCfg();
   const pct = Math.round((cls.nombreEleves / (cls.capaciteMax || 1)) * 100);
   return (
@@ -288,29 +291,27 @@ const ClassRow = ({ cls, selected, onSelect, onEdit, onDelete }) => {
           </span>
         )}
       </td>
-      <td className="px-5 py-3.5">
-        <StatusBadge
-          nombreEleves={cls.nombreEleves}
-          capaciteMax={cls.capaciteMax}
+      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
+        <StatutToggle
+          actif={cls.actif ?? true}
+          onToggle={() => onToggle(cls)}
+          titleOn="Désactiver la classe"
+          titleOff="Activer la classe"
         />
       </td>
-      <td className="px-5 py-3.5">
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(cls);
-            }}
-            className="w-7 h-7 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+            onClick={() => onEdit(cls)}
+            title="Modifier"
+            className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors"
           >
             <Edit2 className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(cls.id);
-            }}
-            className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+            onClick={() => onDelete(cls.id)}
+            title="Supprimer"
+            className="w-8 h-8 rounded-lg border border-gray-200 hover:bg-red-50 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -337,7 +338,10 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[9979]"
-            style={{ background: "rgba(0,0,0,0.32)", backdropFilter: "blur(3px)" }}
+            style={{
+              background: "rgba(0,0,0,0.32)",
+              backdropFilter: "blur(3px)",
+            }}
             onClick={onClose}
           />
           <motion.div
@@ -351,7 +355,9 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
             {/* Header */}
             <div
               className="shrink-0 px-5 py-5 relative"
-              style={{ background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)" }}
+              style={{
+                background: "linear-gradient(135deg, #0b57cd 0%, #0947ab 100%)",
+              }}
             >
               <button
                 onClick={onClose}
@@ -369,10 +375,15 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
                   </h3>
                   <p className="text-white/70 text-[12px] mt-0.5">
                     {cls.niveau?.libelle}
-                    {cls.anneeScolaire?.libelle ? ` · ${cls.anneeScolaire.libelle}` : ""}
+                    {cls.anneeScolaire?.libelle
+                      ? ` · ${cls.anneeScolaire.libelle}`
+                      : ""}
                   </p>
                   <div className="mt-1.5">
-                    <StatusBadge nombreEleves={cls.nombreEleves} capaciteMax={cls.capaciteMax} />
+                    <StatusBadge
+                      nombreEleves={cls.nombreEleves}
+                      capaciteMax={cls.capaciteMax}
+                    />
                   </div>
                 </div>
               </div>
@@ -383,13 +394,30 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
               {/* Stats mini */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: "Élèves", value: cls.nombreEleves, color: "text-[#0b57cd]" },
-                  { label: "Places", value: cls.capaciteMax - cls.nombreEleves, color: "text-slate-600" },
+                  {
+                    label: "Élèves",
+                    value: cls.nombreEleves,
+                    color: "text-[#0b57cd]",
+                  },
+                  {
+                    label: "Places",
+                    value: cls.capaciteMax - cls.nombreEleves,
+                    color: "text-slate-600",
+                  },
                   { label: "Rempli", value: `${pct}%`, color: fc.text },
                 ].map((s) => (
-                  <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                    <p className={`text-[17px] font-black ${s.color} leading-none`}>{s.value}</p>
-                    <p className="text-[10px] text-gray-400 mt-1 font-medium">{s.label}</p>
+                  <div
+                    key={s.label}
+                    className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"
+                  >
+                    <p
+                      className={`text-[17px] font-black ${s.color} leading-none`}
+                    >
+                      {s.value}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1 font-medium">
+                      {s.label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -424,13 +452,17 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
                       <p className="text-[13px] font-semibold text-gray-800 truncate">
                         {cls.titulaire.prenom} {cls.titulaire.nom}
                       </p>
-                      <p className="text-[11px] text-gray-400 truncate">{cls.titulaire.email}</p>
+                      <p className="text-[11px] text-gray-400 truncate">
+                        {cls.titulaire.email}
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2.5 bg-amber-50 rounded-xl p-3 border border-amber-100">
                     <UserX className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="text-[12px] text-amber-700 font-medium">Aucun titulaire assigné</p>
+                    <p className="text-[12px] text-amber-700 font-medium">
+                      Aucun titulaire assigné
+                    </p>
                   </div>
                 )}
               </div>
@@ -441,7 +473,9 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
                   <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">
                     Salle par défaut
                   </p>
-                  <p className="text-[13px] font-semibold text-gray-700">{cls.salleDefaut}</p>
+                  <p className="text-[13px] font-semibold text-gray-700">
+                    {cls.salleDefaut}
+                  </p>
                 </div>
               )}
             </div>
@@ -449,13 +483,19 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
             {/* Footer */}
             <div className="px-5 py-4 border-t border-gray-100 shrink-0 flex items-center justify-end gap-2">
               <button
-                onClick={() => { onDelete(cls.id); onClose(); }}
+                onClick={() => {
+                  onDelete(cls.id);
+                  onClose();
+                }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 text-[13px] font-semibold hover:bg-red-100 transition-colors border border-red-100"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Supprimer
               </button>
               <button
-                onClick={() => { onEdit(cls); onClose(); }}
+                onClick={() => {
+                  onEdit(cls);
+                  onClose();
+                }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] transition-colors"
               >
                 <Edit2 className="w-3.5 h-3.5" /> Modifier
@@ -471,12 +511,47 @@ const DetailPanel = ({ isOpen, cls, onClose, onEdit, onDelete }) => {
 
 // ── ClasseDrawer ──────────────────────────────────────────────
 
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const CYCLE_LABELS = {
+  MATERNELLE: "Maternelle",
+  PRIMAIRE: "Primaire",
+  SECONDAIRE: "Secondaire",
+};
+const CYCLE_ORDER = ["MATERNELLE", "PRIMAIRE", "SECONDAIRE"];
+
+const CLASSE_TABS = [
+  { key: "MATERNELLE", label: "Maternelle" },
+  { key: "PRIMAIRE", label: "Primaire" },
+  { key: "SECONDAIRE", label: "Secondaire" },
+  { key: "HUMANITES", label: "Humanités" },
+];
+
+// Libellés des sections d'Humanités (pour les sous-onglets)
+const SECTION_LABELS = {
+  SCIENTIFIQUE: "Scientifique",
+  LITTERAIRE: "Littéraire",
+  COMMERCIALE: "Commerciale & Gestion",
+  PEDAGOGIQUE: "Pédagogique",
+  TECHNIQUE: "Technique",
+  ARTISTIQUE: "Artistique",
+};
+const SECTION_ORDER = Object.keys(SECTION_LABELS);
+
 const EMPTY_FORM = {
-  nom: "",
+  cycle: "",
   niveauId: "",
-  capaciteMax: 40,
-  salleDefaut: "",
+  lettre: "A",
+  salleId: "",
   titulaireId: "",
+};
+
+// Déduit la lettre d'un nom de classe existant (« 3ème Primaire A » → « A »)
+const lettreFromNom = (nom, libelle) => {
+  if (!nom) return "A";
+  if (libelle && nom.startsWith(libelle)) {
+    return nom.slice(libelle.length).trim().toUpperCase() || "A";
+  }
+  return nom.trim().slice(-1).toUpperCase() || "A";
 };
 
 const ClasseDrawer = ({
@@ -484,6 +559,8 @@ const ClasseDrawer = ({
   onClose,
   editClasse,
   niveaux,
+  salles,
+  classes,
   enseignants,
   isLoadingEnseignants,
   onSubmit,
@@ -492,38 +569,108 @@ const ClasseDrawer = ({
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
 
+  const cyclesDispo = CYCLE_ORDER.filter((c) =>
+    niveaux.some((n) => n.cycle === c),
+  );
+
+  // Noms de classe déjà pris pour l'année (hors classe éditée) — unicité
+  const takenNoms = new Set(
+    classes
+      .filter((c) => c.id !== editClasse?.id)
+      .map((c) => (c.nom ?? "").trim().toLowerCase()),
+  );
+  const libelleOf = (niveauId) =>
+    niveaux.find((n) => n.id === niveauId)?.libelle ?? "";
+  const firstFreeLetter = (libelle) =>
+    LETTERS.find(
+      (l) => libelle && !takenNoms.has(`${libelle} ${l}`.trim().toLowerCase()),
+    ) ?? "A";
+
   useEffect(() => {
     if (open) {
       setErrors({});
-      setForm(
-        editClasse
-          ? {
-              nom: editClasse.nom,
-              niveauId: editClasse.niveau?.id ?? "",
-              capaciteMax: editClasse.capaciteMax,
-              salleDefaut: editClasse.salleDefaut ?? "",
-              titulaireId: editClasse.titulaire?.id ?? "",
-            }
-          : { ...EMPTY_FORM, niveauId: niveaux[0]?.id ?? "" },
-      );
+      if (editClasse) {
+        const libelle = editClasse.niveau?.libelle ?? "";
+        setForm({
+          cycle: editClasse.niveau?.cycle ?? "",
+          niveauId: editClasse.niveau?.id ?? "",
+          lettre: lettreFromNom(editClasse.nom, libelle),
+          salleId:
+            salles.find((s) => s.nom === editClasse.salleDefaut)?.id ?? "",
+          titulaireId: editClasse.titulaire?.id ?? "",
+        });
+      } else {
+        const cycle = cyclesDispo[0] ?? "";
+        const premierNiveau = niveaux.find((n) => n.cycle === cycle);
+        setForm({
+          ...EMPTY_FORM,
+          cycle,
+          niveauId: premierNiveau?.id ?? "",
+          lettre: firstFreeLetter(premierNiveau?.libelle ?? ""),
+        });
+      }
     }
-  }, [open, editClasse, niveaux]);
+  }, [open, editClasse, niveaux, salles, classes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const onCycleChange = (cycle) => {
+    const premierNiveau = niveaux.find((n) => n.cycle === cycle);
+    setForm((f) => ({
+      ...f,
+      cycle,
+      niveauId: premierNiveau?.id ?? "",
+      lettre: firstFreeLetter(premierNiveau?.libelle ?? ""),
+    }));
+  };
+
+  const onNiveauChange = (niveauId) =>
+    setForm((f) => ({
+      ...f,
+      niveauId,
+      lettre: firstFreeLetter(libelleOf(niveauId)),
+    }));
+
+  const niveauxDuCycle = niveaux.filter((n) => n.cycle === form.cycle);
+
+  // Maternelle/primaire : un seul enseignant (le titulaire) tient toutes les
+  // matières. Le titulaire devient donc le « professeur de la classe ».
+  const selectedNiveau = niveaux.find((n) => n.id === form.niveauId);
+  const selectedSalle = salles.find((s) => s.id === form.salleId);
+  const isMonoTitulaire =
+    selectedNiveau?.cycle === "MATERNELLE" ||
+    selectedNiveau?.cycle === "PRIMAIRE";
+
+  const nomPreview = selectedNiveau
+    ? `${selectedNiveau.libelle} ${form.lettre}`.trim()
+    : "";
+
+  const letterTaken = (l) =>
+    !!selectedNiveau &&
+    takenNoms.has(`${selectedNiveau.libelle} ${l}`.trim().toLowerCase());
+  const isDuplicate = !!nomPreview && takenNoms.has(nomPreview.toLowerCase());
+
   const validate = () => {
     const e = {};
-    if (!form.nom.trim()) e.nom = "Champ requis";
+    if (!form.cycle) e.cycle = "Champ requis";
     if (!form.niveauId) e.niveauId = "Champ requis";
-    if (!form.capaciteMax || form.capaciteMax < 1)
-      e.capaciteMax = "Capacité invalide";
+    if (!form.lettre) e.lettre = "Champ requis";
+    if (isDuplicate) e.lettre = "Cette classe existe déjà";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validate()) return;
-    const result = await onSubmit(form);
+    const payload = {
+      nom: nomPreview,
+      niveauId: form.niveauId,
+      // La capacité provient de la salle choisie (fallback : défaut backend)
+      capaciteMax: selectedSalle?.capacite ?? undefined,
+      salleDefaut: selectedSalle?.nom || undefined,
+      titulaireId: form.titulaireId || undefined,
+    };
+    const result = await onSubmit(payload);
     if (result?.success) {
       onClose();
       return;
@@ -588,33 +735,42 @@ const ClasseDrawer = ({
 
             {/* Form body */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-              <div>
-                <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
-                  Nom de la classe <span className="text-red-400">*</span>
-                </label>
-                <input
-                  value={form.nom}
-                  onChange={(e) => set("nom")(e.target.value)}
-                  placeholder="ex : 6ème A, CM2 B…"
-                  className={`${inputCls} ${errors.nom ? "border-red-300" : ""}`}
-                />
-                {errors.nom && (
-                  <p className="text-[11px] text-red-500 mt-1">{errors.nom}</p>
-                )}
-              </div>
-
+              {/* Cycle + Niveau */}
               <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
+                    Cycle <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    value={form.cycle}
+                    onChange={(e) => onCycleChange(e.target.value)}
+                    className={`${inputCls} ${errors.cycle ? "border-red-300" : ""}`}
+                  >
+                    <option value="">— Choisir —</option>
+                    {cyclesDispo.map((c) => (
+                      <option key={c} value={c}>
+                        {CYCLE_LABELS[c]}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.cycle && (
+                    <p className="text-[11px] text-red-500 mt-1">
+                      {errors.cycle}
+                    </p>
+                  )}
+                </div>
                 <div>
                   <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
                     Niveau <span className="text-red-400">*</span>
                   </label>
                   <select
                     value={form.niveauId}
-                    onChange={(e) => set("niveauId")(e.target.value)}
+                    onChange={(e) => onNiveauChange(e.target.value)}
+                    disabled={!form.cycle}
                     className={`${inputCls} ${errors.niveauId ? "border-red-300" : ""}`}
                   >
                     <option value="">— Choisir —</option>
-                    {niveaux.map((n) => (
+                    {niveauxDuCycle.map((n) => (
                       <option key={n.id} value={n.id}>
                         {n.libelle}
                       </option>
@@ -626,42 +782,78 @@ const ClasseDrawer = ({
                     </p>
                   )}
                 </div>
-                <div>
-                  <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
-                    Capacité <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={form.capaciteMax}
-                    onChange={(e) => set("capaciteMax")(Number(e.target.value))}
-                    min={1}
-                    max={200}
-                    className={`${inputCls} ${errors.capaciteMax ? "border-red-300" : ""}`}
-                  />
-                  {errors.capaciteMax && (
-                    <p className="text-[11px] text-red-500 mt-1">
-                      {errors.capaciteMax}
-                    </p>
-                  )}
-                </div>
               </div>
 
+              {/* Lettre + aperçu du nom */}
+              <div>
+                <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
+                  Lettre de la classe <span className="text-red-400">*</span>
+                </label>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={form.lettre}
+                    onChange={(e) => set("lettre")(e.target.value)}
+                    className={`${inputCls} w-24 shrink-0 ${errors.lettre ? "border-red-300" : ""}`}
+                  >
+                    {LETTERS.map((l) => (
+                      <option key={l} value={l} disabled={letterTaken(l)}>
+                        {l}
+                        {letterTaken(l) ? " (pris)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex-1 min-w-0 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                      Nom généré
+                    </span>
+                    <p className="text-[13px] font-semibold text-gray-800 truncate">
+                      {nomPreview || "—"}
+                    </p>
+                  </div>
+                </div>
+                {isDuplicate && (
+                  <p className="text-[11px] text-red-500 mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Une classe « {nomPreview} » existe déjà pour cette année.
+                  </p>
+                )}
+              </div>
+
+              {/* Salle (définit la capacité) */}
               <div>
                 <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
                   Salle{" "}
                   <span className="text-gray-300 font-normal">(optionnel)</span>
                 </label>
-                <input
-                  value={form.salleDefaut}
-                  onChange={(e) => set("salleDefaut")(e.target.value)}
-                  placeholder="ex : Salle A3, Bâtiment B…"
+                <select
+                  value={form.salleId}
+                  onChange={(e) => set("salleId")(e.target.value)}
                   className={inputCls}
-                />
+                >
+                  <option value="">— Aucune —</option>
+                  {salles.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.nom}
+                      {s.capacite ? ` · ${s.capacite} places` : ""}
+                    </option>
+                  ))}
+                </select>
+                {selectedSalle && (
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Capacité de la classe :{" "}
+                    <strong className="text-gray-600">
+                      {selectedSalle.capacite ?? "—"}
+                    </strong>{" "}
+                    (issue de la salle)
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="text-[12px] font-semibold text-gray-500 mb-1.5 block">
-                  Enseignant titulaire
+                  {isMonoTitulaire
+                    ? "Professeur de la classe (titulaire)"
+                    : "Enseignant titulaire"}
                   {isLoadingEnseignants && (
                     <Loader2 className="w-3 h-3 animate-spin inline ml-1.5 text-gray-400" />
                   )}
@@ -682,6 +874,24 @@ const ClasseDrawer = ({
                       </option>
                     ))}
                 </select>
+
+                {/* Règle maternelle/primaire : titulaire = prof de tous les cours */}
+                {isMonoTitulaire && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
+                    <BookOpen className="w-3.5 h-3.5 text-[#0b57cd] mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-[#0b57cd] leading-relaxed">
+                      En{" "}
+                      {selectedNiveau?.cycle === "MATERNELLE"
+                        ? "maternelle"
+                        : "primaire"}
+                      , le titulaire enseigne
+                      <strong> toutes les matières</strong>. Les cours de la
+                      classe seront créés automatiquement à son nom. Vous
+                      pourrez ensuite confier une matière précise à un autre
+                      enseignant depuis la page <strong>Cours</strong>.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -695,7 +905,7 @@ const ClasseDrawer = ({
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isDuplicate || !form.niveauId}
                 className="px-6 py-2.5 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -705,79 +915,6 @@ const ClasseDrawer = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>,
-    document.body,
-  );
-};
-
-// ── ConfirmDeleteModal ────────────────────────────────────────
-
-const ConfirmDeleteModal = ({
-  open,
-  classNom,
-  nombreEleves,
-  onClose,
-  onConfirm,
-  isDeleting,
-}) => {
-  const blocked = nombreEleves > 0;
-  if (!open) return null;
-  return createPortal(
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-9999 flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-        >
-          <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${blocked ? "bg-amber-50" : "bg-red-50"}`}
-          >
-            {blocked ? (
-              <AlertCircle className="w-6 h-6 text-amber-500" />
-            ) : (
-              <Trash2 className="w-6 h-6 text-red-500" />
-            )}
-          </div>
-          <h3 className="text-[16px] font-bold text-gray-900">
-            {blocked ? "Suppression impossible" : `Supprimer ${classNom} ?`}
-          </h3>
-          <p className="text-[13px] text-gray-500 mt-1.5">
-            {blocked
-              ? `Cette classe contient ${nombreEleves} élève(s) inscrit(s). Désinscrire les élèves avant de supprimer.`
-              : "Cette action est irréversible. La classe et toutes ses données seront définitivement supprimées."}
-          </p>
-          <div className="flex gap-2 mt-5">
-            <button
-              onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              {blocked ? "Fermer" : "Annuler"}
-            </button>
-            {!blocked && (
-              <button
-                onClick={onConfirm}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : null}
-                Supprimer
-              </button>
-            )}
-          </div>
-        </motion.div>
-      </motion.div>
     </AnimatePresence>,
     document.body,
   );
@@ -805,7 +942,40 @@ const ClassesPage = () => {
     createClasse,
     updateClasse,
     deleteClasse,
+    genererClasses,
   } = useClasse();
+
+  const { state: salleState, fetchSalles } = useSalle();
+  useEffect(() => {
+    fetchSalles();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genConfirm, setGenConfirm] = useState(false);
+
+  const openGenerer = () => {
+    if (!hasSelectedAnnee) {
+      toast.error("Sélectionnez d'abord une année scolaire");
+      return;
+    }
+    setGenConfirm(true);
+  };
+
+  const handleGenerer = async () => {
+    setGenConfirm(false);
+    setIsGenerating(true);
+    try {
+      const data = await genererClasses();
+      toast.success(data?.message ?? "Classes générées");
+    } catch (err) {
+      const raw = err?.response?.data?.message;
+      toast.error(
+        Array.isArray(raw) ? raw[0] : (raw ?? "Échec de la génération"),
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const niveaux = useAppSelector(selectNiveaux);
 
@@ -814,8 +984,8 @@ const ClassesPage = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [search, setSearch] = useState("");
-  const [niveauFilter, setFilter] = useState("Tous");
-  const [view, setView] = useState("grid");
+  const [cycleTab, setCycleTab] = useState("MATERNELLE");
+  const [selectedSection, setSelectedSection] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [modal, setModal] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -830,23 +1000,71 @@ const ClassesPage = () => {
     [classes, selectedId],
   );
 
-  const niveauxDispos = useMemo(
-    () => [
-      "Tous",
-      "Sans titulaire",
-      ...Array.from(
-        new Set(classes.map((c) => c.niveau?.libelle).filter(Boolean)),
-      ),
-    ],
-    [classes],
+  // sousCycle / section par niveau (depuis le store) — pour Humanités
+  const niveauSousCycle = useMemo(() => {
+    const m = {};
+    niveaux.forEach((n) => {
+      m[n.id] = n.sousCycle ?? null;
+    });
+    return m;
+  }, [niveaux]);
+  const niveauSection = useMemo(() => {
+    const m = {};
+    niveaux.forEach((n) => {
+      m[n.id] = n.section ?? null;
+    });
+    return m;
+  }, [niveaux]);
+
+  const matchCycleTab = (c, tab) => {
+    const cycle = c.niveau?.cycle;
+    const sc = niveauSousCycle[c.niveau?.id];
+    if (tab === "HUMANITES") return sc === "HUMANITES";
+    if (tab === "SECONDAIRE") return cycle === "SECONDAIRE" && sc !== "HUMANITES";
+    return cycle === tab;
+  };
+
+  // Sélectionne automatiquement le premier onglet cycle qui contient des classes
+  useEffect(() => {
+    if (classes.length === 0) return;
+    if (!classes.some((c) => matchCycleTab(c, cycleTab))) {
+      const premier = CLASSE_TABS.find((t) =>
+        classes.some((c) => matchCycleTab(c, t.key)),
+      );
+      if (premier) setCycleTab(premier.key);
+    }
+  }, [classes, niveauSousCycle]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sous-onglets par section (onglet Humanités)
+  const isHumanitesTab = cycleTab === "HUMANITES";
+  const humaniteClasses = useMemo(
+    () => classes.filter((c) => matchCycleTab(c, "HUMANITES")),
+    [classes, niveauSousCycle], // eslint-disable-line react-hooks/exhaustive-deps
   );
+  const sectionsDesHumanites = useMemo(() => {
+    if (!isHumanitesTab) return [];
+    const present = new Set(
+      humaniteClasses.map((c) => niveauSection[c.niveau?.id] ?? null),
+    );
+    const ordered = SECTION_ORDER.filter((s) => present.has(s));
+    return present.has(null) ? [...ordered, "AUTRES"] : ordered;
+  }, [humaniteClasses, isHumanitesTab, niveauSection]);
+
+  useEffect(() => {
+    if (!isHumanitesTab) return;
+    if (!sectionsDesHumanites.includes(selectedSection)) {
+      setSelectedSection(sectionsDesHumanites[0] ?? "");
+    }
+  }, [sectionsDesHumanites, isHumanitesTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
-    let list = classes;
-    if (niveauFilter === "Sans titulaire")
-      list = list.filter((c) => !c.titulaire);
-    else if (niveauFilter !== "Tous")
-      list = list.filter((c) => c.niveau?.libelle === niveauFilter);
+    let list = classes.filter((c) => matchCycleTab(c, cycleTab));
+    if (isHumanitesTab && selectedSection) {
+      list = list.filter((c) => {
+        const sec = niveauSection[c.niveau?.id] ?? null;
+        return selectedSection === "AUTRES" ? !sec : sec === selectedSection;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -858,7 +1076,7 @@ const ClassesPage = () => {
       );
     }
     return list;
-  }, [classes, search, niveauFilter]);
+  }, [classes, search, cycleTab, isHumanitesTab, selectedSection, niveauSousCycle, niveauSection]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalEleves = classes.reduce((s, c) => s + (c.nombreEleves ?? 0), 0);
   const totalCapacite = classes.reduce((s, c) => s + (c.capaciteMax ?? 0), 0);
@@ -914,9 +1132,9 @@ const ClassesPage = () => {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
+      <div className="min-h-full space-y-3">
         {/* ── Hero header ── */}
-        <motion.div
+        {/* <motion.div
           {...fade(0)}
           className="relative rounded-lg overflow-hidden shadow-lg shadow-[#0b57cd]/10"
           style={{
@@ -984,6 +1202,80 @@ const ClassesPage = () => {
               </motion.button>
             </div>
           </div>
+
+        </motion.div> */}
+        <motion.div
+          {...fade(0)}
+          className="relative rounded-lg overflow-hidden bg-white"
+        >
+          <div className="relative px-3 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                  Gestion des Classes
+                </h1>
+                <p className="text-gray-400 text-[12px] mt-0.5">
+                  Gérez les classes et affectations de vos enseignants
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={fetchClasses}
+                disabled={isLoading}
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
+                title="Rafraîchir"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => exportClassesToExcel(filtered)}
+                disabled={isLoading || filtered.length === 0}
+                title={
+                  filtered.length === 0
+                    ? "Aucune classe à exporter"
+                    : `Exporter ${filtered.length} classe(s) en Excel`
+                }
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exporter</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={openGenerer}
+                disabled={!hasSelectedAnnee || isGenerating || isLoading}
+                title="Générer 1 classe par niveau (nom = « libellé A »)"
+                className="flex items-center gap-2 bg-gray-50 text-gray-600 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold border border-gray-200 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">Générer</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleOpenModal("create")}
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Nouvelle classe
+              </motion.button>
+            </div>
+          </div>
         </motion.div>
 
         {/* ── Avertissement si pas d'année ── */}
@@ -1026,8 +1318,8 @@ const ClassesPage = () => {
             icon={TrendingUp}
             label="Taux de remplissage"
             value={`${avgFill}%`}
-            color="#d97706"
-            bg="#fffbeb"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={isLoading}
           />
           <StatCard
@@ -1035,203 +1327,149 @@ const ClassesPage = () => {
             label="Avec titulaire"
             value={withTitulaire}
             sub={`${classes.length - withTitulaire} sans titulaire`}
-            color="#475569"
-            bg="#f1f5f9"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={isLoading}
           />
         </motion.div>
 
-        {/* ── Toolbar ── */}
+        {/* ── Liste des classes : onglets + recherche + contenu (une carte) ── */}
         <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher une classe, un niveau, un titulaire…"
-                  className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
-                />
-                {search && (
+          <div className="bg-white rounded-lg border border-gray-100 shadow-sm h-full">
+            {/* En-tête : onglets par cycle + recherche + vue */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
+                {CLASSE_TABS.map((t) => (
                   <button
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    key={t.key}
+                    onClick={() => setCycleTab(t.key)}
+                    className={`px-3 py-1.5 rounded-md text-[12px] font-semibold whitespace-nowrap transition-all ${cycleTab === t.key ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    {t.label}
                   </button>
-                )}
+                ))}
               </div>
-              <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 shrink-0">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`p-2 rounded-md transition-all ${view === "grid" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue grille"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`p-2 rounded-md transition-all ${view === "list" ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Vue liste"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
-              {niveauxDispos.map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setFilter(n)}
-                  className={`px-3 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
-                    niveauFilter === n
-                      ? "bg-[#0b57cd] text-white border-[#0b57cd] shadow-sm"
-                      : n === "Sans titulaire"
-                        ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
-                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  {n}
-                  {n !== "Tous" && n !== "Sans titulaire" && (
-                    <span className="ml-1.5 opacity-60">
-                      {classes.filter((c) => c.niveau?.libelle === n).length}
-                    </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="relative w-48 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher…"
+                    className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   )}
-                </button>
-              ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
 
-        {/* ── Contenu principal ── */}
-        <motion.div {...fade(0.14)}>
-          <div className="flex gap-4 items-start">
-            <div className="flex-1 min-w-0 w-full">
-              {view === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {isLoading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <ClassCardSkeleton key={i} />
-                    ))
-                  ) : filtered.length === 0 ? (
-                    <div className="col-span-full bg-white rounded-xl border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
-                      <Home className="w-10 h-10 text-gray-200" />
-                      <p className="text-[14px] font-semibold text-gray-400">
-                        {classes.length === 0
-                          ? "Aucune classe pour cette année"
-                          : "Aucune classe trouvée"}
-                      </p>
-                      {classes.length === 0 && hasSelectedAnnee && (
-                        <button
-                          onClick={() => handleOpenModal("create")}
-                          className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
-                        >
-                          <Plus className="w-4 h-4" /> Créer la première classe
-                        </button>
+            {/* Sous-onglets par section (onglet Humanités) — barre inférieure */}
+            {isHumanitesTab && sectionsDesHumanites.length > 0 && (
+              <div className="px-4 border-b border-gray-100 flex gap-0.5 overflow-x-auto">
+                {sectionsDesHumanites.map((s) => {
+                  const active = selectedSection === s;
+                  const label = s === "AUTRES" ? "Autres" : (SECTION_LABELS[s] ?? s);
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => setSelectedSection(s)}
+                      className={`relative px-3 py-2.5 text-[12px] font-medium whitespace-nowrap transition-colors ${
+                        active
+                          ? "text-[#0b57cd]"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      {label}
+                      {active && (
+                        <span className="absolute left-2 right-2 -bottom-px h-0.5 rounded-full bg-[#0b57cd]" />
                       )}
-                    </div>
-                  ) : (
-                    <AnimatePresence>
-                      {filtered.map((cls, i) => (
-                        <motion.div
-                          key={cls.id}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ delay: i * 0.03 }}
-                        >
-                          <ClassCard
-                            cls={cls}
-                            selected={selectedId === cls.id}
-                            onSelect={setSelectedId}
-                          />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  )}
-                  {!isLoading && hasSelectedAnnee && (
-                    <NewClassCard onClick={() => handleOpenModal("create")} />
-                  )}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-                    <p className="text-[13px] font-semibold text-gray-700">
-                      {isLoading
-                        ? "Chargement…"
-                        : `${filtered.length} classe${filtered.length > 1 ? "s" : ""}${search || niveauFilter !== "Tous" ? " trouvée" + (filtered.length > 1 ? "s" : "") : " au total"}`}
-                    </p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50/60">
-                          {[
-                            "Classe",
-                            "Niveau",
-                            "Élèves",
-                            "Remplissage",
-                            "Titulaire",
-                            "Statut",
-                            "",
-                          ].map((h) => (
-                            <th
-                              key={h}
-                              className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {isLoading ? (
-                          Array.from({ length: 5 }).map((_, i) => (
-                            <tr key={i} className="border-b border-gray-50">
-                              {Array.from({ length: 7 }).map((__, j) => (
-                                <td key={j} className="px-5 py-4">
-                                  <div
-                                    className="h-4 bg-gray-100 animate-pulse rounded-md"
-                                    style={{
-                                      width: `${60 + ((j * 17) % 40)}%`,
-                                    }}
-                                  />
-                                </td>
-                              ))}
-                            </tr>
-                          ))
-                        ) : filtered.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="text-center py-14">
-                              <div className="flex flex-col items-center gap-2">
-                                <Home className="w-10 h-10 text-gray-200" />
-                                <p className="text-[14px] font-semibold text-gray-400">
-                                  Aucune classe trouvée
-                                </p>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          <AnimatePresence>
-                            {filtered.map((cls) => (
-                              <ClassRow
-                                key={cls.id}
-                                cls={cls}
-                                selected={selectedId === cls.id}
-                                onSelect={setSelectedId}
-                                onEdit={(c) => handleOpenModal("edit", c)}
-                                onDelete={setDeleteId}
-                              />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Corps */}
+            <div className="p-4">
+              <div className="rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50/60">
+                        {[
+                          "Classe",
+                          "Niveau",
+                          "Élèves",
+                          "Remplissage",
+                          "Titulaire",
+                          "Statut",
+                          "",
+                        ].map((h) => (
+                          <th
+                            key={h}
+                            className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {isLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                          <tr key={i} className="border-b border-gray-50">
+                            {Array.from({ length: 7 }).map((__, j) => (
+                              <td key={j} className="px-5 py-4">
+                                <div
+                                  className="h-4 bg-gray-100 animate-pulse rounded-md"
+                                  style={{
+                                    width: `${60 + ((j * 17) % 40)}%`,
+                                  }}
+                                />
+                              </td>
                             ))}
-                          </AnimatePresence>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                          </tr>
+                        ))
+                      ) : filtered.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="text-center py-14">
+                            <div className="flex flex-col items-center gap-2">
+                              <Home className="w-10 h-10 text-gray-200" />
+                              <p className="text-[14px] font-semibold text-gray-400">
+                                Aucune classe trouvée
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        <AnimatePresence>
+                          {filtered.map((cls) => (
+                            <ClassRow
+                              key={cls.id}
+                              cls={cls}
+                              selected={selectedId === cls.id}
+                              onSelect={setSelectedId}
+                              onEdit={(c) => handleOpenModal("edit", c)}
+                              onDelete={setDeleteId}
+                              onToggle={(c) =>
+                                updateClasse(c.id, { actif: !c.actif })
+                              }
+                            />
+                          ))}
+                        </AnimatePresence>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1253,8 +1491,12 @@ const ClassesPage = () => {
         isOpen={selectedClasse !== null}
         cls={selectedClasse}
         onClose={() => setSelectedId(null)}
-        onEdit={(c) => { handleOpenModal("edit", c); }}
-        onDelete={(id) => { setDeleteId(id); }}
+        onEdit={(c) => {
+          handleOpenModal("edit", c);
+        }}
+        onDelete={(id) => {
+          setDeleteId(id);
+        }}
       />
 
       {/* ── Modals ── */}
@@ -1263,19 +1505,51 @@ const ClassesPage = () => {
         onClose={() => setModal(null)}
         editClasse={modal?.mode === "edit" ? modal.cls : null}
         niveaux={niveaux}
+        salles={salleState.salles}
+        classes={classes}
         enseignants={enseignants}
         isLoadingEnseignants={isLoadingEnseignants}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />
 
-      <ConfirmDeleteModal
-        open={deleteId !== null}
-        classNom={classes.find((c) => c.id === deleteId)?.nom}
-        nombreEleves={classes.find((c) => c.id === deleteId)?.nombreEleves ?? 0}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-        isDeleting={isDeleting}
+      {(() => {
+        const cls = classes.find((c) => c.id === deleteId);
+        const blocked = (cls?.nombreEleves ?? 0) > 0;
+        return (
+          <ConfirmDialog
+            open={deleteId !== null}
+            tone={blocked ? "warning" : "danger"}
+            title={
+              blocked
+                ? "Suppression impossible"
+                : `Supprimer ${cls?.nom ?? "la classe"} ?`
+            }
+            description={
+              blocked
+                ? `Cette classe contient ${cls?.nombreEleves} élève(s) inscrit(s). Désinscrivez-les avant de supprimer.`
+                : "Cette action est irréversible. La classe et toutes ses données seront définitivement supprimées."
+            }
+            confirmLabel="Supprimer"
+            hideConfirm={blocked}
+            loading={isDeleting}
+            onClose={() => setDeleteId(null)}
+            onConfirm={handleDelete}
+          />
+        );
+      })()}
+
+      {/* ── Confirm génération des classes ── */}
+      <ConfirmDialog
+        open={genConfirm}
+        tone="primary"
+        icon={Sparkles}
+        title="Générer les classes ?"
+        description="Une classe sera créée automatiquement pour chaque niveau actif qui n'en a pas encore (nom « libellé A »). Les niveaux déjà pourvus sont ignorés."
+        confirmLabel="Générer"
+        loading={isGenerating}
+        onClose={() => setGenConfirm(false)}
+        onConfirm={handleGenerer}
       />
     </>
   );

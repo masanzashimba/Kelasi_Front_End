@@ -99,7 +99,6 @@ const STATUT_CFG = {
 const TABS = [
   { key: "liste", label: "Liste", icon: FileText },
   { key: "generer", label: "Générer", icon: Sparkles },
-  { key: "apercu", label: "Aperçu bulletin", icon: Eye },
   { key: "valider", label: "Valider & publier", icon: Shield },
 ];
 
@@ -178,7 +177,8 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
   // Infos classe / période / effectif
   const classe = bul.inscription?.classe ?? {};
   const classeNom = classe.nom ?? "—";
-  const niveauAbrev = classe.niveau?.abreviation ?? classe.niveau?.libelle ?? "";
+  const niveauAbrev =
+    classe.niveau?.abreviation ?? classe.niveau?.libelle ?? "";
   const effectif = bul.effectifClasse;
   const sexe = bul.inscription?.eleve?.sexe;
 
@@ -808,72 +808,75 @@ function GenerateurPanel({
             {progression.map((p) => {
               const aucuneEval = p.total === 0;
               return (
-              <div
-                key={p.matiereId}
-                className="p-2.5 rounded-lg border"
-                style={{
-                  background: aucuneEval
-                    ? "#F3F4F6"
-                    : p.pct >= 100
-                      ? "#EAF3DE"
-                      : p.pct >= 80
-                        ? "var(--color-background-secondary)"
-                        : "#FEF2F2",
-                  borderColor: aucuneEval
-                    ? "#E5E7EB"
-                    : p.pct >= 100
-                      ? "#97C459"
-                      : p.pct >= 80
-                        ? "var(--color-border-tertiary)"
-                        : "#FECACA",
-                }}
-              >
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-[12px] font-medium text-gray-700">
-                    {p.matiereNom}
-                  </span>
-                  <span
-                    className="text-[11px] font-semibold"
-                    style={{
-                      color: aucuneEval
-                        ? "#9CA3AF"
+                <div
+                  key={p.matiereId}
+                  className="p-2.5 rounded-lg border"
+                  style={{
+                    background: aucuneEval
+                      ? "#F3F4F6"
+                      : p.pct >= 100
+                        ? "#EAF3DE"
+                        : p.pct >= 80
+                          ? "var(--color-background-secondary)"
+                          : "#FEF2F2",
+                    borderColor: aucuneEval
+                      ? "#E5E7EB"
+                      : p.pct >= 100
+                        ? "#97C459"
+                        : p.pct >= 80
+                          ? "var(--color-border-tertiary)"
+                          : "#FECACA",
+                  }}
+                >
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-[12px] font-medium text-gray-700">
+                      {p.matiereNom}
+                    </span>
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{
+                        color: aucuneEval
+                          ? "#9CA3AF"
+                          : p.pct >= 100
+                            ? "#3B6D11"
+                            : p.pct >= 80
+                              ? "#BA7517"
+                              : "#dc2626",
+                      }}
+                    >
+                      {aucuneEval
+                        ? "Aucune éval."
+                        : `${p.notes}/${p.total} notés`}
+                    </span>
+                  </div>
+                  <ProgressBar
+                    value={aucuneEval ? 0 : p.pct}
+                    color={
+                      aucuneEval
+                        ? "#D1D5DB"
                         : p.pct >= 100
                           ? "#3B6D11"
                           : p.pct >= 80
                             ? "#BA7517"
-                            : "#dc2626",
-                    }}
-                  >
-                    {aucuneEval ? "Aucune éval." : `${p.notes}/${p.total} notés`}
-                  </span>
-                </div>
-                <ProgressBar
-                  value={aucuneEval ? 0 : p.pct}
-                  color={
-                    aucuneEval
-                      ? "#D1D5DB"
-                      : p.pct >= 100
-                        ? "#3B6D11"
-                        : p.pct >= 80
-                          ? "#BA7517"
-                          : "#E24B4A"
-                  }
-                />
-                {aucuneEval ? (
-                  <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    Aucune évaluation créée
-                  </p>
-                ) : (
-                  p.pct < 100 && (
-                    <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                            : "#E24B4A"
+                    }
+                  />
+                  {aucuneEval ? (
+                    <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
-                      {p.total - p.notes} note{p.total - p.notes > 1 ? "s" : ""}{" "}
-                      manquante{p.total - p.notes > 1 ? "s" : ""}
+                      Aucune évaluation créée
                     </p>
-                  )
-                )}
-              </div>
+                  ) : (
+                    p.pct < 100 && (
+                      <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {p.total - p.notes} note
+                        {p.total - p.notes > 1 ? "s" : ""} manquante
+                        {p.total - p.notes > 1 ? "s" : ""}
+                      </p>
+                    )
+                  )}
+                </div>
               );
             })}
             <div className="pt-2 border-t border-gray-100 text-[12px] text-gray-500">

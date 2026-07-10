@@ -59,8 +59,8 @@ export const reorderNiveauxThunk = createAsyncThunk(
 
 export const seedNiveauxThunk = createAsyncThunk(
   "niveaux/seedDefaut",
-  async (cycles, { rejectWithValue }) => {
-    try { return await niveauService.seedDefaut(cycles); }
+  async (payload, { rejectWithValue }) => {
+    try { return await niveauService.seedDefaut(payload); }
     catch (e) { return rejectWithValue(extractError(e)); }
   },
 );

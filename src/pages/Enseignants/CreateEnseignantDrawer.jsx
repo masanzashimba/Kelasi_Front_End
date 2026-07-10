@@ -8,6 +8,9 @@ import {
   Camera, Trash2, RefreshCw, Copy, ClipboardCheck,
 } from "lucide-react";
 import { getAccessToken } from "../../lib/tokenStorage";
+import PhoneInput from "../../components/common/PhoneInput";
+import CountrySelect from "../../components/common/CountrySelect";
+import DocumentUpload from "../../components/common/DocumentUpload";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3300/api/v1";
 
@@ -22,10 +25,23 @@ const STEPS = [
 
 const DIPLOMES = ["", "Licence", "Master", "Doctorat", "BTS", "DUT", "DESS", "DEA", "Ingénieur", "Autre"];
 
+const FONCTIONS = [
+  "Enseignant",
+  "Professeur",
+  "Titulaire de classe",
+  "Directeur",
+  "Préfet des études",
+  "Conseiller pédagogique",
+  "Surveillant",
+  "Autre",
+];
+
 const EMPTY_FORM = {
   prenom: "", nom: "", email: "", telephone: "", photoUrl: "",
-  matricule: "", specialite: "", diplomeMax: "",
+  sexe: "MASCULIN", lieuNaissance: "", nationalite: "Congolaise", adresse: "",
+  matricule: "", specialite: "", diplomeMax: "", fonction: "Enseignant",
   typeContrat: "CDI", dateEmbauche: "", salaireBase: "",
+  cvUrl: "", diplomeUrl: "", contratUrl: "", pieceIdentiteUrl: "",
   motDePasse: "", envoyerEmail: true,
 };
 
@@ -324,12 +340,47 @@ const StepIdentite = ({ form, setField, errors }) => (
         />
       </div>
     </Field>
-    <Field label="Téléphone" hint="Optionnel — format international (+243...)">
-      <input
+    <div className="grid grid-cols-2 gap-3">
+      <Field label="Sexe">
+        <select
+          value={form.sexe}
+          onChange={(e) => setField("sexe", e.target.value)}
+          className={inputCls}
+        >
+          <option value="MASCULIN">Masculin</option>
+          <option value="FEMININ">Féminin</option>
+        </select>
+      </Field>
+      <Field label="Lieu de naissance">
+        <input
+          value={form.lieuNaissance}
+          onChange={(e) => setField("lieuNaissance", e.target.value)}
+          placeholder="Kinshasa"
+          className={inputCls}
+        />
+      </Field>
+    </div>
+    <div className="grid grid-cols-2 gap-3">
+      <Field label="Nationalité">
+        <CountrySelect
+          value={form.nationalite}
+          onChange={(v) => setField("nationalite", v)}
+          placeholder="Congolaise"
+        />
+      </Field>
+      <Field label="Adresse">
+        <input
+          value={form.adresse}
+          onChange={(e) => setField("adresse", e.target.value)}
+          placeholder="Commune, avenue, n°…"
+          className={inputCls}
+        />
+      </Field>
+    </div>
+    <Field label="Téléphone" hint="Optionnel — sélectionnez le pays">
+      <PhoneInput
         value={form.telephone}
-        onChange={(e) => setField("telephone", e.target.value)}
-        placeholder="+243 8XX XXX XXX"
-        className={inputCls}
+        onChange={(v) => setField("telephone", v)}
       />
     </Field>
   </div>
@@ -356,6 +407,30 @@ const StepProfil = ({ form, setField, errors }) => (
       </div>
       <p className="text-[11px] text-gray-400 mt-1">Format ENS-{new Date().getFullYear()}-XXXX — ou saisissez le vôtre</p>
     </Field>
+    <div className="grid grid-cols-2 gap-3">
+      <Field label="Fonction">
+        <select
+          value={form.fonction}
+          onChange={(e) => setField("fonction", e.target.value)}
+          className={inputCls}
+        >
+          {FONCTIONS.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Diplôme le plus élevé">
+        <select
+          value={form.diplomeMax}
+          onChange={(e) => setField("diplomeMax", e.target.value)}
+          className={inputCls}
+        >
+          {DIPLOMES.map((d) => (
+            <option key={d} value={d}>{d || "— Non renseigné —"}</option>
+          ))}
+        </select>
+      </Field>
+    </div>
     <Field label="Spécialité" hint="Matière ou domaine principal">
       <input
         value={form.specialite}
@@ -364,17 +439,36 @@ const StepProfil = ({ form, setField, errors }) => (
         className={inputCls}
       />
     </Field>
-    <Field label="Diplôme le plus élevé">
-      <select
-        value={form.diplomeMax}
-        onChange={(e) => setField("diplomeMax", e.target.value)}
-        className={inputCls}
-      >
-        {DIPLOMES.map((d) => (
-          <option key={d} value={d}>{d || "— Non renseigné —"}</option>
-        ))}
-      </select>
-    </Field>
+
+    {/* Documents (optionnels) */}
+    <div className="pt-2 border-t border-gray-100">
+      <p className="text-[12px] font-semibold text-gray-500 mb-3 flex items-center gap-1.5">
+        <FileText className="w-3.5 h-3.5" /> Documents
+        <span className="font-normal text-gray-400">(optionnels)</span>
+      </p>
+      <div className="space-y-3">
+        <DocumentUpload
+          label="CV"
+          value={form.cvUrl}
+          onUploaded={(url) => setField("cvUrl", url)}
+        />
+        <DocumentUpload
+          label="Copie du diplôme"
+          value={form.diplomeUrl}
+          onUploaded={(url) => setField("diplomeUrl", url)}
+        />
+        <DocumentUpload
+          label="Contrat de travail"
+          value={form.contratUrl}
+          onUploaded={(url) => setField("contratUrl", url)}
+        />
+        <DocumentUpload
+          label="Pièce d'identité"
+          value={form.pieceIdentiteUrl}
+          onUploaded={(url) => setField("pieceIdentiteUrl", url)}
+        />
+      </div>
+    </div>
   </div>
 );
 
@@ -582,14 +676,23 @@ const CreateEnseignantDrawer = ({ open, onClose, onSubmit, isSubmitting, editEns
         email:       editEns.email       ?? "",
         telephone:   editEns.telephone   ?? "",
         photoUrl:    editEns.photoUrl    ?? "",
+        sexe:        editEns.sexe        ?? "MASCULIN",
+        lieuNaissance: editEns.lieuNaissance ?? "",
+        nationalite: editEns.nationalite ?? "Congolaise",
+        adresse:     editEns.adresse     ?? "",
         matricule:   editEns.matricule   ?? "",
         specialite:  editEns.specialite  ?? "",
         diplomeMax:  editEns.diplomeMax  ?? "",
+        fonction:    editEns.fonction    ?? "Enseignant",
         typeContrat: editEns.typeContrat ?? "CDI",
         dateEmbauche: editEns.dateEmbauche
           ? new Date(editEns.dateEmbauche).toISOString().split("T")[0]
           : "",
         salaireBase: editEns.salaireBase ?? "",
+        cvUrl:            editEns.cvUrl            ?? "",
+        diplomeUrl:       editEns.diplomeUrl       ?? "",
+        contratUrl:       editEns.contratUrl       ?? "",
+        pieceIdentiteUrl: editEns.pieceIdentiteUrl ?? "",
         motDePasse:  "",
       } : EMPTY_FORM);
     }
@@ -622,12 +725,21 @@ const CreateEnseignantDrawer = ({ open, onClose, onSubmit, isSubmitting, editEns
       email:       form.email.trim(),
       telephone:   form.telephone.trim() || undefined,
       photoUrl:    form.photoUrl || undefined,
+      sexe:        form.sexe || undefined,
+      lieuNaissance: form.lieuNaissance.trim() || undefined,
+      nationalite: form.nationalite.trim() || undefined,
+      adresse:     form.adresse.trim() || undefined,
       matricule:   form.matricule.trim(),
       specialite:  form.specialite.trim() || undefined,
       diplomeMax:  form.diplomeMax || undefined,
+      fonction:    form.fonction || undefined,
       typeContrat: form.typeContrat,
       dateEmbauche: form.dateEmbauche,
       salaireBase: form.salaireBase ? parseFloat(form.salaireBase) : undefined,
+      cvUrl:            form.cvUrl || undefined,
+      diplomeUrl:       form.diplomeUrl || undefined,
+      contratUrl:       form.contratUrl || undefined,
+      pieceIdentiteUrl: form.pieceIdentiteUrl || undefined,
     };
     // Mot de passe : requis en création, optionnel en édition
     if (form.motDePasse) payload.motDePasse = form.motDePasse;

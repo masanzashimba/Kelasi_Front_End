@@ -22,7 +22,13 @@ const extractError = (e) =>
 const normalizeTitulaire = (t) => {
   if (!t) return null;
   if (t.utilisateur) {
-    return { id: t.id, nom: t.utilisateur.nom, prenom: t.utilisateur.prenom, email: t.utilisateur.email };
+    return {
+      id: t.id,
+      nom: t.utilisateur.nom,
+      prenom: t.utilisateur.prenom,
+      email: t.utilisateur.email,
+      photoUrl: t.utilisateur.photoUrl ?? null,
+    };
   }
   return t;
 };

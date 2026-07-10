@@ -36,7 +36,12 @@ function App() {
   return (
     <ReduxProvider>
       <Router>
-        <ToastContainer position="top-right" autoClose={3000} theme="light" />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          theme="light"
+          style={{ zIndex: 100000 }}
+        />
 
         <Routes>
           {/* PUBLIC */}

@@ -5,10 +5,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, User, Mail, Phone, Hash, Calendar, MapPin,
+  X, User, Mail, Hash, Calendar, MapPin,
   Globe, Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle,
   ChevronRight, UserPlus, School, Info, Camera, Trash2, Home,
 } from "lucide-react";
+import PhoneInput from "../common/PhoneInput";
+import CountrySelect from "../common/CountrySelect";
 import { useSelector } from "react-redux";
 import { selectAnneeActive } from "../../features/annee-scolaire/slices/annee-scolaire.selectors";
 import { selectSelectedAnneeId } from "../../features/annee-scolaire/slices/annee-selector.selectors";
@@ -471,18 +473,33 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
                           <input className={`${inputCls} pl-9`} type="date" value={form.dateNaissance} onChange={(e) => set("dateNaissance", e.target.value)} />
                         </div>
                       </Field>
+                      <Field label="Lieu de naissance">
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input className={`${inputCls} pl-9`} placeholder="Kinshasa" value={form.lieuNaissance} onChange={(e) => set("lieuNaissance", e.target.value)} />
+                        </div>
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                       <Field label="Sexe" required>
                         <select className={selectCls} value={form.sexe} onChange={(e) => set("sexe", e.target.value)}>
                           <option value="MASCULIN">Masculin</option>
                           <option value="FEMININ">Féminin</option>
                         </select>
                       </Field>
+                      <Field label="Nationalité">
+                        <CountrySelect
+                          value={form.nationalite}
+                          onChange={(v) => set("nationalite", v)}
+                          placeholder="Congolaise"
+                        />
+                      </Field>
                     </div>
                     <Field label="Téléphone">
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                        <input className={`${inputCls} pl-9`} placeholder="+243 81 234 5678" value={form.telephone} onChange={(e) => set("telephone", e.target.value)} />
-                      </div>
+                      <PhoneInput
+                        value={form.telephone}
+                        onChange={(v) => set("telephone", v)}
+                      />
                     </Field>
                   </motion.div>
                 )}
@@ -499,20 +516,6 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
                         </button>
                       </div>
                     </Field>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Lieu de naissance">
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <input className={`${inputCls} pl-9`} placeholder="Kinshasa" value={form.lieuNaissance} onChange={(e) => set("lieuNaissance", e.target.value)} />
-                        </div>
-                      </Field>
-                      <Field label="Nationalité">
-                        <div className="relative">
-                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <input className={`${inputCls} pl-9`} placeholder="Congolaise" value={form.nationalite} onChange={(e) => set("nationalite", e.target.value)} />
-                        </div>
-                      </Field>
-                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Field label="Commune">
                         <div className="relative">
@@ -702,6 +705,14 @@ export const AddEleveModal = ({ isOpen, onClose, onSubmit, editEleve, submitting
                             <p className="text-[10px] text-gray-400">Classe</p>
                             <p className="text-[12px] font-semibold text-[#0c447c] mt-0.5">{classeSelectionnee.nom}</p>
                           </div>
+                          {classeSelectionnee.titulaire && (
+                            <div>
+                              <p className="text-[10px] text-gray-400">Professeur titulaire</p>
+                              <p className="text-[12px] text-gray-700 mt-0.5">
+                                {classeSelectionnee.titulaire.prenom} {classeSelectionnee.titulaire.nom}
+                              </p>
+                            </div>
+                          )}
                           <div>
                             <p className="text-[10px] text-gray-400">Année</p>
                             <p className="text-[12px] text-gray-700 mt-0.5">{anneeActive?.libelle}</p>

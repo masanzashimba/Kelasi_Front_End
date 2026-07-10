@@ -22,7 +22,12 @@ const initialState = {
   selectedClasse: "Toutes",
   selectedStatut: "Tous",
   selectedSexe: "Tous",
+  selectedCycle: "Tous",
   showFilters: false,
+
+  // Pagination
+  page: 1,
+  pageSize: 12,
 
   // Drawer (détail élève)
   drawerEleve: null,
@@ -44,7 +49,7 @@ function reducer(state, action) {
     case "FETCH_START":
       return { ...state, loading: true, error: null };
     case "FETCH_SUCCESS":
-      return { ...state, loading: false, eleves: action.payload };
+      return { ...state, loading: false, eleves: action.payload, page: 1 };
     case "FETCH_ERROR":
       return { ...state, loading: false, error: action.payload };
 
@@ -91,15 +96,17 @@ function reducer(state, action) {
         successMessage: "Élève désactivé",
       };
 
-    // ── Filtres ──────────────────────────────────────────────
+    // ── Filtres (toute modif de filtre revient page 1) ───────
     case "SET_SEARCH":
-      return { ...state, search: action.payload };
+      return { ...state, search: action.payload, page: 1 };
     case "SET_CLASSE":
-      return { ...state, selectedClasse: action.payload };
+      return { ...state, selectedClasse: action.payload, page: 1 };
     case "SET_STATUT":
-      return { ...state, selectedStatut: action.payload };
+      return { ...state, selectedStatut: action.payload, page: 1 };
     case "SET_SEXE":
-      return { ...state, selectedSexe: action.payload };
+      return { ...state, selectedSexe: action.payload, page: 1 };
+    case "SET_CYCLE":
+      return { ...state, selectedCycle: action.payload, page: 1 };
     case "TOGGLE_FILTERS":
       return { ...state, showFilters: !state.showFilters };
     case "RESET_FILTERS":
@@ -109,7 +116,13 @@ function reducer(state, action) {
         selectedClasse: "Toutes",
         selectedStatut: "Tous",
         selectedSexe: "Tous",
+        selectedCycle: "Tous",
+        page: 1,
       };
+
+    // ── Pagination ───────────────────────────────────────────
+    case "SET_PAGE":
+      return { ...state, page: action.payload };
 
     // ── Drawer ────────────────────────────────────────────────
     case "OPEN_DRAWER":
@@ -238,6 +251,11 @@ export const useEleve = () => {
       if (state.selectedStatut === "INACTIF" && e.actif) return false;
       if (state.selectedSexe !== "Tous" && e.sexe !== state.selectedSexe)
         return false;
+      if (
+        state.selectedCycle !== "Tous" &&
+        e.classeActuelle?.cycle !== state.selectedCycle
+      )
+        return false;
       return true;
     });
   }, [
@@ -246,7 +264,26 @@ export const useEleve = () => {
     state.selectedClasse,
     state.selectedStatut,
     state.selectedSexe,
+    state.selectedCycle,
   ]);
+
+  // ── Pagination (client-side sur la liste filtrée) ─────────
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredEleves.length / state.pageSize),
+  );
+  // Page courante bornée : si les filtres réduisent la liste, on ne
+  // reste pas bloqué sur une page qui n'existe plus.
+  const currentPage = Math.min(state.page, totalPages);
+
+  const paginatedEleves = useMemo(
+    () =>
+      filteredEleves.slice(
+        (currentPage - 1) * state.pageSize,
+        currentPage * state.pageSize,
+      ),
+    [filteredEleves, currentPage, state.pageSize],
+  );
 
   // ── Classes disponibles (pour le filtre) ──────────────────
   const classes = useMemo(
@@ -274,6 +311,10 @@ export const useEleve = () => {
     state,
     dispatch,
     filteredEleves,
+    paginatedEleves,
+    currentPage,
+    totalPages,
+    pageSize: state.pageSize,
     classes,
     stats,
     fetchEleves,

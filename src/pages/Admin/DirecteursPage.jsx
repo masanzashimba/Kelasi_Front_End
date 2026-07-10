@@ -135,7 +135,7 @@ const DirecteursPage = () => {
   };
 
   return (
-    <div className="min-h-full bg-[#f5f7fa] space-y-3">
+    <div className="min-h-full space-y-3">
       {/* ── Hero header card ─────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}

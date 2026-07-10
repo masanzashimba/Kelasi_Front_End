@@ -1,7 +1,8 @@
 import React from "react";
 import BulletinMINEDUC, { ROWS_MOYEN, ROWS_TERMINAL } from "./BulletinMINEDUC";
 import BulletinSecondaire from "./BulletinSecondaire";
-import BulletinCTEB from "./BulletinCTEB";
+import BulletinCTEB, { ROWS_CTEB8 } from "./BulletinCTEB";
+import BulletinHumanites from "./BulletinHumanites";
 
 interface BulletinTemplateProps {
   bulletin: any;
@@ -26,6 +27,42 @@ function is7emeCTEB(niveau: any): boolean {
   if (/^7/.test(abrev)) return true;
   const lib = String(niveau?.libelle ?? "").toLowerCase();
   return /\b7\s*(?:ème|eme|e)?\b/.test(lib);
+}
+
+// Détecte la 8ème année (CTEB) via l'abréviation ("8" / "8C") ou le libellé.
+function is8emeCTEB(niveau: any): boolean {
+  const abrev = String(niveau?.abreviation ?? "").toUpperCase();
+  if (/^8/.test(abrev)) return true;
+  const lib = String(niveau?.libelle ?? "").toLowerCase();
+  return /\b8\s*(?:ème|eme|e)?\b/.test(lib);
+}
+
+// Numéro d'année Humanités (1→4) extrait de l'abréviation ou du libellé.
+function anneeHumanites(niveau: any): number | null {
+  const abrev = String(niveau?.abreviation ?? "").toUpperCase();
+  const mAbrev = abrev.match(/^([1-4])/);
+  if (mAbrev) return Number(mAbrev[1]);
+  const lib = String(niveau?.libelle ?? "").toLowerCase();
+  const mLib = lib.match(/([1-4])\s*(?:ère|ere|ème|eme|e)?/);
+  return mLib ? Number(mLib[1]) : null;
+}
+
+// Détecte l'option « Électricité » (champ option / section / libellé).
+function isElectricite(niveau: any): boolean {
+  const opt = `${niveau?.option ?? ""} ${niveau?.section ?? ""} ${niveau?.libelle ?? ""}`.toLowerCase();
+  return /[ée]lectr/.test(opt);
+}
+
+// Détecte une 1ère année Humanités, à la manière du 8ème (par abréviation "1H"
+// ou par sousCycle/libellé). Les options ne sont pas encore renseignées en base ;
+// l'unique 1ère Humanités correspond au tronc technique Électricité.
+function is1ereHumanites(niveau: any): boolean {
+  const abrev = String(niveau?.abreviation ?? "").toUpperCase().replace(/\s/g, "");
+  if (/^1\s*H/.test(abrev)) return true;
+  const isHum =
+    String(niveau?.sousCycle ?? "").toUpperCase() === "HUMANITES" ||
+    String(niveau?.libelle ?? "").toLowerCase().includes("humanit");
+  return isHum && anneeHumanites(niveau) === 1;
 }
 
 const TITRE_MOYEN = (
@@ -85,9 +122,37 @@ const BulletinTemplate: React.FC<BulletinTemplateProps> = ({ bulletin, ecole, an
   }
 
   if (cycle === "SECONDAIRE") {
+    // 1ère année Humanités (Électricité) → maquette dédiée, détectée comme le
+    // 8ème (par abréviation "1H" / sousCycle), ou via l'option si renseignée.
+    if (isElectricite(niveau) || is1ereHumanites(niveau)) {
+      return (
+        <BulletinHumanites
+          bulletin={bulletin}
+          anneeScolaire={anneeScolaire}
+          anneeNumero={anneeHumanites(niveau) ?? 1}
+          option={niveau?.option ?? "Electricité Générale"}
+        />
+      );
+    }
     // 7ème année → Cycle Terminal de l'Education de Base (CTEB), maquette dédiée.
     if (is7emeCTEB(niveau)) {
       return <BulletinCTEB bulletin={bulletin} anneeScolaire={anneeScolaire} />;
+    }
+    // 8ème année → CTEB (réf. IGE/P.S./008) : branches & maxima distincts,
+    // + bloc RESULTAT FINAL / TENASOSP (examen de fin de cycle terminal).
+    if (is8emeCTEB(niveau)) {
+      return (
+        <BulletinCTEB
+          bulletin={bulletin}
+          anneeScolaire={anneeScolaire}
+          rows={ROWS_CTEB8}
+          anneeNumero={8}
+          reference="008"
+          maxSemestre={1680}
+          maxGeneral={3360}
+          resultatFinal
+        />
+      );
     }
     return <BulletinSecondaire bulletin={bulletin} ecole={ecole} anneeScolaire={anneeScolaire} />;
   }

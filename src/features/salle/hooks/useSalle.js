@@ -9,7 +9,7 @@ const initialState = {
   error: null,
 
   search: "",
-  selectedType: "Tous",
+  selectedType: "CLASSE",
   selectedDispo: "Tous",
   showFilters: false,
 
@@ -82,7 +82,7 @@ function reducer(state, action) {
     case "TOGGLE_FILTERS":
       return { ...state, showFilters: !state.showFilters };
     case "RESET_FILTERS":
-      return { ...state, search: "", selectedType: "Tous", selectedDispo: "Tous" };
+      return { ...state, search: "", selectedType: "CLASSE", selectedDispo: "Tous" };
 
     case "OPEN_DRAWER":
       return { ...state, drawerSalle: action.payload };
@@ -183,7 +183,7 @@ export const useSalle = () => {
     const q = state.search.toLowerCase().trim();
     return state.salles.filter((s) => {
       if (q && !s.nom.toLowerCase().includes(q)) return false;
-      if (state.selectedType !== "Tous" && s.type !== state.selectedType) return false;
+      if (s.type !== state.selectedType) return false;
       if (state.selectedDispo === "DISPONIBLE" && !s.disponible) return false;
       if (state.selectedDispo === "INDISPONIBLE" && s.disponible) return false;
       return true;

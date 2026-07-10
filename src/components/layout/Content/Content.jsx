@@ -1,51 +1,16 @@
 import { motion } from "framer-motion";
-import { ChevronRight, Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Home } from "lucide-react";
 
-const Content = ({ children, title, subtitle, breadcrumbs = [], actions }) => {
-  const navigate = useNavigate();
-
+const Content = ({ children, title, subtitle, actions }) => {
   return (
-    <div className="flex-1 min-h-screen bg-[#F8FAFC] flex flex-col">
+    <div className="flex-1 min-h-screen bg-[#e8eef6] flex flex-col">
       {/* ── Header zone ── */}
-      {(breadcrumbs.length > 0 || title) && (
+      {title && (
         // py-3.5 → py-4, px-6 → px-7
         <div className="bg-white border-b border-gray-100 px-7 py-4">
           <div className="flex items-center justify-between">
-            {/* Gauche : breadcrumb + titre */}
+            {/* Gauche : titre */}
             <div className="flex flex-col gap-1.5 min-w-0">
-              {/* Breadcrumb */}
-              {breadcrumbs.length > 0 && (
-                <nav className="flex items-center gap-1.5">
-                  {/* home button: w-5/h-5 → w-6/h-6, icon w-3 → w-3.5 */}
-                  <button
-                    onClick={() => navigate("/dashboard")}
-                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors"
-                  >
-                    <Home className="w-3.5 h-3.5 text-gray-400" />
-                  </button>
-                  {breadcrumbs.map((crumb, index) => {
-                    const isLast = index === breadcrumbs.length - 1;
-                    return (
-                      <div key={index} className="flex items-center gap-1.5">
-                        {/* chevron: w-3/h-3 → w-3.5/h-3.5 */}
-                        <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-                        {/* text-[11.5px] → text-[13px] */}
-                        <span
-                          className={`text-[13px] font-medium transition-colors ${
-                            isLast
-                              ? "text-sky-600"
-                              : "text-gray-400 hover:text-gray-600 cursor-pointer"
-                          }`}
-                        >
-                          {crumb}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </nav>
-              )}
-
               {/* Titre + sous-titre */}
               {title && (
                 <motion.div
@@ -88,7 +53,7 @@ const Content = ({ children, title, subtitle, breadcrumbs = [], actions }) => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className="flex-1 px-7 py-6"
+        className="flex-1 px-4 py-4"
       >
         {children || <EmptyState />}
       </motion.div>

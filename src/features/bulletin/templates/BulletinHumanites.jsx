@@ -1,8 +1,12 @@
-// src/features/bulletin/templates/BulletinCTEB.jsx
-// ── Bulletin 7ème année — Cycle Terminal de l'Education de Base (CTEB) ─────────
-// Réf. officielle IGE/P.S./007 — données dynamiques.
-// Structure : 2 SEMESTRES (au lieu de 3 trimestres) + examen de repêchage.
-// Composant autonome : libre de le modifier sans impacter les bulletins primaires.
+// src/features/bulletin/templates/BulletinHumanites.jsx
+// ── Bulletin 1ère année Humanités — section technique (ex. Électricité) ────────
+// Format officiel MINEDUC (papier) — données dynamiques.
+// Spécificités vs CTEB :
+//   • 2 SEMESTRES, 4 périodes (1ère/2e/3e/4e P) + examen de repêchage.
+//   • Pas de colonne MAX par ligne : les maxima sont portés par une ligne d'en-tête
+//     « MAXIMA » qui coiffe chaque groupe de branches.
+//   • Le groupe « ateliers » n'a pas d'examen (uniquement travaux journaliers).
+// Composant autonome : libre de le modifier sans impacter les autres bulletins.
 
 import React from "react";
 
@@ -54,300 +58,66 @@ function findLigne(lignes, nomCherche) {
   );
 }
 
-// ─── Données statiques des branches ──────────────────────────────────────────
-// maxJ  : maximum « journalier » par période
-// maxEx : maximum d'examen (par semestre)
-// maxTot: maximum total du semestre (= 2·maxJ + maxEx)
-// total : maximum général (= 2·maxTot)
+// ─── Données statiques des branches — 1ère Humanités / Électricité Générale ────
+// Chaque groupe est coiffé d'une ligne « MAXIMA » (maxP par période, maxEx par
+// examen, maxTot par semestre, tg total général). Les branches du groupe héritent
+// de ces maxima (servent à colorer les échecs et à binder les notes).
+// `exam: false` → groupe ateliers, sans examen.
 
-export const ROWS_CTEB = [
-  { t: "dom", label: "DOMAINE DES SCIENCES" },
-  { t: "grp", label: "Sous-domaine des Mathématiques" },
-  { t: "row", nom: "Arithmétique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Statistique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Géométrie", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Algèbre", maxJ: 40, maxEx: 80, maxTot: 160, total: 320 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 80,
-    maxEx: 160,
-    maxTot: 320,
-    total: 640,
-  },
-  { t: "grp", label: "Sous-domaine des Sciences de la Vie et de la Terre" },
-  { t: "row", nom: "Anatomie", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Botanique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Zoologie", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 30,
-    maxEx: 60,
-    maxTot: 120,
-    total: 240,
-  },
-  {
-    t: "grp",
-    label: "Sous-domaine des Sciences Physiques, Technologie et TIC",
-  },
-  {
-    t: "row",
-    nom: "Sciences Physiques",
-    maxJ: 10,
-    maxEx: 20,
-    maxTot: 40,
-    total: 80,
-  },
-  { t: "row", nom: "Technologie", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  {
-    t: "row",
-    nom: "Techn. d'Info. & Com (TIC)",
-    maxJ: 10,
-    maxEx: 20,
-    maxTot: 40,
-    total: 80,
-  },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 30,
-    maxEx: 60,
-    maxTot: 120,
-    total: 240,
-  },
-  { t: "dom", label: "DOMAINE DES LANGUES" },
-  { t: "row", nom: "Anglais", maxJ: 30, maxEx: 60, maxTot: 120, total: 240 },
-  { t: "row", nom: "Français", maxJ: 70, maxEx: 140, maxTot: 280, total: 560 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 100,
-    maxEx: 200,
-    maxTot: 400,
-    total: 800,
-  },
-  { t: "dom", label: "DOMAINE DE L'UNIVERS SOCIAL ET ENVIRONNEMENT" },
-  {
-    t: "row",
-    nom: "Religion (1)",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "row",
-    nom: "Education à la vie",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "row",
-    nom: "Ed. civique et morale",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  { t: "row", nom: "Géographie", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Histoire", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 100,
-    maxEx: 200,
-    maxTot: 400,
-    total: 800,
-  },
-  { t: "dom", label: "DOMAINE DES ARTS" },
-  { t: "row", nom: "Dessin", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Musique", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 40,
-    maxEx: 80,
-    maxTot: 160,
-    total: 320,
-  },
-  { t: "dom", label: "DOMAINE DU DEVELOPPEMENT PERSONNEL" },
-  {
-    t: "row",
-    nom: "Educat. Phys. & sport.",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "max",
-    nom: "MAXIMA GENERAUX",
-    maxJ: 400,
-    maxEx: 800,
-    maxTot: 1600,
-    total: 3200,
-  },
+function groupe({ maxP, maxEx, maxTot, tg, exam = true }, branches) {
+  return [
+    { t: "max", maxP, maxEx, maxTot, tg, exam },
+    ...branches.map((nom) => ({
+      t: "row",
+      nom,
+      maxP,
+      maxEx,
+      maxTot,
+      tg,
+      exam,
+    })),
+  ];
+}
+
+export const ROWS_HUM_ELEC = [
+  ...groupe({ maxP: 10, maxEx: 20, maxTot: 40, tg: 80 }, [
+    "Religion (1)",
+    "Education à la Vie",
+    "Ed. civ. & morale",
+    "Biologie (1)",
+  ]),
+  ...groupe({ maxP: 20, maxEx: 40, maxTot: 80, tg: 160 }, [
+    "Anglais",
+    "Chimie",
+    "Electronique numérique",
+    "Géographie / actualités",
+    "Histoire",
+    "Informatique",
+    "Instr. méth. Mesures",
+    "Mécanisme",
+    "Physique",
+    "Techno. mécanique",
+  ]),
+  ...groupe({ maxP: 40, maxEx: 80, maxTot: 160, tg: 320 }, [
+    "Dessin électrique",
+    "Dessin industriel",
+    "Electricité générale",
+    "Mécanique générale",
+    "Techno. électr.",
+    "Electronique",
+  ]),
+  ...groupe({ maxP: 50, maxEx: 100, maxTot: 200, tg: 400 }, [
+    "Français",
+    "Mathématiques",
+  ]),
+  ...groupe({ maxP: 100, maxEx: null, maxTot: 200, tg: 400, exam: false }, [
+    "Atelier électrique",
+    "Atelier ajustage",
+  ]),
 ];
 
-// ─── 8ème année — CTEB (réf. IGE/P.S./008) ────────────────────────────────────
-// Diffère de la 7ème : ajout de Nutrition (SVT) et Chimie (Sc. physiques),
-// Zoologie & Géographie revalorisées, Français à 50/100/200/400.
-// Maxima généraux : 420 / 840 / 1680 / 3360.
-
-export const ROWS_CTEB8 = [
-  { t: "dom", label: "DOMAINE DES SCIENCES" },
-  { t: "grp", label: "Sous-domaine des Mathématiques" },
-  { t: "row", nom: "Arithmétique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Statistique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Géométrie", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Algèbre", maxJ: 40, maxEx: 80, maxTot: 160, total: 320 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 80,
-    maxEx: 160,
-    maxTot: 320,
-    total: 640,
-  },
-  { t: "grp", label: "Sous-domaine des Sciences de la Vie et de la Terre" },
-  { t: "row", nom: "Anatomie", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Botanique", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Nutrition", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  { t: "row", nom: "Zoologie", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 50,
-    maxEx: 100,
-    maxTot: 200,
-    total: 400,
-  },
-  {
-    t: "grp",
-    label: "Sous-domaine des Sciences Physiques, Technologie et TIC",
-  },
-  { t: "row", nom: "Chimie (1)", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  {
-    t: "row",
-    nom: "Sciences Physiques",
-    maxJ: 10,
-    maxEx: 20,
-    maxTot: 40,
-    total: 80,
-  },
-  { t: "row", nom: "Technologie", maxJ: 10, maxEx: 20, maxTot: 40, total: 80 },
-  {
-    t: "row",
-    nom: "Techn. d'Info. & Com (TIC)",
-    maxJ: 10,
-    maxEx: 20,
-    maxTot: 40,
-    total: 80,
-  },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 40,
-    maxEx: 80,
-    maxTot: 160,
-    total: 320,
-  },
-  { t: "dom", label: "DOMAINE DES LANGUES" },
-  { t: "row", nom: "Anglais", maxJ: 30, maxEx: 60, maxTot: 120, total: 240 },
-  { t: "row", nom: "Français", maxJ: 50, maxEx: 100, maxTot: 200, total: 400 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 80,
-    maxEx: 160,
-    maxTot: 320,
-    total: 640,
-  },
-  { t: "dom", label: "DOMAINE DE L'UNIVERS SOCIAL ET ENVIRONNEMENT" },
-  {
-    t: "row",
-    nom: "Religion (1)",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "row",
-    nom: "Education à la vie",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "row",
-    nom: "Ed. civique et morale",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  { t: "row", nom: "Histoire", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Géographie", maxJ: 30, maxEx: 60, maxTot: 120, total: 240 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 110,
-    maxEx: 220,
-    maxTot: 440,
-    total: 880,
-  },
-  { t: "dom", label: "DOMAINE DES ARTS" },
-  { t: "row", nom: "Dessin", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  { t: "row", nom: "Musique", maxJ: 20, maxEx: 40, maxTot: 80, total: 160 },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 40,
-    maxEx: 80,
-    maxTot: 160,
-    total: 320,
-  },
-  { t: "dom", label: "DOMAINE DU DEVELOPPEMENT PERSONNEL" },
-  {
-    t: "row",
-    nom: "Ed. Physique & Sportive",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "sub",
-    nom: "Sous - Total",
-    maxJ: 20,
-    maxEx: 40,
-    maxTot: 80,
-    total: 160,
-  },
-  {
-    t: "max",
-    nom: "MAXIMA GENERAUX",
-    maxJ: 420,
-    maxEx: 840,
-    maxTot: 1680,
-    total: 3360,
-  },
-];
-
-const NB_COLS = 14; // BRANCHES(1) + 2×SEMESTRE(5) + TOTAL GEN(1) + REPECHAGE(2)
+// Nombre de colonnes : BRANCHES(1) + S1(4) + S2(4) + T.G.(1) + REPECHAGE(2)
+const NB_COLS = 12;
 
 // Cellule hachurée (non applicable) — motif dessiné en bordures pour l'impression
 const hatchCell = { border: b, padding: 0, height: 14 };
@@ -379,71 +149,65 @@ function Th({ children, rowSpan, colSpan, style = {} }) {
   );
 }
 
-function DomRow({ label }) {
+// Ligne d'en-tête « MAXIMA » coiffant un groupe (ou MAXIMA GENERAUX).
+function MaxRow({ row, label = "MAXIMA", general = false }) {
+  const { maxP, maxEx, maxTot, tg, exam } = row;
+  const bg = general ? "#e8eaf6" : "#eef1f7";
+  const cell = {
+    fontSize: 11,
+    fontWeight: general ? 900 : 800,
+    textAlign: "center",
+    border: b,
+    padding: "1px",
+    background: bg,
+    borderTop: "1.5px solid #000",
+  };
+  const exCell = exam === false ? { ...cell } : cell;
+  const semestre = (pfx) => (
+    <React.Fragment key={pfx}>
+      <td style={cell}>{maxP}</td>
+      <td style={cell}>{maxP}</td>
+      <td style={exCell}>{exam === false ? "" : maxEx}</td>
+      <td style={{ ...cell, borderRight: SEP }}>{maxTot}</td>
+    </React.Fragment>
+  );
   return (
     <tr>
       <td
-        colSpan={NB_COLS}
         style={{
           fontSize: 11,
-          fontWeight: 800,
-          padding: "1px 4px",
-          background: "#fff",
-          color: "#000",
-          letterSpacing: ".04em",
-          textTransform: "uppercase",
-          textAlign: "center",
-          borderTop: "2px solid #000",
-          borderBottom: "2px solid #000",
-        }}
-      >
-        {label}
-      </td>
-    </tr>
-  );
-}
-
-function GrpRow({ label }) {
-  return (
-    <tr>
-      <td
-        colSpan={NB_COLS}
-        style={{
-          fontSize: 10.5,
-          fontWeight: 700,
+          fontWeight: general ? 900 : 800,
           padding: "1px 6px",
-          background: "#d6dce4",
-          color: "#000",
-          fontStyle: "italic",
-          borderBottom: "1px solid #000",
+          borderRight: B,
+          background: bg,
+          borderTop: "1.5px solid #000",
+          letterSpacing: ".03em",
         }}
       >
         {label}
       </td>
+      {semestre("s1")}
+      {semestre("s2")}
+      <td style={{ ...cell, borderRight: SEP, fontWeight: 900 }}>{tg}</td>
+      <td style={{ ...cell }} />
+      <td style={{ ...cell }} />
     </tr>
   );
 }
 
 function DataRow({ row, ligne }) {
-  const { nom, maxJ, maxEx, maxTot, total, t } = row;
-  const isSub = t === "sub";
-  const isMax = t === "max";
-  const bg = isMax ? "#e8eaf6" : "transparent";
-  const fw = isSub || isMax ? 700 : 400;
+  const { nom, maxP, maxEx, maxTot, tg, exam } = row;
   const fs = 11;
-  const gc = isMax ? "#cfd1e8" : "#fff";
-  const topB = isSub || isMax ? { borderTop: "2px solid #000" } : {};
 
-  // Valeurs dynamiques (mappées sur le modèle BulletinLigne)
   const v = (x) => (ligne ? fmt(x) : "");
-  const p1 = v(ligne?.ptsP1); // 1ère P (S1)
-  const p2 = v(ligne?.ptsP2); // 2ème P (S1)
-  const ex1 = v(ligne?.ptsEx1); // examen S1
-  const tot1 = v(ligne?.totalCycle1); // total S1
-  const p3 = v(ligne?.ptsP3); // 3ème P (S2)
-  const p4 = v(ligne?.ptsP4); // 4ème P (S2)
-  const ex2 = v(ligne?.ptsEx2); // examen S2
-  const tot2 = v(ligne?.totalCycle2); // total S2
+  const p1 = v(ligne?.ptsP1);
+  const p2 = v(ligne?.ptsP2);
+  const ex1 = v(ligne?.ptsEx1);
+  const tot1 = v(ligne?.totalCycle1);
+  const p3 = v(ligne?.ptsP3);
+  const p4 = v(ligne?.ptsP4);
+  const ex2 = v(ligne?.ptsEx2);
+  const tot2 = v(ligne?.totalCycle2);
   const totG = ligne
     ? fmt(
         ligne.totalGeneral ??
@@ -454,41 +218,25 @@ function DataRow({ row, ligne }) {
     ligne?.pctRepechage != null ? `${fmt(ligne.pctRepechage, 1)}` : "";
   const signRep = ligne?.signatureProfRepOk ? "✓" : "";
 
-  // Styles cellules
   const nc = {
     fontSize: fs,
-    fontWeight: fw,
+    fontWeight: 400,
     padding: "1px 4px",
     borderRight: B,
-    background: bg,
     color: "#111",
-    ...topB,
   };
-  const gCl = {
-    fontSize: fs,
-    fontWeight: fw,
-    textAlign: "center",
-    background: gc,
-    padding: "0 1px",
-    border: b,
-    ...topB,
-  };
-  const eCl = { border: b, padding: 0, ...topB };
+  const eCl = { border: b, padding: 0 };
   const valStyle = (value, max) => {
     const num = parseFloat(value);
     const isFail = !isNaN(num) && max > 0 && num < max / 2;
     return {
       fontSize: fs + 1,
-      fontWeight: fw,
       textAlign: "center",
       border: b,
       padding: "0 1px",
-      background: bg,
       color: isFail ? "#dc2626" : "#1d4ed8",
-      ...topB,
     };
   };
-
   const Val = (value, max, key, extra = {}) => (
     <td
       key={key}
@@ -500,39 +248,27 @@ function DataRow({ row, ligne }) {
     </td>
   );
 
-  // Un semestre = 5 colonnes : MAX. | 1ère/3ème P | 2ème/4ème P | MAX. EXAM. | TOTAL
-  // Les colonnes MAX./MAX. EXAM./TOTAL affichent les maxima (réf.) tant qu'aucune
-  // note n'est saisie ; elles montrent la valeur obtenue (bleue) dès qu'elle existe.
+  // Un semestre = 4 colonnes : 1ère/3e P | 2e/4e P | EXAM. | TOT.
+  // Le groupe ateliers (exam === false) hachure la colonne EXAM.
   const semestre = (pA, pB, ex, tot, pfx) => [
-    <td key={pfx + "mj"} style={gCl}>{maxJ}</td>,
-    Val(pA, maxJ, pfx + "pA"),
-    Val(pB, maxJ, pfx + "pB"),
-    ex
-      ? Val(ex, maxEx, pfx + "ex")
-      : <td key={pfx + "ex"} style={gCl}>{maxEx}</td>,
-    tot
-      ? Val(tot, maxTot, pfx + "tot", { borderRight: SEP, fontWeight: 700 })
-      : <td key={pfx + "tot"} style={{ ...gCl, borderRight: SEP }}>{maxTot}</td>,
+    Val(pA, maxP, pfx + "pA"),
+    Val(pB, maxP, pfx + "pB"),
+    exam === false
+      ? <td key={pfx + "ex"} style={hatchCell}><Hatch /></td>
+      : Val(ex, maxEx, pfx + "ex"),
+    Val(tot, maxTot, pfx + "tot", { borderRight: SEP, fontWeight: 700 }),
   ];
 
   return (
-    <tr style={{ background: bg, borderBottom: b }}>
+    <tr style={{ borderBottom: b }}>
       <td style={nc}>{nom}</td>
-
-      {/* ── PREMIER SEMESTRE ── */}
+      {/* PREMIER SEMESTRE */}
       {semestre(p1, p2, ex1, tot1, "s1")}
-
-      {/* ── SECOND SEMESTRE ── */}
+      {/* SECOND SEMESTRE */}
       {semestre(p3, p4, ex2, tot2, "s2")}
-
-      {/* ── TOTAL GENERAL ── */}
-      {totG
-        ? Val(totG, total, "totG", { fontWeight: 800, borderRight: SEP })
-        : (
-          <td style={{ ...gCl, fontWeight: 800, borderRight: SEP }}>{total}</td>
-        )}
-
-      {/* ── EXAMEN DE REPECHAGE ── */}
+      {/* T.G. */}
+      {Val(totG, tg, "totG", { fontWeight: 800, borderRight: SEP })}
+      {/* EXAMEN DE REPECHAGE */}
       {Val(pctRep, 0, "pctRep")}
       <td
         style={{
@@ -560,10 +296,9 @@ function BotRow({ label, s1 = "", s2 = "", gen = "", hatch = true, decision }) {
     verticalAlign: "middle",
     padding: "1px",
   };
-  // Un semestre (5 cellules) : MAX(hachuré) | P | P | MAX.EXAM(hachuré) | TOTAL(valeur)
+  // Un semestre (4 cellules) : P | P | EXAM(hachuré) | TOT(valeur)
   const semestre = (val, pfx) => (
     <React.Fragment key={pfx}>
-      <td style={hatch ? hatchCell : { border: b }}>{hatch && <Hatch />}</td>
       <td style={{ border: b }} />
       <td style={{ border: b }} />
       <td style={hatch ? hatchCell : { border: b }}>{hatch && <Hatch />}</td>
@@ -585,7 +320,7 @@ function BotRow({ label, s1 = "", s2 = "", gen = "", hatch = true, decision }) {
       </td>
       {semestre(s1, "s1")}
       {semestre(s2, "s2")}
-      {/* Total général */}
+      {/* T.G. */}
       <td style={{ ...valCell, borderRight: SEP }}>{gen}</td>
       {/* Repêchage / bloc décision */}
       {decision === undefined ? (
@@ -602,15 +337,12 @@ function BotRow({ label, s1 = "", s2 = "", gen = "", hatch = true, decision }) {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-export default function BulletinCTEB({
+export default function BulletinHumanites({
   bulletin,
   anneeScolaire,
-  rows = ROWS_CTEB,
-  anneeNumero = 7,
-  reference = "007",
-  maxSemestre = 1600,
-  maxGeneral = 3200,
-  resultatFinal = false,
+  rows = ROWS_HUM_ELEC,
+  anneeNumero = 1,
+  option = "Electricité Générale",
 }) {
   const lignes = bulletin?.lignes;
   const ins = bulletin?.inscription;
@@ -623,9 +355,17 @@ export default function BulletinCTEB({
   const nomEleve = util ? `${util.prenom ?? ""} ${util.nom ?? ""}`.trim() : "";
   const noPerm = eleve?.matricule ?? "";
 
-  // ── Pourcentages : Σ(totalCycleK) / max semestriel × 100 ──
-  const MAX_SEM = maxSemestre;
-  const MAX_GEN = maxGeneral;
+  // ── Maxima dérivés des branches (robustes : recalculés depuis `rows`) ──
+  const branches = rows.filter((r) => r.t === "row");
+  const MAX_SEM = branches.reduce((s, r) => s + (r.maxTot || 0), 0);
+  const MAX_GEN = branches.reduce((s, r) => s + (r.tg || 0), 0);
+  const GEN = {
+    maxP: branches.reduce((s, r) => s + (r.maxP || 0), 0),
+    maxEx: branches.reduce((s, r) => s + (r.exam === false ? 0 : r.maxEx || 0), 0),
+    maxTot: MAX_SEM,
+    tg: MAX_GEN,
+  };
+
   const sum = (key) => {
     if (!lignes?.length) return null;
     let s = 0;
@@ -639,7 +379,7 @@ export default function BulletinCTEB({
     return has ? s : null;
   };
   const pct = (val, max) =>
-    val != null ? `${((val / max) * 100).toFixed(1)} %` : "";
+    val != null && max > 0 ? `${((val / max) * 100).toFixed(1)} %` : "";
   const tS1 = sum("totalCycle1");
   const tS2 = sum("totalCycle2");
   const tGen =
@@ -655,7 +395,6 @@ export default function BulletinCTEB({
     bulletin?.effectifClasse != null ? `${bulletin.effectifClasse}` : "";
   const place = bulletin?.rang != null ? `${bulletin.rang}` : "";
 
-  // Ligne pointillée réutilisable
   const dots = (n) => ".".repeat(n);
 
   return (
@@ -704,12 +443,7 @@ export default function BulletinCTEB({
           <img
             src="/logo_drapeau.png"
             alt="Drapeau RDC"
-            style={{
-              width: 84,
-              height: 56,
-              objectFit: "contain",
-              flexShrink: 0,
-            }}
+            style={{ width: 84, height: 56, objectFit: "contain", flexShrink: 0 }}
           />
           <div style={{ textAlign: "center", flex: 1 }}>
             <div
@@ -878,9 +612,7 @@ export default function BulletinCTEB({
               }}
             >
               <span style={{ paddingRight: 6 }}>ELEVE :</span>
-              <span
-                style={{ whiteSpace: "nowrap", textTransform: "uppercase" }}
-              >
+              <span style={{ whiteSpace: "nowrap", textTransform: "uppercase" }}>
                 {nomEleve}
               </span>
               <span
@@ -919,9 +651,7 @@ export default function BulletinCTEB({
               }}
             >
               <span style={{ paddingRight: 6 }}>NE(E) A :</span>
-              <span
-                style={{ whiteSpace: "nowrap", textTransform: "uppercase" }}
-              >
+              <span style={{ whiteSpace: "nowrap", textTransform: "uppercase" }}>
                 {eleve?.lieuNaissance || ""}
               </span>
               <span
@@ -1010,7 +740,7 @@ export default function BulletinCTEB({
           </div>
         </div>
 
-        {/* Titre — centré sur une seule ligne (conforme au modèle officiel) */}
+        {/* Titre */}
         <div
           style={{
             textAlign: "center",
@@ -1019,11 +749,10 @@ export default function BulletinCTEB({
             padding: "4px 16px",
           }}
         >
-          <span
-            style={{ fontSize: 14, fontWeight: 900, letterSpacing: ".01em" }}
-          >
-            BULLETIN DE LA {anneeNumero}<sup>ème</sup> ANNEE CYCLE TERMINAL DE
-            L'EDUCATION DE BASE (CTEB)
+          <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: ".01em" }}>
+            BULLETIN DE LA {anneeNumero}
+            <sup>ère</sup> ANNEE HUMANITES
+            {option ? ` / ${option.toUpperCase()}` : ""}
             <span style={{ display: "inline-block", width: 28 }} />
             ANNEE SCOLAIRE {annee || "_____ - _____"}
           </span>
@@ -1040,24 +769,22 @@ export default function BulletinCTEB({
             }}
           >
             <colgroup>
-              <col style={{ width: 196 }} />
-              {/* Premier semestre : MAX | 1ère P | 2ème P | MAX.EXAM | TOTAL */}
-              <col style={{ width: 32 }} />
-              <col style={{ width: 30 }} />
-              <col style={{ width: 30 }} />
-              <col style={{ width: 36 }} />
-              <col style={{ width: 42 }} />
-              {/* Second semestre : MAX | 3ème P | 4ème P | MAX.EXAM | TOTAL */}
-              <col style={{ width: 32 }} />
-              <col style={{ width: 30 }} />
-              <col style={{ width: 30 }} />
-              <col style={{ width: 36 }} />
-              <col style={{ width: 42 }} />
-              {/* Total général */}
-              <col style={{ width: 48 }} />
+              <col style={{ width: 230 }} />
+              {/* Premier semestre : 1ère P | 2e P | EXAM | TOT */}
+              <col style={{ width: 40 }} />
+              <col style={{ width: 40 }} />
+              <col style={{ width: 46 }} />
+              <col style={{ width: 50 }} />
+              {/* Second semestre : 3e P | 4e P | EXAM | TOT */}
+              <col style={{ width: 40 }} />
+              <col style={{ width: 40 }} />
+              <col style={{ width: 46 }} />
+              <col style={{ width: 50 }} />
+              {/* T.G. */}
+              <col style={{ width: 54 }} />
               {/* Examen de repêchage */}
-              <col style={{ width: 34 }} />
-              <col style={{ width: 56 }} />
+              <col style={{ width: 38 }} />
+              <col style={{ width: 70 }} />
             </colgroup>
 
             <thead style={{ background: "#fff" }}>
@@ -1065,16 +792,12 @@ export default function BulletinCTEB({
               <tr>
                 <Th
                   rowSpan={3}
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    verticalAlign: "middle",
-                  }}
+                  style={{ fontSize: 13, fontWeight: 700, verticalAlign: "middle" }}
                 >
                   B R A N C H E S
                 </Th>
                 <Th
-                  colSpan={5}
+                  colSpan={4}
                   style={{
                     fontSize: 12,
                     borderBottom: "2px solid #000",
@@ -1084,7 +807,7 @@ export default function BulletinCTEB({
                   PREMIER SEMESTRE
                 </Th>
                 <Th
-                  colSpan={5}
+                  colSpan={4}
                   style={{
                     fontSize: 12,
                     borderBottom: "2px solid #000",
@@ -1093,13 +816,8 @@ export default function BulletinCTEB({
                 >
                   SECOND SEMESTRE
                 </Th>
-                <Th
-                  rowSpan={3}
-                  style={{ fontSize: 11, borderRight: SEP }}
-                >
-                  TOTAL
-                  <br />
-                  GENERAL
+                <Th rowSpan={3} style={{ fontSize: 12, borderRight: SEP }}>
+                  T.G.
                 </Th>
                 <Th
                   colSpan={2}
@@ -1114,49 +832,35 @@ export default function BulletinCTEB({
               {/* Ligne 2 : sous-en-têtes des semestres */}
               <tr>
                 {/* Premier semestre */}
-                <Th rowSpan={2}>MAX.</Th>
                 <Th colSpan={2} style={{ borderBottom: "1px solid #000" }}>
-                  TRAVAUX
-                  <br />
-                  JOURNAL.
+                  TR. JOURNAL
                 </Th>
-                <Th rowSpan={2}>
-                  MAX.
-                  <br />
-                  EXAM.
-                </Th>
+                <Th rowSpan={2}>EXAM.</Th>
                 <Th rowSpan={2} style={{ borderRight: SEP }}>
-                  TOTAL
+                  TOT.
                 </Th>
                 {/* Second semestre */}
-                <Th rowSpan={2}>MAX.</Th>
                 <Th colSpan={2} style={{ borderBottom: "1px solid #000" }}>
-                  TRAVAUX
-                  <br />
-                  JOURNAL.
+                  TR. JOURNAL
                 </Th>
-                <Th rowSpan={2}>
-                  MAX.
-                  <br />
-                  EXAM.
-                </Th>
+                <Th rowSpan={2}>EXAM.</Th>
                 <Th rowSpan={2} style={{ borderRight: SEP }}>
-                  TOTAL
+                  TOT.
                 </Th>
               </tr>
               {/* Ligne 3 : périodes + colonnes repêchage */}
               <tr>
                 <Th>
-                  1<sup>ère</sup> P
-                </Th>
-                <Th>
-                  2<sup>ème</sup> P
-                </Th>
-                <Th>
-                  3<sup>ème</sup> P
+                  1<sup>ère</sup> P.
                 </Th>
                 <Th style={{ borderRight: SEP }}>
-                  4<sup>ème</sup> P
+                  2<sup>e</sup> P.
+                </Th>
+                <Th>
+                  3<sup>e</sup> P.
+                </Th>
+                <Th style={{ borderRight: SEP }}>
+                  4<sup>e</sup> P.
                 </Th>
                 <Th>%</Th>
                 <Th>
@@ -1169,16 +873,13 @@ export default function BulletinCTEB({
 
             <tbody>
               {rows.map((row, i) => {
-                if (row.t === "dom")
-                  return <DomRow key={i} label={row.label} />;
-                if (row.t === "grp")
-                  return <GrpRow key={i} label={row.label} />;
-                const ligne =
-                  row.t === "sub" || row.t === "max"
-                    ? undefined
-                    : findLigne(lignes, row.nom);
+                if (row.t === "max") return <MaxRow key={i} row={row} />;
+                const ligne = findLigne(lignes, row.nom);
                 return <DataRow key={i} row={row} ligne={ligne} />;
               })}
+
+              {/* MAXIMA GENERAUX */}
+              <MaxRow row={GEN} label="MAXIMA GENERAUX" general />
 
               {/* Lignes d'information + bloc décision fusionné à droite */}
               <BotRow
@@ -1205,13 +906,25 @@ export default function BulletinCTEB({
                     <div style={{ marginTop: 6, fontStyle: "italic" }}>
                       Le Chef d'Etablissement
                     </div>
-                    <div style={{ marginTop: 18, textAlign: "center", fontStyle: "italic" }}>
-                      Sceau de l'école
+                    <div
+                      style={{
+                        marginTop: 18,
+                        textAlign: "center",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      Sceau de l'Ecole
                     </div>
                   </td>
                 }
               />
-              <BotRow label="POURCENTAGE" s1={pS1} s2={pS2} gen={pGen} decision={null} />
+              <BotRow
+                label="POURCENTAGE"
+                s1={pS1}
+                s2={pS2}
+                gen={pGen}
+                decision={null}
+              />
               <BotRow
                 label="PLACE / NBRE D'ELEVES"
                 s1={place && eff ? `${place}/${eff}` : ""}
@@ -1222,25 +935,21 @@ export default function BulletinCTEB({
               />
               <BotRow label="APPLICATION" decision={null} />
               <BotRow label="CONDUITE" decision={null} />
-              <BotRow label="SIGNATURE" decision={null} />
+              <BotRow label="Signature du responsable" decision={null} />
             </tbody>
           </table>
         </div>
 
         {/* ── PIED DE PAGE ── */}
-        <div
-          style={{ padding: "8px 14px 8px", borderTop: "2px solid #1a1a1a" }}
-        >
+        <div style={{ padding: "8px 14px 8px", borderTop: "2px solid #1a1a1a" }}>
           {/* Repêchage + décisions */}
           <div style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.7 }}>
             <div style={{ display: "flex", alignItems: "baseline" }}>
               <span style={{ whiteSpace: "nowrap" }}>
-                - L'élève ne pourra passer dans la classe supérieure s'il n'a
-                subi avec succès un examen de repêchage en
+                - L'élève ne pourra passer dans la classe supérieure s'il n'a subi
+                avec succès un examen de repêchage en
               </span>
-              <span
-                style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}
-              >
+              <span style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}>
                 {dots(120)}
               </span>
               <sup>(1)</sup>
@@ -1252,156 +961,6 @@ export default function BulletinCTEB({
               - L'élève double la classe <sup>(1)</sup>
             </div>
           </div>
-
-          {/* Bloc RESULTAT FINAL / TENASOSP — fin du cycle terminal (8ème) */}
-          {resultatFinal && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: 16,
-                marginTop: 10,
-              }}
-            >
-              {/* Résultat final */}
-              <table
-                style={{
-                  borderCollapse: "collapse",
-                  fontSize: 11,
-                  fontWeight: 700,
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th
-                      style={{
-                        border: B,
-                        padding: "2px 10px",
-                        textAlign: "left",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      RESULTAT FINAL
-                    </th>
-                    <th style={{ border: B, padding: "2px 6px", width: 96 }}>
-                      POINTS OBT.
-                    </th>
-                    <th style={{ border: B, padding: "2px 6px", width: 40 }}>
-                      MAX
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { label: "MOYENNE ECOLE", max: 50 },
-                    { label: "TENASOSP", max: 50 },
-                    { label: "TOTAL", max: 100 },
-                  ].map((r) => (
-                    <tr key={r.label}>
-                      <td
-                        style={{
-                          border: B,
-                          padding: "2px 10px",
-                          fontWeight: r.label === "TOTAL" ? 900 : 700,
-                        }}
-                      >
-                        {r.label}
-                      </td>
-                      <td style={{ border: B, padding: "2px 6px" }} />
-                      <td
-                        style={{
-                          border: B,
-                          padding: "2px 6px",
-                          textAlign: "center",
-                          fontWeight: 900,
-                        }}
-                      >
-                        {r.max}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Commission + décision du jury */}
-              <div style={{ flex: 1, fontSize: 10.5, fontWeight: 700 }}>
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: 10,
-                    fontWeight: 700,
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        style={{ border: B, padding: "2px 6px", textAlign: "left" }}
-                      >
-                        Membre de la commission
-                      </th>
-                      <th style={{ border: B, padding: "2px 6px" }}>Noms</th>
-                      <th style={{ border: B, padding: "2px 6px", width: 120 }}>
-                        Signatures
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      "1. Superviseur",
-                      "2. Superviseur Adjoint",
-                      "3. Président",
-                    ].map((m) => (
-                      <tr key={m}>
-                        <td
-                          style={{
-                            border: B,
-                            padding: "2px 6px",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {m}
-                        </td>
-                        <td style={{ border: B, padding: "2px 6px" }} />
-                        <td style={{ border: B, padding: "2px 6px" }} />
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div style={{ marginTop: 4 }}>
-                  - DECISION DU JURY : Passe <sup>(1)</sup>, Double{" "}
-                  <sup>(1)</sup>
-                </div>
-                <div
-                  style={{ display: "flex", alignItems: "baseline", marginTop: 2 }}
-                >
-                  <span style={{ whiteSpace: "nowrap" }}>
-                    - Option Orientée :
-                  </span>
-                  <span
-                    style={{ flex: 1, overflow: "hidden", whiteSpace: "nowrap" }}
-                  >
-                    {dots(80)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Sceau du Pool d'Inspection */}
-              <div
-                style={{
-                  width: 150,
-                  textAlign: "center",
-                  fontSize: 11,
-                  fontWeight: 800,
-                  fontStyle: "italic",
-                  alignSelf: "center",
-                }}
-              >
-                Sceau du Pool d'Inspection
-              </div>
-            </div>
-          )}
 
           {/* Fait à … */}
           <div
@@ -1443,10 +1002,10 @@ export default function BulletinCTEB({
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 800, fontStyle: "italic" }}>
-              Signature de l'élève
+              Signature du responsable
             </div>
             <div style={{ fontSize: 13, fontWeight: 800, textAlign: "center" }}>
-              Sceau de l'école
+              Sceau de l'Ecole
             </div>
             <div style={{ fontSize: 13, fontWeight: 800, textAlign: "center" }}>
               <div>Chef d'Etablissement,</div>
@@ -1468,11 +1027,7 @@ export default function BulletinCTEB({
             <div>(1) Biffer la mention inutile.</div>
             <div style={{ fontWeight: 800 }}>
               Note importante : Le bulletin est sans valeur s'il est raturé ou
-              surchargé. IGE/P.S./{reference}
-            </div>
-            <div style={{ fontStyle: "italic", marginTop: 1 }}>
-              Interdiction formelle de reproduire ce bulletin sous peine des
-              sanctions prévues par la loi.
+              surchargé.
             </div>
           </div>
         </div>

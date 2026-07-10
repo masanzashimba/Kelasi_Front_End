@@ -7,10 +7,6 @@ import Content from "../Content/Content";
 const DashboardLayout = ({ children, title, breadcrumbs }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar
@@ -21,11 +17,11 @@ const DashboardLayout = ({ children, title, breadcrumbs }) => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navbar */}
-        <Navbar onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} />
+        <Navbar breadcrumbs={breadcrumbs} />
 
         {/* Content */}
         <div className="flex-1 h-full overflow-y-auto">
-          <Content title={title} breadcrumbs={breadcrumbs}>
+          <Content title={title}>
             <div>{children}</div>
           </Content>
         </div>

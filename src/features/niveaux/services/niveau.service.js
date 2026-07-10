@@ -9,5 +9,6 @@ export const niveauService = {
   update:     (id, dto)      => api.patch(`${BASE}/${id}`, dto).then((r) => r.data),
   remove:     (id)           => api.delete(`${BASE}/${id}`).then(() => id),
   reorder:    (ordres)       => api.post(`${BASE}/reorder`, { ordres }).then((r) => r.data),
-  seedDefaut: (cycles)       => api.post(`${BASE}/seed-defaut`, { cycles }).then((r) => r.data),
+  // payload : { cycles: string[], humanitesSections?: [{ sectionKey, sectionLabel, options }] }
+  seedDefaut: (payload)      => api.post(`${BASE}/seed-defaut`, payload).then((r) => r.data),
 };
