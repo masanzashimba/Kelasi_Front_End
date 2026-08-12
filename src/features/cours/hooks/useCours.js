@@ -2,6 +2,20 @@ import { useCallback, useMemo, useReducer } from "react";
 import { toast } from "react-toastify";
 import { coursService } from "../../../services/cours.service";
 
+// Les Humanités sont un sous-cycle du secondaire : on les sort dans leur
+// propre onglet, le reste du secondaire (tronc commun) restant sous SECONDAIRE.
+export const cycleTabOf = (c) => {
+  if (c?.sousCycle === "HUMANITES") return "HUMANITES";
+  if (c?.cycle === "SECONDAIRE") return "SECONDAIRE";
+  if (c?.cycle === "MATERNELLE" || c?.cycle === "PRIMAIRE") return c.cycle;
+  return null;
+};
+
+// Cycles où le titulaire de la classe enseigne toutes les matières,
+// sauf exception explicite (cours confié à un autre professeur).
+export const isMonoTitulaire = (tab) =>
+  tab === "MATERNELLE" || tab === "PRIMAIRE";
+
 const initialState = {
   cours: [],
   loading: false,
@@ -12,6 +26,7 @@ const initialState = {
   search: "",
   filterClasseId: "",
   filterMatiereId: "",
+  cycleTab: "PRIMAIRE", // MATERNELLE | PRIMAIRE | SECONDAIRE | HUMANITES
 
   detailCours: null,
   detailCreneaux: [],
@@ -19,6 +34,7 @@ const initialState = {
 
   modalMode: null, // null | "create" | "edit"
   selectedCours: null,
+  presetClasseId: null, // classe pré-cochée à l'ouverture du formulaire
 
   showCreneauDrawer: false,
   deleteConfirmId: null,
@@ -53,6 +69,7 @@ function reducer(state, action) {
         ),
         modalMode: null,
         selectedCours: null,
+        presetClasseId: null,
       };
 
     case "ADD_COURS_BULK":
@@ -66,6 +83,7 @@ function reducer(state, action) {
         ),
         modalMode: null,
         selectedCours: null,
+        presetClasseId: null,
       };
 
     case "UPDATE_COURS":
@@ -100,6 +118,8 @@ function reducer(state, action) {
       return { ...state, filterClasseId: action.payload };
     case "SET_FILTER_MATIERE":
       return { ...state, filterMatiereId: action.payload };
+    case "SET_CYCLE_TAB":
+      return { ...state, cycleTab: action.payload, emploiClasseId: "", emploiCreneaux: [] };
 
     case "OPEN_DETAIL":
       return {
@@ -171,10 +191,17 @@ function reducer(state, action) {
         ...state,
         modalMode: action.payload.mode,
         selectedCours: action.payload.cours ?? null,
+        presetClasseId: action.payload.classeId ?? null,
         error: null,
       };
     case "CLOSE_MODAL":
-      return { ...state, modalMode: null, selectedCours: null, error: null };
+      return {
+        ...state,
+        modalMode: null,
+        selectedCours: null,
+        presetClasseId: null,
+        error: null,
+      };
 
     case "OPEN_CRENEAU_DRAWER":
       return { ...state, showCreneauDrawer: true };
@@ -342,7 +369,8 @@ export const useCours = () => {
     }
   }, []);
 
-  const filteredCours = useMemo(() => {
+  // Cours filtrés par recherche + classe + matière, tous cycles confondus.
+  const searchedCours = useMemo(() => {
     let list = state.cours;
     const q = state.search.toLowerCase().trim();
     if (q)
@@ -360,6 +388,26 @@ export const useCours = () => {
     return list;
   }, [state.cours, state.search, state.filterClasseId, state.filterMatiereId]);
 
+  // Nombre de cours par onglet de cycle (sur la sélection courante).
+  const cycleCounts = useMemo(() => {
+    const counts = {
+      MATERNELLE: 0,
+      PRIMAIRE: 0,
+      SECONDAIRE: 0,
+      HUMANITES: 0,
+    };
+    for (const c of searchedCours) {
+      const tab = cycleTabOf(c);
+      if (tab) counts[tab] += 1;
+    }
+    return counts;
+  }, [searchedCours]);
+
+  const filteredCours = useMemo(
+    () => searchedCours.filter((c) => cycleTabOf(c) === state.cycleTab),
+    [searchedCours, state.cycleTab],
+  );
+
   const coursesByClasse = useMemo(() => {
     const map = new Map();
     for (const c of filteredCours) {
@@ -368,14 +416,31 @@ export const useCours = () => {
           classeId: c.classeId,
           classeNom: c.classeNom,
           niveauLibelle: c.niveauLibelle,
+          niveauOrdre: c.niveauOrdre ?? 0,
           cours: [],
         });
       }
       map.get(c.classeId).cours.push(c);
     }
-    return Array.from(map.values()).sort((a, b) =>
-      a.classeNom.localeCompare(b.classeNom),
-    );
+    return Array.from(map.values())
+      .map((g) => {
+        // En maternelle/primaire le titulaire assure tout : on l'affiche une
+        // fois en tête de groupe et on compte les cours confiés à un autre prof.
+        const titulaireCours = g.cours.find((c) => c.estTitulaire);
+        const exceptions = g.cours.filter((c) => !c.estTitulaire);
+        return {
+          ...g,
+          titulaireNom: titulaireCours?.enseignantNom ?? null,
+          titulaireId: titulaireCours?.enseignantId ?? null,
+          titulairePhoto: titulaireCours?.enseignantPhoto ?? null,
+          exceptions: exceptions.length,
+        };
+      })
+      .sort(
+        (a, b) =>
+          a.niveauOrdre - b.niveauOrdre ||
+          a.classeNom.localeCompare(b.classeNom),
+      );
   }, [filteredCours]);
 
   const stats = useMemo(
@@ -391,8 +456,10 @@ export const useCours = () => {
   return {
     state,
     dispatch,
+    searchedCours,
     filteredCours,
     coursesByClasse,
+    cycleCounts,
     stats,
     fetchCours,
     fetchCreneaux,

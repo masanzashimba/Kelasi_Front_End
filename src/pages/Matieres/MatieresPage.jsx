@@ -14,6 +14,8 @@ import {
   GraduationCap,
   Sparkles,
   Tag,
+  ChevronRight,
+  Layers,
 } from "lucide-react";
 
 import { useMatiere } from "../../features/matiere/hooks/useMatiere";
@@ -34,6 +36,34 @@ const fade = (delay = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.24, ease: "easeOut", delay },
 });
+
+// ─── Onglets par cycle (comme la page Classes) ────────────────
+const MATIERE_TABS = [
+  { key: "Toutes", label: "Toutes" },
+  { key: "MATERNELLE", label: "Maternelle" },
+  { key: "PRIMAIRE", label: "Primaire" },
+  { key: "SECONDAIRE", label: "Secondaire" },
+  { key: "HUMANITES", label: "Humanités" },
+];
+
+// Sections d'Humanités (sous-onglets)
+const SECTION_LABELS = {
+  SCIENTIFIQUE: "Scientifique",
+  LITTERAIRE: "Littéraire",
+  COMMERCIALE: "Commerciale & Gestion",
+  PEDAGOGIQUE: "Pédagogique",
+  TECHNIQUE: "Technique",
+  ARTISTIQUE: "Artistique",
+};
+const SECTION_ORDER = Object.keys(SECTION_LABELS);
+
+// Niveaux appartenant à un onglet cycle
+const niveauInCycle = (n, cycle) => {
+  if (cycle === "HUMANITES") return n.sousCycle === "HUMANITES";
+  if (cycle === "SECONDAIRE")
+    return n.cycle === "SECONDAIRE" && n.sousCycle !== "HUMANITES";
+  return n.cycle === cycle;
+};
 
 // ─── Domain separator row ──────────────────────────────────────
 const DomainSeparatorRow = ({ domainKey, count }) => {
@@ -68,6 +98,32 @@ const DomainSeparatorRow = ({ domainKey, count }) => {
     </tr>
   );
 };
+
+// ─── Accordéon niveau (entête de groupe repliable) ────────────
+const NiveauAccordionRow = ({ niveau, count, open, onToggle }) => (
+  <tr>
+    <td colSpan={6} className="p-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-5 py-2.5 bg-gray-50/70 border-y border-gray-100 hover:bg-gray-100/70 transition-colors text-left"
+      >
+        <ChevronRight
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${open ? "rotate-90" : ""}`}
+        />
+        <div className="w-7 h-7 rounded-lg bg-[#eff4ff] flex items-center justify-center shrink-0">
+          <GraduationCap className="w-3.5 h-3.5 text-[#0b57cd]" />
+        </div>
+        <span className="text-[13px] font-semibold text-gray-800">
+          {niveau.libelle}
+        </span>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#0b57cd] border border-blue-100">
+          {count} matière{count > 1 ? "s" : ""}
+        </span>
+      </button>
+    </td>
+  </tr>
+);
 
 // ─── Stats bar (style page Classes) ───────────────────────────
 const StatsBar = ({ stats, loading }) => {
@@ -119,7 +175,6 @@ const MatieresPage = () => {
     createMatiere,
     updateMatiere,
     deleteMatiere,
-    addMatiereToNiveau,
     removeMatiereFromNiveau,
     seedMatieres,
   } = useMatiere();
@@ -130,7 +185,9 @@ const MatieresPage = () => {
   const [detailMat, setDetailMat] = useState(null);
   const [editMat, setEditMat] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [niveauFilter, setNiveauFilter] = useState("Tous"); // "Tous" | niveau.id
+  const [cycleTab, setCycleTab] = useState("Toutes"); // "Toutes" | cycle | "HUMANITES"
+  const [sectionTab, setSectionTab] = useState(""); // sous-onglet section (Humanités)
+  const [openNiveaux, setOpenNiveaux] = useState({}); // accordéons : id -> false = fermé
   const [search, setSearch] = useState("");
   const [seedModalOpen, setSeedModalOpen] = useState(false);
 
@@ -142,48 +199,70 @@ const MatieresPage = () => {
 
   // ── Dérivés ───────────────────────────────────────────────
 
-  const selectedNiveau = niveaux.find((n) => n.id === niveauFilter) ?? null;
-  const isFiltered = niveauFilter !== "Tous";
+  const isCatalogue = cycleTab === "Toutes";
+  const isHumanites = cycleTab === "HUMANITES";
 
-  // Matières affichées selon le filtre niveau
-  const baseMatieres = isFiltered
-    ? (niveauMatieres[niveauFilter] ?? [])
-    : matiereState.matieres;
+  const matchSearch = (m) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return m.nom.toLowerCase().includes(q) || m.code.toLowerCase().includes(q);
+  };
 
-  const displayMatieres = useMemo(() => {
-    let list = baseMatieres;
-    if (search)
-      list = list.filter(
-        (m) =>
-          m.nom.toLowerCase().includes(search.toLowerCase()) ||
-          m.code.toLowerCase().includes(search.toLowerCase()),
-      );
-    return list;
-  }, [baseMatieres, search]);
-
-  // Groupement par domaine (uniquement en mode niveau filtré)
-  const byDomain = useMemo(() => {
-    if (!isFiltered) return null;
-    return displayMatieres.reduce((acc, m) => {
+  const groupByDomain = (list) =>
+    list.reduce((acc, m) => {
       const d = m.domainePrimaire ?? D_AUTRE;
-      if (!acc[d]) acc[d] = [];
-      acc[d].push(m);
+      (acc[d] ??= []).push(m);
       return acc;
     }, {});
-  }, [isFiltered, displayMatieres]);
 
-  // Nombre de matières par niveau (badge sur les chips)
-  const countByNiveau = useMemo(
-    () =>
-      Object.fromEntries(
-        niveaux.map((n) => [n.id, (niveauMatieres[n.id] ?? []).length]),
-      ),
-    [niveaux, niveauMatieres],
+  // Catalogue global (onglet « Toutes ») : liste plate filtrée par recherche
+  const catalogueMatieres = useMemo(
+    () => matiereState.matieres.filter(matchSearch),
+    [matiereState.matieres, search],
   );
+
+  // Niveaux du cycle courant, triés par ordre
+  const cycleNiveaux = useMemo(() => {
+    if (isCatalogue) return [];
+    return [...niveaux]
+      .filter((n) => niveauInCycle(n, cycleTab))
+      .sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
+  }, [niveaux, cycleTab, isCatalogue]);
+
+  // Sections présentes (Humanités) → sous-onglets
+  const sectionsDispo = useMemo(() => {
+    if (!isHumanites) return [];
+    const present = new Set(cycleNiveaux.map((n) => n.section ?? null));
+    const ordered = SECTION_ORDER.filter((s) => present.has(s));
+    return present.has(null) ? [...ordered, "AUTRES"] : ordered;
+  }, [isHumanites, cycleNiveaux]);
+
+  // Niveaux affichés (filtrés par la section active en Humanités)
+  const niveauxAffiches = useMemo(() => {
+    if (!isHumanites) return cycleNiveaux;
+    return cycleNiveaux.filter((n) =>
+      sectionTab === "AUTRES" ? !n.section : n.section === sectionTab,
+    );
+  }, [cycleNiveaux, isHumanites, sectionTab]);
+
+  // Sélection auto d'une section valide quand on entre dans Humanités
+  useEffect(() => {
+    if (!isHumanites) return;
+    if (!sectionsDispo.includes(sectionTab)) {
+      setSectionTab(sectionsDispo[0] ?? "");
+    }
+  }, [isHumanites, sectionsDispo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Matières (filtrées par recherche) rattachées à un niveau donné
+  const matieresOfNiveau = (niveauId) =>
+    (niveauMatieres[niveauId] ?? []).filter(matchSearch);
 
   // Matière à confirmer pour suppression
   const deleteMat =
     matiereState.matieres.find((m) => m.id === deleteId) ?? null;
+
+  const toggleNiveau = (id) =>
+    setOpenNiveaux((p) => ({ ...p, [id]: p[id] === false ? true : false }));
 
   // ── Handlers ─────────────────────────────────────────────
   const openCreate = () => {
@@ -203,9 +282,7 @@ const MatieresPage = () => {
     if (editMat) {
       await updateMatiere(editMat.id, form);
     } else {
-      const created = await createMatiere(form);
-      if (isFiltered && niveauFilter && created?.id)
-        await addMatiereToNiveau(niveauFilter, created.id);
+      await createMatiere(form);
     }
     setDrawerOpen(false);
   };
@@ -222,9 +299,8 @@ const MatieresPage = () => {
     setDetailMat(null);
   };
 
-  const handleRemoveFromNiveau = async (matiereId) => {
-    if (!isFiltered) return;
-    await removeMatiereFromNiveau(niveauFilter, matiereId);
+  const handleRemoveFromNiveau = async (niveauId, matiereId) => {
+    await removeMatiereFromNiveau(niveauId, matiereId);
     if (detailMat?.id === matiereId) setDetailMat(null);
   };
 
@@ -255,9 +331,7 @@ const MatieresPage = () => {
                 <p className="text-gray-400 text-[12px] mt-0.5">
                   {matiereState.loading
                     ? "Chargement…"
-                    : isFiltered
-                      ? `${displayMatieres.length} matière(s) — ${selectedNiveau?.libelle}`
-                      : `${matiereState.matieres.length} matière(s) · ${stats.actives} active(s)`}
+                    : `${matiereState.matieres.length} matière(s) · ${stats.actives} active(s)`}
                 </p>
               </div>
             </div>
@@ -311,70 +385,27 @@ const MatieresPage = () => {
           {...fade(0.1)}
           className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden"
         >
-          {/* Toolbar — recherche + filtre sur une ligne */}
-          <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3 flex-wrap">
-            {/* Select niveau */}
-            <div className="relative shrink-0">
-              <select
-                value={niveauFilter}
-                onChange={(e) => {
-                  setNiveauFilter(e.target.value);
-                  setSearch("");
-                }}
-                className="h-9 pl-3 pr-8 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all appearance-none cursor-pointer min-w-52"
-              >
-                <option value="Tous">Tous les niveaux</option>
-                {["MATERNELLE", "PRIMAIRE", "SECONDAIRE"].map((cycle) => {
-                  const groupe = niveaux
-                    .filter((n) => n.cycle === cycle)
-                    .sort((a, b) => a.ordre - b.ordre);
-                  if (!groupe.length) return null;
-                  const labels = {
-                    MATERNELLE: "Maternelle",
-                    PRIMAIRE: "Primaire",
-                    SECONDAIRE: "Secondaire",
-                  };
-                  return (
-                    <optgroup key={cycle} label={`── ${labels[cycle]}`}>
-                      {groupe.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          {n.libelle} — {countByNiveau[n.id] ?? 0} matières
-                        </option>
-                      ))}
-                    </optgroup>
-                  );
-                })}
-              </select>
-              <svg
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+          {/* En-tête : onglets par cycle + recherche (style page Classes) */}
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
+              {MATIERE_TABS.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setCycleTab(t.key)}
+                  className={`px-3 py-1.5 rounded-md text-[12px] font-semibold whitespace-nowrap transition-all ${cycleTab === t.key ? "bg-white text-[#0b57cd] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
 
-            {/* Séparateur */}
-            <div className="h-5 w-px bg-gray-200 shrink-0" />
-
-            {/* Recherche */}
-            <div className="relative flex-1 min-w-48">
+            <div className="relative w-48 sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={
-                  isFiltered
-                    ? `Rechercher dans ${selectedNiveau?.libelle ?? "ce niveau"}…`
-                    : "Rechercher une matière…"
-                }
-                className="w-full h-9 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                placeholder="Rechercher une matière…"
+                className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
               />
               {search && (
                 <button
@@ -386,6 +417,29 @@ const MatieresPage = () => {
               )}
             </div>
           </div>
+
+          {/* Sous-onglets par section (Humanités) — barre inférieure */}
+          {isHumanites && sectionsDispo.length > 0 && (
+            <div className="px-4 border-b border-gray-100 flex gap-0.5 overflow-x-auto">
+              {sectionsDispo.map((s) => {
+                const active = sectionTab === s;
+                const label =
+                  s === "AUTRES" ? "Autres" : (SECTION_LABELS[s] ?? s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSectionTab(s)}
+                    className={`relative px-3 py-2.5 text-[12px] font-medium whitespace-nowrap transition-colors ${active ? "text-[#0b57cd]" : "text-gray-500 hover:text-gray-700"}`}
+                  >
+                    {label}
+                    {active && (
+                      <span className="absolute left-2 right-2 -bottom-px h-0.5 rounded-full bg-[#0b57cd]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Tableau */}
           <div className="overflow-x-auto">
@@ -425,44 +479,32 @@ const MatieresPage = () => {
                     </tr>
                   ))}
 
-                {/* Vide */}
-                {!matiereState.loading && displayMatieres.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <BookOpen className="w-10 h-10 text-gray-200" />
-                        <p className="text-[14px] font-semibold text-gray-400">
-                          {isFiltered
-                            ? "Aucune matière pour ce niveau"
-                            : "Aucune matière enregistrée"}
-                        </p>
-                        {isFiltered ? (
-                          <button
-                            onClick={() => setSeedModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#eff4ff] text-[#0b57cd] text-[13px] font-semibold border border-[#0b57cd]/20 hover:bg-[#e0eaff] transition-colors mt-1"
-                          >
-                            <Sparkles className="w-4 h-4" /> Générer
-                            Automatiquement
-                          </button>
-                        ) : (
-                          <button
-                            onClick={openCreate}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors mt-1"
-                          >
-                            <Plus className="w-4 h-4" /> Ajouter une matière
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-
-                {/* Mode "Tous" — table plate */}
-                {!matiereState.loading &&
-                  !isFiltered &&
-                  displayMatieres.length > 0 && (
+                {/* ── Onglet « Toutes » : catalogue plat ── */}
+                {!matiereState.loading && isCatalogue && (
+                  catalogueMatieres.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-16 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <BookOpen className="w-10 h-10 text-gray-200" />
+                          <p className="text-[14px] font-semibold text-gray-400">
+                            {search
+                              ? `Aucune matière ne correspond à « ${search} »`
+                              : "Aucune matière enregistrée"}
+                          </p>
+                          {!search && (
+                            <button
+                              onClick={openCreate}
+                              className="flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors mt-1"
+                            >
+                              <Plus className="w-4 h-4" /> Ajouter une matière
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
                     <AnimatePresence>
-                      {displayMatieres.map((mat) => (
+                      {catalogueMatieres.map((mat) => (
                         <MatiereRow
                           key={mat.id}
                           mat={mat}
@@ -472,63 +514,99 @@ const MatieresPage = () => {
                         />
                       ))}
                     </AnimatePresence>
-                  )}
+                  )
+                )}
 
-                {/* Mode niveau filtré — groupé par domaine */}
+                {/* ── Onglets cycle : accordéon par niveau ── */}
                 {!matiereState.loading &&
-                  isFiltered &&
-                  displayMatieres.length > 0 && (
-                    <>
-                      {DOMAIN_ORDER.map((dk) => {
-                        const items = byDomain?.[dk];
-                        if (!items?.length) return null;
-                        return (
-                          <Fragment key={dk}>
-                            <DomainSeparatorRow
-                              domainKey={dk}
-                              count={items.length}
-                            />
-                            {items.map((mat) => (
-                              <MatiereRow
-                                key={mat.id}
-                                mat={mat}
-                                onSelect={setDetailMat}
-                                onEdit={openEdit}
-                                onDelete={setDeleteId}
-                                onRemove={handleRemoveFromNiveau}
-                              />
+                  !isCatalogue &&
+                  (niveauxAffiches.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-16 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <Layers className="w-10 h-10 text-gray-200" />
+                          <p className="text-[14px] font-semibold text-gray-400">
+                            Aucun niveau dans cette catégorie
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    niveauxAffiches.map((niveau) => {
+                      const mats = matieresOfNiveau(niveau.id);
+                      // En recherche, on masque les niveaux sans correspondance
+                      if (search && mats.length === 0) return null;
+                      const open = openNiveaux[niveau.id] !== false;
+                      const grouped = groupByDomain(mats);
+                      return (
+                        <Fragment key={niveau.id}>
+                          <NiveauAccordionRow
+                            niveau={niveau}
+                            count={mats.length}
+                            open={open}
+                            onToggle={() => toggleNiveau(niveau.id)}
+                          />
+                          {open &&
+                            (mats.length === 0 ? (
+                              <tr>
+                                <td
+                                  colSpan={6}
+                                  className="px-5 py-3.5 text-[12px] text-gray-400 italic"
+                                >
+                                  Aucune matière rattachée à ce niveau.
+                                </td>
+                              </tr>
+                            ) : (
+                              DOMAIN_ORDER.map((dk) => {
+                                const items = grouped[dk];
+                                if (!items?.length) return null;
+                                return (
+                                  <Fragment key={dk}>
+                                    <DomainSeparatorRow
+                                      domainKey={dk}
+                                      count={items.length}
+                                    />
+                                    {items.map((mat) => (
+                                      <MatiereRow
+                                        key={mat.id}
+                                        mat={mat}
+                                        onSelect={setDetailMat}
+                                        onEdit={openEdit}
+                                        onDelete={setDeleteId}
+                                        onRemove={(mid) =>
+                                          handleRemoveFromNiveau(niveau.id, mid)
+                                        }
+                                      />
+                                    ))}
+                                  </Fragment>
+                                );
+                              })
                             ))}
-                          </Fragment>
-                        );
-                      })}
-                    </>
+                        </Fragment>
+                      );
+                    })
+                  ))}
+
+                {/* Recherche sans résultat (mode cycle) */}
+                {!matiereState.loading &&
+                  !isCatalogue &&
+                  search &&
+                  niveauxAffiches.length > 0 &&
+                  niveauxAffiches.every(
+                    (n) => matieresOfNiveau(n.id).length === 0,
+                  ) && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="py-12 text-center text-[13px] text-gray-400"
+                      >
+                        Aucune matière ne correspond à « {search} »
+                      </td>
+                    </tr>
                   )}
               </tbody>
             </table>
           </div>
-
-          {/* Footer — mode niveau */}
-          {isFiltered && selectedNiveau && !matiereState.loading && (
-            <div className="px-5 py-2.5 border-t border-gray-100 flex items-center gap-4 text-[11px] text-gray-400 bg-gray-50/50">
-              <span>
-                <span className="font-semibold text-gray-600">
-                  {displayMatieres.length}
-                </span>{" "}
-                matières
-              </span>
-              <span className="text-gray-200">·</span>
-              <span>
-                Max :{" "}
-                <span className="font-semibold text-gray-600">
-                  {displayMatieres.reduce(
-                    (a, m) => a + (m.maxPointsPeriode ?? 0),
-                    0,
-                  )}{" "}
-                  pts
-                </span>
-              </span>
-            </div>
-          )}
         </motion.div>
 
         {matiereState.error && (
@@ -560,7 +638,13 @@ const MatieresPage = () => {
         onSubmit={handleSubmit}
         submitting={matiereState.submitting}
         serverError={matiereState.error}
-        defaultCycle={selectedNiveau?.cycle ?? "PRIMAIRE"}
+        defaultCycle={
+          cycleTab === "Toutes"
+            ? "PRIMAIRE"
+            : cycleTab === "HUMANITES"
+              ? "SECONDAIRE"
+              : cycleTab
+        }
       />
       <ConfirmDeleteModal
         open={deleteId !== null}
@@ -572,7 +656,7 @@ const MatieresPage = () => {
       <SeedModal
         open={seedModalOpen}
         onClose={() => setSeedModalOpen(false)}
-        selectedDbNiveau={selectedNiveau}
+        selectedDbNiveau={null}
         dbNiveaux={niveaux}
         seedMatieres={seedMatieres}
         seeding={matiereState.seeding}

@@ -15,8 +15,9 @@ import {
   Eye,
   AlertTriangle,
   Loader2,
-  ChevronRight,
   RefreshCw,
+  Search,
+  Filter,
   X,
   Users,
   TrendingUp,
@@ -90,7 +91,7 @@ const STATUT_CFG = {
   },
   PUBLIE: {
     label: "Publié",
-    color: "#0C447C",
+    color: "#0b57cd",
     bg: "#E6F1FB",
     border: "#85B7EB",
   },
@@ -259,7 +260,7 @@ const BulletinRow = ({ bul, onView, onValider, onPublier }) => {
         {bul.statut === "EN_ATTENTE_DIRECTEUR" && (
           <button
             onClick={() => onValider(bul.id)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#85B7EB] text-[11px] font-medium text-[#0C447C] bg-[#E6F1FB] hover:bg-[#d0e8f8] transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#85B7EB] text-[11px] font-medium text-[#0b57cd] bg-[#E6F1FB] hover:bg-[#d0e8f8] transition-colors"
           >
             <Check className="w-3.5 h-3.5" /> Approuver
           </button>
@@ -313,7 +314,7 @@ export function BulletinViewer({
           {bulletin.statut === "BROUILLON" && (
             <button
               onClick={() => onValider(bulletin.id)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-[#85B7EB] text-[12px] font-semibold text-[#0C447C] bg-[#E6F1FB] hover:bg-[#d0e8f8] transition-colors"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg border border-[#85B7EB] text-[12px] font-semibold text-[#0b57cd] bg-[#E6F1FB] hover:bg-[#d0e8f8] transition-colors"
             >
               <Check className="w-3.5 h-3.5" /> Valider
             </button>
@@ -335,7 +336,7 @@ export function BulletinViewer({
         id="bulletin-print"
       >
         {/* En-tête officiel */}
-        <div className="bg-[#0C447C] px-5 py-4">
+        <div className="bg-[#0b57cd] px-5 py-4">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] text-white/60 uppercase tracking-widest mb-1">
@@ -393,7 +394,7 @@ export function BulletinViewer({
             <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">
               Rang
             </p>
-            <p className="text-[24px] font-black text-[#185FA5] leading-none">
+            <p className="text-[24px] font-black text-[#0b57cd] leading-none">
               {bulletin.rang ?? "—"}
             </p>
             <p className="text-[10px] text-gray-400">
@@ -649,7 +650,7 @@ function GenerateurPanel({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Paramètres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-4">
+      <div className="bg-white rounded-lg border border-gray-100 p-4 space-y-4">
         <p className="text-[13px] font-semibold text-gray-700">
           Paramètres de génération
         </p>
@@ -787,7 +788,7 @@ function GenerateurPanel({
       </div>
 
       {/* État des données */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4">
+      <div className="bg-white rounded-lg border border-gray-100 p-4">
         <p className="text-[13px] font-semibold text-gray-700 mb-3">
           État de la saisie des notes
         </p>
@@ -905,7 +906,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
   return (
     <div className="space-y-4">
       {/* Flux visuel */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4">
+      <div className="bg-white rounded-lg border border-gray-100 p-4">
         <p className="text-[12px] font-semibold text-gray-600 mb-4">
           Flux de validation
         </p>
@@ -915,7 +916,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
               icon: Sparkles,
               label: "Générer",
               sub: "POST /bulletins/generer",
-              color: "#0C447C",
+              color: "#0b57cd",
               bg: "#E6F1FB",
               border: "#85B7EB",
             },
@@ -939,7 +940,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
               icon: Send,
               label: "Publier",
               sub: "PATCH /publier",
-              color: "#0C447C",
+              color: "#0b57cd",
               bg: "#E6F1FB",
               border: "#85B7EB",
             },
@@ -978,7 +979,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Valider */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <div className="bg-white rounded-lg border border-gray-100 p-4 space-y-3">
           <p className="text-[13px] font-semibold text-gray-700 flex items-center gap-2">
             <Check className="w-4 h-4 text-blue-600" /> Approuver les bulletins
           </p>
@@ -998,7 +999,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
                 value: stats.valides,
                 color: "#3B6D11",
               },
-              { label: "Déjà publiés", value: stats.publies, color: "#0C447C" },
+              { label: "Déjà publiés", value: stats.publies, color: "#0b57cd" },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex justify-between">
                 <span className="text-gray-500">{label}</span>
@@ -1011,7 +1012,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
           <button
             onClick={onValiderTous}
             disabled={submitting || stats.brouillons === 0}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#E6F1FB] border border-[#85B7EB] text-[13px] font-semibold text-[#0C447C] hover:bg-[#d0e8f8] disabled:opacity-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#E6F1FB] border border-[#85B7EB] text-[13px] font-semibold text-[#0b57cd] hover:bg-[#d0e8f8] disabled:opacity-50 transition-colors"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -1024,7 +1025,7 @@ function ValidateurPanel({ stats, onValiderTous, onPublierTous, submitting }) {
         </div>
 
         {/* Publier */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <div className="bg-white rounded-lg border border-gray-100 p-4 space-y-3">
           <p className="text-[13px] font-semibold text-gray-700 flex items-center gap-2">
             <Send className="w-4 h-4 text-green-600" /> Publier aux parents
           </p>
@@ -1105,6 +1106,8 @@ export default function BulletinsPage() {
   const [periodeId, setPeriodeId] = useState("");
   const [selectedBul, setSelectedBul] = useState(null);
   const [viewBulletinId, setViewBulletinId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Cycles disponibles (dérivés des périodes) + périodes filtrées par cycle
   const cycles = useMemo(
@@ -1162,93 +1165,74 @@ export default function BulletinsPage() {
     setViewBulletinId(bul.id);
   };
 
+  // Recherche locale : nom / prénom, matricule ou classe
+  const filteredBulletins = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = q
+      ? state.bulletins.filter((b) => {
+          const u = b.inscription?.eleve?.utilisateur ?? {};
+          const hay = [
+            u.prenom,
+            u.nom,
+            b.inscription?.eleve?.matricule,
+            b.inscription?.classe?.nom,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return hay.includes(q);
+        })
+      : state.bulletins;
+    return [...list].sort((a, b) => (a.rang ?? 999) - (b.rang ?? 999));
+  }, [state.bulletins, search]);
+
   return (
-    <div className="min-h-full bg-[#f5f7fa] space-y-4">
-      {/* Hero header */}
+    <div className="min-h-full space-y-3">
+      {/* ── Hero header ── */}
       <motion.div
         {...fade(0)}
-        className="relative rounded-lg overflow-hidden shadow-lg"
-        style={{
-          background: "linear-gradient(35deg,#0C447C 0%,#0C447C 100%)",
-        }}
+        className="relative rounded-lg overflow-hidden bg-white"
       >
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-        <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-        <div className="relative px-6 py-5 flex items-center justify-between">
+        <div className="relative px-3 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-              <FileText className="w-6 h-6 text-white" strokeWidth={1.8} />
+            <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
+              <FileText className="w-6 h-6 text-[#0b57cd]" strokeWidth={1.8} />
             </div>
             <div>
-              <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                <span>Pédagogie</span>
-                <ChevronRight className="w-3 h-3" />
-                <span>Bulletins</span>
-              </div>
-              <h1 className="text-xl font-bold text-white leading-tight">
+              <h1 className="text-xl font-bold text-gray-900 leading-tight">
                 Gestion des Bulletins
               </h1>
-              <p className="text-white/60 text-[12px] mt-0.5">
+              <p className="text-gray-400 text-[12px] mt-0.5">
                 {state.loading
                   ? "Chargement…"
-                  : `${state.bulletins.length} bulletin(s) · ${bulStats.taux}% de réussite`}
+                  : `${state.bulletins.length} bulletin${state.bulletins.length > 1 ? "s" : ""} · ${bulStats.taux}% de réussite`}
                 {annee && (
-                  <span className="ml-2 opacity-70">· {annee.libelle}</span>
+                  <span className="text-gray-300"> · {annee.libelle}</span>
                 )}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <select
-              value={classeId}
-              onChange={(e) => setClasseId(e.target.value)}
-              className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
-            >
-              <option value="">Toutes les classes</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nom}
-                </option>
-              ))}
-            </select>
-            <select
-              value={cycle}
-              onChange={(e) => {
-                setCycle(e.target.value);
-                setPeriodeId("");
-              }}
-              className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
-            >
-              <option value="">Tous les cycles</option>
-              {cycles.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            {cycle && (
-              <select
-                value={periodeId}
-                onChange={(e) => setPeriodeId(e.target.value)}
-                className="h-9 px-3 rounded-lg bg-white border border-white/30 text-gray-800 text-[12px] font-medium focus:outline-none"
-              >
-                <option value="">Toutes les périodes</option>
-                {periodesFiltrees.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.libelle}
-                  </option>
-                ))}
-              </select>
-            )}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => fetchBulletins({ classeId, periodeId })}
               disabled={state.loading}
-              className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+              title="Rafraîchir"
+              className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
             >
               <RefreshCw
                 className={`w-4 h-4 ${state.loading ? "animate-spin" : ""}`}
               />
-            </button>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setActiveTab("generer")}
+              className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
+            >
+              <Sparkles className="w-4 h-4" /> Générer les bulletins
+            </motion.button>
           </div>
         </div>
       </motion.div>
@@ -1262,39 +1246,168 @@ export default function BulletinsPage() {
           icon={FileText}
           label="Total bulletins"
           value={state.bulletins.length}
-          color="#185FA5"
-          bg="#E6F1FB"
+          color="#0b57cd"
+          bg="#eff4ff"
           loading={state.loading}
         />
         <StatCard
           icon={Check}
           label="Validés + publiés"
           value={bulStats.valides + bulStats.publies}
-          color="#3B6D11"
-          bg="#EAF3DE"
+          color="#0b57cd"
+          bg="#eff4ff"
           loading={state.loading}
         />
         <StatCard
           icon={Send}
           label="Publiés parents"
           value={bulStats.publies}
-          color="#0C447C"
-          bg="#E6F1FB"
+          color="#0b57cd"
+          bg="#eff4ff"
           loading={state.loading}
         />
         <StatCard
           icon={TrendingUp}
           label="Taux de réussite"
           value={`${bulStats.taux}%`}
-          color={bulStats.taux >= 50 ? "#3B6D11" : "#dc2626"}
-          bg={bulStats.taux >= 50 ? "#EAF3DE" : "#FEF2F2"}
+          color="#0b57cd"
+          bg="#eff4ff"
           loading={state.loading}
         />
       </motion.div>
 
-      {/* Bloc principal */}
+      {/* ── Liste des bulletins + recherche ── */}
       <motion.div {...fade(0.1)}>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg">
+          {/* En-tête : titre à gauche · recherche + filtres à droite */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h2 className="text-[15px] font-bold text-gray-900 leading-tight">
+                  Liste des bulletins
+                </h2>
+                <p className="text-[12px] text-gray-400 mt-0.5">
+                  {state.loading
+                    ? "Chargement…"
+                    : `${filteredBulletins.length} bulletin${filteredBulletins.length > 1 ? "s" : ""}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="relative w-48 sm:w-56">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher…"
+                    className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
+                    showFilters
+                      ? "bg-blue-50 text-[#0b57cd] border-blue-200"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  <span className="hidden sm:inline">Filtres</span>
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                        Classe
+                      </label>
+                      <select
+                        value={classeId}
+                        onChange={(e) => setClasseId(e.target.value)}
+                        className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                      >
+                        <option value="">Toutes</option>
+                        {classes.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.nom}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                        Cycle
+                      </label>
+                      <select
+                        value={cycle}
+                        onChange={(e) => {
+                          setCycle(e.target.value);
+                          setPeriodeId("");
+                        }}
+                        className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                      >
+                        <option value="">Tous</option>
+                        {cycles.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                        Période
+                      </label>
+                      <select
+                        value={periodeId}
+                        onChange={(e) => setPeriodeId(e.target.value)}
+                        disabled={!cycle}
+                        className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {cycle ? "Toutes" : "Choisir un cycle d'abord"}
+                        </option>
+                        {periodesFiltrees.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.libelle}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setClasseId("");
+                      setCycle("");
+                      setPeriodeId("");
+                    }}
+                    className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Onglets */}
           <div className="flex border-b border-gray-100 px-2 pt-1 ">
             {TABS.map(({ key, label, icon: Icon }) => (
@@ -1303,7 +1416,7 @@ export default function BulletinsPage() {
                 onClick={() => setActiveTab(key)}
                 className={`flex items-center gap-2 px-4 py-3 text-[13px] font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
                   activeTab === key
-                    ? "border-[#0C447C] text-[#0C447C]"
+                    ? "border-[#0b57cd] text-[#0b57cd]"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -1312,87 +1425,89 @@ export default function BulletinsPage() {
             ))}
           </div>
 
-          <div className="p-5">
+          <div className="p-4">
             {/* ══ Tab Liste ══ */}
             {activeTab === "liste" && (
               <div>
                 {state.loading ? (
                   <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                    <Loader2 className="w-6 h-6 animate-spin text-[#0b57cd]" />
                   </div>
-                ) : state.bulletins.length === 0 ? (
+                ) : filteredBulletins.length === 0 ? (
                   <div className="flex flex-col items-center py-14 gap-3">
                     <FileText className="w-10 h-10 text-gray-200" />
                     <p className="text-[14px] font-semibold text-gray-400">
-                      Aucun bulletin généré
+                      {state.bulletins.length === 0
+                        ? "Aucun bulletin généré"
+                        : "Aucun bulletin trouvé"}
                     </p>
-                    <button
-                      onClick={() => setActiveTab("generer")}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[13px] font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Sparkles className="w-4 h-4" /> Générer les bulletins
-                    </button>
+                    {state.bulletins.length === 0 && (
+                      <button
+                        onClick={() => setActiveTab("generer")}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4" /> Générer les bulletins
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <>
-                    <div className="rounded-xl border border-gray-100 overflow-hidden mb-3">
+                    <div className="rounded-lg border border-gray-100 overflow-hidden mb-3">
                       {/* En-tête tableau */}
-                      <div className="flex px-4 py-2 bg-gray-50 border-b border-gray-100">
+                      <div className="flex px-4 py-3 bg-gray-50/60 border-b border-gray-100">
                         <div
                           style={{ flex: 2 }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           Élève
                         </div>
                         <div
                           style={{ width: 120 }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           Classe
                         </div>
                         <div
                           style={{ width: 64, textAlign: "center" }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           %
                         </div>
                         <div
                           style={{ width: 56, textAlign: "center" }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           /20
                         </div>
                         <div
                           style={{ width: 64, textAlign: "center" }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           Rang
                         </div>
                         <div
                           style={{ width: 96 }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           Décision
                         </div>
                         <div
                           style={{ width: 76 }}
-                          className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                          className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider"
                         >
                           Statut
                         </div>
                         <div style={{ width: 120 }} />
                       </div>
-                      {state.bulletins
-                        .sort((a, b) => (a.rang ?? 999) - (b.rang ?? 999))
-                        .map((bul) => (
-                          <BulletinRow
-                            key={bul.id}
-                            bul={bul}
-                            onView={handleView}
-                            onValider={handleValider}
-                            onPublier={handlePublier}
-                          />
-                        ))}
+                      {filteredBulletins.map((bul) => (
+                        <BulletinRow
+                          key={bul.id}
+                          bul={bul}
+                          onView={handleView}
+                          onValider={handleValider}
+                          onPublier={handlePublier}
+                        />
+                      ))}
                     </div>
 
                     {/* Actions globales */}
@@ -1451,7 +1566,7 @@ export default function BulletinsPage() {
                   </p>
                   <button
                     onClick={() => setActiveTab("liste")}
-                    className="text-[13px] text-blue-600 hover:underline"
+                    className="text-[13px] text-[#0b57cd] hover:underline"
                   >
                     Aller à la liste
                   </button>
@@ -1473,7 +1588,7 @@ export default function BulletinsPage() {
 
       {/* Erreur */}
       {state.error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
           <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
           <p className="text-[13px] text-red-700">{state.error}</p>
         </div>

@@ -22,6 +22,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Search,
+  Filter,
   ChevronRight,
   ChevronDown,
   MoreHorizontal,
@@ -133,7 +134,7 @@ const AvancementBar = ({ notes, total }) => {
           className="h-full rounded-full"
           style={{
             width: `${pct}%`,
-            background: pct === 100 ? "#16a34a" : "#1e40af",
+            background: pct === 100 ? "#16a34a" : "#0b57cd",
           }}
         />
       </div>
@@ -145,16 +146,16 @@ const AvancementBar = ({ notes, total }) => {
 };
 
 const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-xs p-5 flex items-center gap-4">
+  <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center gap-3 shadow-xs">
     <div
-      className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+      className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
       style={{ background: bg }}
     >
       <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
     </div>
     <div>
       {loading ? (
-        <div className="w-14 h-6 bg-gray-100 animate-pulse rounded-md" />
+        <div className="w-14 h-5 bg-gray-100 animate-pulse rounded" />
       ) : (
         <p className="text-xl font-black text-gray-700 leading-none">{value}</p>
       )}
@@ -202,7 +203,7 @@ function EvalTableRow({ ev, onView, onEdit, onDelete, onSaisie }) {
 
   return (
     <tr
-      className="border-b border-gray-50 hover:bg-blue-50/20 transition-colors cursor-pointer"
+      className="hover:bg-blue-50/20 transition-colors cursor-pointer"
       onClick={() => onView(ev)}
     >
       <td className="px-5 py-3.5">
@@ -288,7 +289,7 @@ function EvalTableRow({ ev, onView, onEdit, onDelete, onSaisie }) {
               className="h-full rounded-full"
               style={{
                 width: `${pct}%`,
-                background: pct === 100 ? "#16a34a" : "#1e40af",
+                background: pct === 100 ? "#16a34a" : "#0b57cd",
               }}
             />
           </div>
@@ -438,7 +439,7 @@ function SaisieNotesPanel({
   };
 
   const inputCls =
-    "w-20 h-8 px-2 text-center rounded-lg border border-gray-200 bg-gray-50 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 focus:bg-white transition-all";
+    "w-20 h-8 px-2 text-center rounded-lg border border-gray-200 bg-gray-50 text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all";
 
   return (
     <div className="space-y-4">
@@ -464,7 +465,7 @@ function SaisieNotesPanel({
         <button
           onClick={handleSave}
           disabled={notesSaving}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1e40af] text-white text-[13px] font-semibold hover:bg-[#1d3a97] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] disabled:opacity-50 transition-colors"
         >
           {notesSaving ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -527,7 +528,7 @@ function SaisieNotesPanel({
                       setField(s.eleveId, "absent", e.target.checked);
                       if (e.target.checked) setField(s.eleveId, "valeur", "");
                     }}
-                    className="w-4 h-4 rounded accent-[#1e40af] cursor-pointer"
+                    className="w-4 h-4 rounded accent-[#0b57cd] cursor-pointer"
                   />
                 </td>
                 <td className="px-5 py-3">
@@ -538,7 +539,7 @@ function SaisieNotesPanel({
                       setField(s.eleveId, "appreciation", e.target.value)
                     }
                     placeholder="Facultatif…"
-                    className="w-32 h-8 px-2 rounded-lg border border-gray-200 bg-gray-50 text-[12px] text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 focus:bg-white transition-all"
+                    className="w-32 h-8 px-2 rounded-lg border border-gray-200 bg-gray-50 text-[12px] text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
                   />
                 </td>
               </tr>
@@ -655,7 +656,7 @@ function EvalDetailPanel({
         <div
           className="px-5 pt-5 pb-0 shrink-0"
           style={{
-            background: "linear-gradient(135deg,#1e40af 0%,#1d3a97 100%)",
+            background: "linear-gradient(135deg,#0b57cd 0%,#0947ab 100%)",
           }}
         >
           {/* Top row */}
@@ -812,7 +813,7 @@ function EvalDetailPanel({
             <div className="flex-1 flex flex-col overflow-hidden">
               {notesLoading ? (
                 <div className="flex items-center justify-center flex-1">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#1e40af]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[#0b57cd]" />
                 </div>
               ) : students.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 gap-2">
@@ -834,7 +835,7 @@ function EvalDetailPanel({
                     <button
                       onClick={handleSave}
                       disabled={notesSaving}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1e40af] text-white text-[12px] font-semibold hover:bg-[#1d3a97] disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0b57cd] text-white text-[12px] font-semibold hover:bg-[#0947ab] disabled:opacity-50 transition-colors"
                     >
                       {notesSaving ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -873,7 +874,7 @@ function EvalDetailPanel({
                             >
                               <td className="px-4 py-2.5">
                                 <div className="flex items-center gap-2.5">
-                                  <div className="w-7 h-7 rounded-full bg-[#1e40af]/10 flex items-center justify-center text-[10px] font-bold text-[#1e40af] shrink-0">
+                                  <div className="w-7 h-7 rounded-full bg-[#0b57cd]/10 flex items-center justify-center text-[10px] font-bold text-[#0b57cd] shrink-0">
                                     {(s.prenom?.[0] ?? "").toUpperCase()}
                                     {(s.nom?.[0] ?? "").toUpperCase()}
                                   </div>
@@ -905,7 +906,7 @@ function EvalDetailPanel({
                                   }
                                   disabled={n.absent}
                                   placeholder="—"
-                                  className={`w-16 h-8 px-2 text-center rounded-lg border text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                  className={`w-16 h-8 px-2 text-center rounded-lg border text-[13px] font-semibold focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                     hasNote
                                       ? "border-green-200 bg-green-50 text-green-700"
                                       : "border-gray-200 bg-gray-50 text-gray-800 focus:bg-white"
@@ -925,7 +926,7 @@ function EvalDetailPanel({
                                     if (e.target.checked)
                                       setField(s.eleveId, "valeur", "");
                                   }}
-                                  className="w-4 h-4 rounded accent-[#1e40af] cursor-pointer"
+                                  className="w-4 h-4 rounded accent-[#0b57cd] cursor-pointer"
                                 />
                               </td>
                             </tr>
@@ -1041,7 +1042,7 @@ function EvalDetailPanel({
                             absentCount > 0
                               ? `${absentCount} absent${absentCount > 1 ? "s" : ""}`
                               : null,
-                          color: "#1e40af",
+                          color: "#0b57cd",
                           bg: "#eff6ff",
                         },
                         {
@@ -1206,7 +1207,7 @@ function EvalDetailPanel({
             </button>
             <button
               onClick={() => setTab("eleves")}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1e40af] text-white text-[13px] font-semibold hover:bg-[#1d3a97] transition-colors shadow-sm shadow-blue-900/20"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] transition-colors shadow-sm shadow-blue-900/20"
             >
               <PenLine className="w-4 h-4" /> Saisir les notes
             </button>
@@ -1860,6 +1861,7 @@ export default function EvaluationsPage() {
   const [filterType, setFilterType] = useState("Tous");
   const [filterMatiereId, setFilterMatiereId] = useState("");
   const [filterCycle, setFilterCycle] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [detailEval, setDetailEval] = useState(null);
   const [detailTab, setDetailTab] = useState("details");
 
@@ -1984,40 +1986,30 @@ export default function EvaluationsPage() {
 
   return (
     <>
-      <div className="min-h-full bg-[#f5f7fa] space-y-4">
-        {/* Hero header */}
+      <div className="min-h-full space-y-3">
+        {/* ── Hero header ── */}
         <motion.div
           {...fade(0)}
-          className="relative rounded-lg overflow-hidden shadow-lg"
-          style={{
-            background: "linear-gradient(135deg,#1e40af 0%,#1d3a97 100%)",
-          }}
+          className="relative rounded-lg overflow-hidden bg-white"
         >
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-          <div className="absolute -bottom-8 -right-4  w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-          <div className="relative px-6 py-5 flex items-center justify-between">
+          <div className="relative px-3 py-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-lg bg-[#0b57cd]/10 flex items-center justify-center shrink-0">
                 <ClipboardList
-                  className="w-6 h-6 text-white"
+                  className="w-6 h-6 text-[#0b57cd]"
                   strokeWidth={1.8}
                 />
               </div>
               <div>
-                <div className="flex items-center gap-2 text-white/60 text-[11px] font-medium tracking-wider uppercase mb-0.5">
-                  <span>Gestion</span>
-                  <ChevronRight className="w-3 h-3" />
-                  <span>Évaluations</span>
-                </div>
-                <h1 className="text-xl font-bold text-white leading-tight">
+                <h1 className="text-xl font-bold text-gray-900 leading-tight">
                   Gestion des Évaluations
                 </h1>
-                <p className="text-white/60 text-[12px] mt-0.5">
+                <p className="text-gray-400 text-[12px] mt-0.5">
                   {state.loading
                     ? "Chargement…"
                     : `${stats.total} évaluation${stats.total > 1 ? "s" : ""}`}
                   {annee && (
-                    <span className="ml-2 opacity-70">· {annee.libelle}</span>
+                    <span className="text-gray-300"> · {annee.libelle}</span>
                   )}
                 </p>
               </div>
@@ -2031,7 +2023,8 @@ export default function EvaluationsPage() {
                   fetchPeriodes(annee?.id);
                 }}
                 disabled={state.loading}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors border border-white/15 disabled:opacity-50"
+                title="Rafraîchir"
+                className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border border-gray-200 disabled:opacity-50"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${state.loading ? "animate-spin" : ""}`}
@@ -2041,7 +2034,7 @@ export default function EvaluationsPage() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => openModal("create")}
-                className="flex items-center gap-2 bg-white text-[#1e40af] px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-md shadow-black/10 hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-2 bg-[#0b57cd] text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold shadow-sm shadow-[#0b57cd]/20 hover:bg-[#0947ab] transition-colors"
               >
                 <Plus className="w-4 h-4" /> Nouvelle évaluation
               </motion.button>
@@ -2058,24 +2051,24 @@ export default function EvaluationsPage() {
             icon={ClipboardList}
             label="Total évaluations"
             value={stats.total}
-            color="#1e40af"
-            bg="#eff6ff"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
           <StatCard
             icon={PenLine}
             label="Devoirs"
             value={stats.devoirs}
-            color="#7c3aed"
-            bg="#f5f3ff"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
           <StatCard
             icon={BarChart2}
             label="Examens"
             value={stats.examens}
-            color="#dc2626"
-            bg="#fef2f2"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
           <StatCard
@@ -2083,100 +2076,177 @@ export default function EvaluationsPage() {
             label="Notes saisies"
             value={`${pctComplete}%`}
             sub={`${totalNotes} / ${totalSlots} élèves`}
-            color="#059669"
-            bg="#ecfdf5"
+            color="#0b57cd"
+            bg="#eff4ff"
             loading={state.loading}
           />
         </motion.div>
 
-        {/* Bloc principal */}
+        {/* ── Liste des évaluations + recherche ── */}
         <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            {/* Toolbar */}
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-              <div className="relative min-w-40 flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  value={state.search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher…"
-                  className="w-full h-9 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 focus:bg-white transition-all"
-                />
-                {state.search && (
+          <div className="bg-white rounded-lg">
+            {/* En-tête : titre à gauche · recherche + filtres à droite */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-900 leading-tight">
+                    Liste des évaluations
+                  </h2>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
+                    {state.loading
+                      ? "Chargement…"
+                      : `${displayEvals.length} évaluation${displayEvals.length > 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="relative w-48 sm:w-56">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <input
+                      value={state.search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Rechercher…"
+                      className="w-full h-10 pl-9 pr-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
+                    />
+                    {state.search && (
+                      <button
+                        onClick={() => setSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                   <button
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowFilters((v) => !v)}
+                    className={`h-10 px-3.5 rounded-lg border text-[13px] font-semibold flex items-center gap-2 transition-all ${
+                      showFilters
+                        ? "bg-blue-50 text-[#0b57cd] border-blue-200"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filtres</span>
                   </button>
-                )}
+                </div>
               </div>
-              <select
-                value={state.filterClasseId}
-                onChange={(e) => setFilterClasse(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:bg-white transition-all shrink-0 max-w-44"
-              >
-                <option value="">Toutes les classes</option>
-                {classeOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom}
-                  </option>
-                ))}
-              </select>
 
-              <select
-                value={filterCycle}
-                onChange={(e) => {
-                  setFilterCycle(e.target.value);
-                  setFilterPeriode("");
-                }}
-                className="h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:bg-white transition-all shrink-0"
-              >
-                <option value="">Tous les cycles</option>
-                <option value="MATERNELLE">Maternelle</option>
-                <option value="PRIMAIRE">Primaire</option>
-                <option value="SECONDAIRE">Secondaire</option>
-              </select>
-
-              <select
-                value={state.filterPeriodeId}
-                onChange={(e) => setFilterPeriode(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:bg-white transition-all shrink-0 max-w-44"
-              >
-                <option value="">Toutes les périodes</option>
-                {state.periodes
-                  .filter((p) => !filterCycle || p.niveauCycle === filterCycle)
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.libelle}
-                    </option>
-                  ))}
-              </select>
-
-              <select
-                value={filterMatiereId}
-                onChange={(e) => setFilterMatiereId(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:bg-white transition-all shrink-0 max-w-44"
-              >
-                <option value="">Toutes les matières</option>
-                {matiereOptions.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nom}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:bg-white transition-all shrink-0"
-              >
-                <option value="Tous">Tous les types</option>
-                {Object.entries(TC).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3 mt-3 border-t border-gray-100 grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                          Classe
+                        </label>
+                        <select
+                          value={state.filterClasseId}
+                          onChange={(e) => setFilterClasse(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                        >
+                          <option value="">Toutes</option>
+                          {classeOptions.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.nom}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                          Cycle
+                        </label>
+                        <select
+                          value={filterCycle}
+                          onChange={(e) => {
+                            setFilterCycle(e.target.value);
+                            setFilterPeriode("");
+                          }}
+                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                        >
+                          <option value="">Tous</option>
+                          <option value="MATERNELLE">Maternelle</option>
+                          <option value="PRIMAIRE">Primaire</option>
+                          <option value="SECONDAIRE">Secondaire</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                          Période
+                        </label>
+                        <select
+                          value={state.filterPeriodeId}
+                          onChange={(e) => setFilterPeriode(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                        >
+                          <option value="">Toutes</option>
+                          {state.periodes
+                            .filter(
+                              (p) => !filterCycle || p.niveauCycle === filterCycle,
+                            )
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.libelle}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                          Matière
+                        </label>
+                        <select
+                          value={filterMatiereId}
+                          onChange={(e) => setFilterMatiereId(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                        >
+                          <option value="">Toutes</option>
+                          {matiereOptions.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.nom}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+                          Type
+                        </label>
+                        <select
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 px-3 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20"
+                        >
+                          <option value="Tous">Tous</option>
+                          {Object.entries(TC).map(([k, v]) => (
+                            <option key={k} value={k}>
+                              {v.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSearch("");
+                        setFilterClasse("");
+                        setFilterCycle("");
+                        setFilterPeriode("");
+                        setFilterMatiereId("");
+                        setFilterType("Tous");
+                      }}
+                      className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Onglets */}
@@ -2187,7 +2257,7 @@ export default function EvaluationsPage() {
                   onClick={() => setTab(key)}
                   className={`flex items-center gap-2 px-4 py-3 text-[13px] font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
                     state.activeTab === key
-                      ? "border-[#1e40af] text-[#1e40af]"
+                      ? "border-[#0b57cd] text-[#0b57cd]"
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -2196,7 +2266,7 @@ export default function EvaluationsPage() {
               ))}
             </div>
 
-            <div className="p-5">
+            <div className="p-4">
               {/* ══ Tab Liste ══ */}
               {state.activeTab === "evaluations" &&
                 (state.loading ? (
@@ -2214,39 +2284,39 @@ export default function EvaluationsPage() {
                     {state.evaluations.length === 0 && (
                       <button
                         onClick={() => openModal("create")}
-                        className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#1e40af] text-white text-[13px] font-semibold rounded-lg hover:bg-[#1d3a97] transition-colors"
+                        className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors"
                       >
                         <Plus className="w-4 h-4" /> Créer une évaluation
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="overflow-x-auto rounded-xl border border-gray-100">
+                  <div className="rounded-lg overflow-hidden overflow-x-auto">
                     <table className="w-full min-w-[720px]">
                       <thead>
-                        <tr className="bg-gray-50/80 border-b border-gray-100">
+                        <tr className="bg-gray-50/60">
                           {[
-                            "TITRE",
-                            "MATIÈRE",
-                            "CLASSE / PÉRIODE",
-                            "CYCLE",
-                            "TYPE",
-                            "DATE",
-                            "/PTS",
-                            "COEF.",
-                            "AVANCEMENT",
-                            "",
+                            "Titre",
+                            "Matière",
+                            "Classe / période",
+                            "Cycle",
+                            "Type",
+                            "Date",
+                            "/Pts",
+                            "Coef.",
+                            "Avancement",
+                            "Actions",
                           ].map((h) => (
                             <th
                               key={h}
-                              className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider first:px-5"
+                              className="text-left px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap"
                             >
                               {h}
                             </th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-gray-50">
                         {displayEvals.map((ev) => (
                           <EvalTableRow
                             key={ev.id}
@@ -2295,7 +2365,7 @@ export default function EvaluationsPage() {
         </motion.div>
 
         {state.error && !state.modalMode && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
             <p className="text-[13px] text-red-700">{state.error}</p>
           </div>
@@ -2411,8 +2481,8 @@ function CoursSelect({ value, onChange, options, disabled }) {
           disabled
             ? "opacity-50 cursor-not-allowed border-gray-200 bg-gray-50"
             : open
-              ? "border-[#1e40af]/50 bg-white ring-2 ring-[#1e40af]/15"
-              : "border-gray-200 bg-gray-50 hover:bg-white hover:border-[#1e40af]/40"
+              ? "border-[#0b57cd]/50 bg-white ring-2 ring-[#0b57cd]/15"
+              : "border-gray-200 bg-gray-50 hover:bg-white hover:border-[#0b57cd]/40"
         }`}
       >
         {selected ? (
@@ -2473,12 +2543,12 @@ function CoursSelect({ value, onChange, options, disabled }) {
                     {/* Check */}
                     <div className="w-4 h-4 shrink-0 flex items-center justify-center">
                       {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-[#1e40af]" />
+                        <Check className="w-3.5 h-3.5 text-[#0b57cd]" />
                       )}
                     </div>
                     {/* Matière */}
                     <span
-                      className={`flex-1 text-[13px] font-medium truncate ${isSelected ? "text-[#1e40af]" : "text-gray-800"}`}
+                      className={`flex-1 text-[13px] font-medium truncate ${isSelected ? "text-[#0b57cd]" : "text-gray-800"}`}
                     >
                       {matNom}
                     </span>
@@ -2606,7 +2676,7 @@ function EvalFormModal({
   };
 
   const inputCls =
-    "w-full h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 focus:bg-white transition-all";
+    "w-full h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all";
   const labelCls =
     "block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1";
 
@@ -2627,7 +2697,7 @@ function EvalFormModal({
         <div
           className="px-6 py-4 flex items-center justify-between shrink-0 rounded-t-2xl"
           style={{
-            background: "linear-gradient(135deg,#1e40af 0%,#1d3a97 100%)",
+            background: "linear-gradient(135deg,#0b57cd 0%,#0947ab 100%)",
           }}
         >
           <div className="flex items-center gap-3">
@@ -2856,7 +2926,7 @@ function EvalFormModal({
               onChange={(e) => set("description", e.target.value)}
               placeholder="Chapitres concernés, consignes particulières…"
               rows={2}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e40af]/20 focus:border-[#1e40af]/40 focus:bg-white transition-all"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20 focus:border-[#0b57cd]/40 focus:bg-white transition-all"
             />
           </div>
         </form>
@@ -2874,7 +2944,7 @@ function EvalFormModal({
             type="button"
             disabled={submitting}
             onClick={handleSubmit}
-            className="flex-1 h-10 rounded-xl bg-[#1e40af] text-white text-[13px] font-semibold hover:bg-[#1d3a97] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors shadow-md shadow-blue-900/20"
+            className="flex-1 h-10 rounded-xl bg-[#0b57cd] text-white text-[13px] font-semibold hover:bg-[#0947ab] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors shadow-md shadow-blue-900/20"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

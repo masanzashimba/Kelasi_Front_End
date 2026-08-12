@@ -16,7 +16,11 @@ import { classeService } from "../../features/classe/services/classe.service";
 import { enseignantService } from "../../features/enseignant/services/enseignant.service";
 import { matiereService } from "../../services/matiere.service";
 import { coursService } from "../../services/cours.service";
-import { useCours } from "../../features/cours/hooks/useCours";
+import {
+  useCours,
+  isMonoTitulaire,
+  cycleTabOf,
+} from "../../features/cours/hooks/useCours";
 
 // ── Subject icon ────────────────────────────────────────────────────────────
 
@@ -56,6 +60,13 @@ const FREQUENCES = [
   { value: "BIMENSUEL", label: "Bimensuel" },
   { value: "MENSUEL", label: "Mensuel" },
 ];
+const CYCLE_TABS = [
+  { key: "MATERNELLE", label: "Maternelle" },
+  { key: "PRIMAIRE", label: "Primaire" },
+  { key: "SECONDAIRE", label: "Secondaire" },
+  { key: "HUMANITES", label: "Humanités" },
+];
+
 const START_HOUR = 7;
 const END_HOUR = 19;
 const HOUR_PX = 56;
@@ -65,8 +76,9 @@ function initiales(nom) {
   return (nom ?? "").split(" ").filter(Boolean).map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
-const AVATAR_COLORS = ["#0b57cd","#7c3aed","#059669","#d97706","#dc2626","#0891b2"];
-const avatarBg = (id) => AVATAR_COLORS[(id?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+// Palette unique : bleu de marque (pas de couleur par matière)
+const BLUE = "#0b57cd";
+const BLUE_SOFT = "#eff4ff";
 
 // ── StatCard ─────────────────────────────────────────────────────────────────
 
@@ -90,8 +102,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color, bg, loading }) => (
 // ── Skeleton card ─────────────────────────────────────────────────────────────
 
 const CoursCardSkeleton = () => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden animate-pulse">
-    <div className="h-1 bg-gray-200" />
+  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-pulse">
     <div className="p-4 space-y-3">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-gray-100 shrink-0" />
@@ -121,26 +132,28 @@ const SkeletonRow = () => (
 
 // ── CoursCard ─────────────────────────────────────────────────────────────────
 
-const CoursCard = ({ cours, selected, onClick }) => {
+const CoursCard = ({ cours, selected, onClick, mono }) => {
   const Icon = getSubjectIcon(cours.matiereNom);
+  // En maternelle/primaire, un cours assuré par quelqu'un d'autre que le
+  // titulaire est une exception : on la signale explicitement.
+  const exception = mono && !cours.estTitulaire;
   return (
     <motion.div
       whileHover={{ y: -2 }}
       onClick={onClick}
       className={`bg-white rounded-lg border cursor-pointer transition-all overflow-hidden ${
         selected
-          ? "border-[#0b57cd] shadow-lg shadow-[#0b57cd]/20 ring-2 ring-[#0b57cd]/15"
-          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+          ? "border-[#0b57cd] ring-2 ring-[#0b57cd]/15"
+          : "border-gray-200 hover:border-[#0b57cd]/40 hover:shadow-sm"
       }`}
     >
-      <div className="h-1 bg-[#0b57cd]" />
       <div className="p-4">
         <div className="flex items-start gap-3 mb-3">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: `${cours.matiereCouleur}1a` }}
+            style={{ background: BLUE_SOFT }}
           >
-            <Icon className="w-5 h-5" style={{ color: cours.matiereCouleur }} />
+            <Icon className="w-5 h-5" style={{ color: BLUE }} />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-[14px] font-bold text-gray-900 leading-tight truncate">
@@ -152,26 +165,25 @@ const CoursCard = ({ cours, selected, onClick }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <GraduationCap className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-[12px] font-semibold text-gray-700 truncate">{cours.classeNom}</span>
-          {cours.niveauLibelle && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 text-[#0b57cd] font-semibold shrink-0">
-              {cours.niveauLibelle}
-            </span>
-          )}
-        </div>
-
         <div className="flex items-center gap-2 mb-3">
           <div
             className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white overflow-hidden shrink-0"
-            style={{ background: avatarBg(cours.enseignantId) }}
+            style={{ background: exception ? "#b45309" : BLUE }}
           >
             {cours.enseignantPhoto
               ? <img src={cours.enseignantPhoto} alt="" className="w-full h-full object-cover" />
               : initiales(cours.enseignantNom)}
           </div>
           <span className="text-[11px] text-gray-400 truncate">{cours.enseignantNom}</span>
+          {exception ? (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+              Exception
+            </span>
+          ) : mono ? (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0b57cd] border border-blue-200 shrink-0">
+              Titulaire
+            </span>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -187,7 +199,7 @@ const CoursCard = ({ cours, selected, onClick }) => {
           </div>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
             cours.nombreCreneaux > 0
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              ? "bg-blue-50 text-[#0b57cd] border-blue-200"
               : "bg-gray-50 text-gray-400 border-gray-200"
           }`}>
             {cours.nombreCreneaux} cr.
@@ -198,20 +210,55 @@ const CoursCard = ({ cours, selected, onClick }) => {
   );
 };
 
-// ── NewCoursCard ──────────────────────────────────────────────────────────────
+// ── ClasseSection : un bloc de cartes par classe ──────────────────────────────
 
-const NewCoursCard = ({ onClick }) => (
-  <motion.button
-    whileHover={{ y: -2 }}
-    onClick={onClick}
-    className="bg-white rounded-lg border-2 border-dashed border-gray-200 hover:border-[#0b57cd]/40 hover:bg-[#0b57cd]/[0.03] transition-all p-4 flex flex-col items-center justify-center gap-2 min-h-[160px] text-gray-400 hover:text-[#0b57cd] group"
-  >
-    <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
-      <Plus className="w-5 h-5" />
-    </div>
-    <span className="text-[12px] font-semibold">Nouveau cours</span>
-  </motion.button>
-);
+function ClasseSection({ groupe, mono, selectedId, onCoursClick, onAddCours, defaultOpen }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="rounded-lg border border-gray-200 overflow-hidden">
+      <header className="flex items-center gap-3 px-4 py-3 bg-gray-50/60 border-b border-gray-100">
+        <button onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left group/h">
+          <span className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <GraduationCap className="w-4 h-4 text-[#0b57cd]" />
+          </span>
+          <span className="min-w-0">
+            <span className="flex items-center gap-2">
+              <span className="text-[13px] font-bold text-gray-900 truncate">{groupe.classeNom}</span>
+              {groupe.niveauLibelle && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 text-[#0b57cd] font-semibold shrink-0">
+                  {groupe.niveauLibelle}
+                </span>
+              )}
+            </span>
+            <span className="block text-[11px] text-gray-400 mt-0.5 truncate">
+              {groupe.cours.length} cours
+              {mono && groupe.titulaireNom && ` · titulaire : ${groupe.titulaireNom}`}
+              {mono && groupe.exceptions > 0 &&
+                ` · ${groupe.exceptions} exception${groupe.exceptions > 1 ? "s" : ""}`}
+            </span>
+          </span>
+          {open
+            ? <ChevronDown className="w-4 h-4 text-gray-400 shrink-0 ml-auto" />
+            : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0 ml-auto" />}
+        </button>
+        <button onClick={() => onAddCours(groupe.classeId)}
+          title={`Ajouter un cours à ${groupe.classeNom}`}
+          className="h-8 px-2.5 rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-[#0b57cd] hover:border-[#0b57cd]/40 text-[12px] font-semibold flex items-center gap-1.5 transition-colors shrink-0">
+          <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Cours</span>
+        </button>
+      </header>
+      {open && (
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {groupe.cours.map((cours) => (
+            <CoursCard key={cours.id} cours={cours} mono={mono}
+              selected={selectedId === cours.id} onClick={() => onCoursClick(cours)} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 // ── ClassePicker ──────────────────────────────────────────────────────────────
 
@@ -303,7 +350,7 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
             className="fixed top-0 right-0 h-full w-full max-w-sm z-[9980] bg-white shadow-2xl flex flex-col">
             {/* Header */}
             <div className="relative px-5 py-4 shrink-0 overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${cours.matiereCouleur}ee 0%, ${cours.matiereCouleur}99 100%)` }}>
+              style={{ background: BLUE }}>
               <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
               <button onClick={onClose}
                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors">
@@ -336,12 +383,12 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
               {/* Stats */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: "Coefficient", value: cours.coefficient, color: "#185fa5" },
-                  { label: "Vol. hebdo", value: cours.volumeHoraireHebdo ? `${cours.volumeHoraireHebdo}h` : "—", color: "#534ab7" },
-                  { label: "Créneaux", value: cours.nombreCreneaux, color: "#0f6e56" },
+                  { label: "Coefficient", value: cours.coefficient },
+                  { label: "Vol. hebdo", value: cours.volumeHoraireHebdo ? `${cours.volumeHoraireHebdo}h` : "—" },
+                  { label: "Créneaux", value: cours.nombreCreneaux },
                 ].map((s) => (
                   <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                    <p className="text-[15px] font-black leading-none" style={{ color: s.color }}>{s.value}</p>
+                    <p className="text-[15px] font-black leading-none" style={{ color: BLUE }}>{s.value}</p>
                     <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide font-medium">{s.label}</p>
                   </div>
                 ))}
@@ -353,7 +400,7 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
                 <div className="rounded-xl border border-gray-100 overflow-hidden">
                   <div className="flex items-center gap-3 px-4 py-3 bg-white">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white overflow-hidden shrink-0"
-                      style={{ background: avatarBg(cours.enseignantId) }}>
+                      style={{ background: BLUE }}>
                       {cours.enseignantPhoto
                         ? <img src={cours.enseignantPhoto} alt="" className="w-full h-full object-cover" />
                         : initiales(cours.enseignantNom)}
@@ -399,7 +446,7 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
                     {creneaux.map((cr) => (
                       <div key={cr.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 group/cr transition-colors">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-white shrink-0"
-                          style={{ background: cours.matiereCouleur }}>
+                          style={{ background: BLUE }}>
                           {cr.jour.slice(0, 2)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -441,15 +488,15 @@ function DetailDrawer({ isOpen, cours, creneaux, creneauLoading, onClose, onEdit
 
 // ── CoursFormDrawer ───────────────────────────────────────────────────────────
 
-function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, onClose, onSubmit, submitting }) {
+function CoursFormDrawer({ isOpen, mode, cours, presetClasseId, classes, matieres, enseignants, onClose, onSubmit, submitting }) {
   const isEdit = mode === "edit";
   const [form, setForm] = useState({ classeIds: [], matiereId: "", enseignantId: "", coefficient: 1, volumeHoraireHebdo: "" });
 
   useEffect(() => {
     if (isOpen) setForm(isEdit && cours
       ? { classeIds: [], matiereId: cours.matiereId ?? "", enseignantId: cours.enseignantId ?? "", coefficient: cours.coefficient ?? 1, volumeHoraireHebdo: cours.volumeHoraireHebdo ?? "" }
-      : { classeIds: [], matiereId: "", enseignantId: "", coefficient: 1, volumeHoraireHebdo: "" });
-  }, [isOpen, cours, isEdit]);
+      : { classeIds: presetClasseId ? [presetClasseId] : [], matiereId: "", enseignantId: "", coefficient: 1, volumeHoraireHebdo: "" });
+  }, [isOpen, cours, isEdit, presetClasseId]);
 
   const selectedMatiere = matieres.find((m) => m.id === form.matiereId);
   const PreviewIcon = selectedMatiere ? getSubjectIcon(selectedMatiere.nom) : BookOpen;
@@ -525,8 +572,8 @@ function CoursFormDrawer({ isOpen, mode, cours, classes, matieres, enseignants, 
             <div className="flex-1 overflow-y-auto px-6 py-5">
               {selectedMatiere && (
                 <div className="mb-5 p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${selectedMatiere.couleur}1a` }}>
-                    <PreviewIcon className="w-5 h-5" style={{ color: selectedMatiere.couleur }} />
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: BLUE_SOFT }}>
+                    <PreviewIcon className="w-5 h-5" style={{ color: BLUE }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-gray-900">{selectedMatiere.nom}</p>
@@ -743,12 +790,12 @@ function CreneauFormDrawer({ isOpen, cours, salles, onClose, onSubmit, submittin
 
 // ── Par classe view ───────────────────────────────────────────────────────────
 
-function ParClasseView({ coursesByClasse, selectedId, onCoursClick }) {
+function ParClasseView({ coursesByClasse, selectedId, onCoursClick, mono }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (id) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
   if (coursesByClasse.length === 0) return (
-    <div className="bg-white rounded-lg border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+    <div className="rounded-lg border border-dashed border-gray-200 py-14 flex flex-col items-center gap-2">
       <BookOpen className="w-10 h-10 text-gray-200" />
       <p className="text-[14px] font-semibold text-gray-400">Aucun cours trouvé</p>
     </div>
@@ -759,7 +806,7 @@ function ParClasseView({ coursesByClasse, selectedId, onCoursClick }) {
       {coursesByClasse.map((groupe) => {
         const isOpen = expanded[groupe.classeId] !== false;
         return (
-          <div key={groupe.classeId} className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+          <div key={groupe.classeId} className="rounded-lg border border-gray-200 overflow-hidden">
             <button onClick={() => toggle(groupe.classeId)}
               className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors">
               <div className="flex items-center gap-3">
@@ -773,6 +820,23 @@ function ParClasseView({ coursesByClasse, selectedId, onCoursClick }) {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0b57cd]">
                   {groupe.cours.length} cours
                 </span>
+                {mono && groupe.titulaireNom && (
+                  <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-500">
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white overflow-hidden shrink-0"
+                      style={{ background: BLUE }}>
+                      {groupe.titulairePhoto
+                        ? <img src={groupe.titulairePhoto} alt="" className="w-full h-full object-cover" />
+                        : initiales(groupe.titulaireNom)}
+                    </span>
+                    <span className="font-semibold text-gray-600">{groupe.titulaireNom}</span>
+                    <span className="text-gray-300">· titulaire</span>
+                  </span>
+                )}
+                {mono && groupe.exceptions > 0 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    {groupe.exceptions} exception{groupe.exceptions > 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
               {isOpen ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
             </button>
@@ -784,16 +848,25 @@ function ParClasseView({ coursesByClasse, selectedId, onCoursClick }) {
                   return (
                     <button key={cours.id} onClick={() => onCoursClick(cours)}
                       className={`w-full flex items-center gap-4 px-5 py-3 text-left transition-colors ${isActive ? "bg-blue-50/40" : "hover:bg-gray-50/60"}`}>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${cours.matiereCouleur}1a` }}>
-                        <Icon className="w-3.5 h-3.5" style={{ color: cours.matiereCouleur }} />
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: BLUE_SOFT }}>
+                        <Icon className="w-3.5 h-3.5" style={{ color: BLUE }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-semibold text-gray-900 truncate">{cours.matiereNom}</p>
-                        <p className="text-[11px] text-gray-400 truncate">{cours.enseignantNom}</p>
+                        {mono && cours.estTitulaire ? (
+                          <p className="text-[11px] text-gray-300 truncate">Assuré par le titulaire</p>
+                        ) : (
+                          <p className="text-[11px] text-gray-400 truncate">{cours.enseignantNom}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
+                        {mono && !cours.estTitulaire && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            Exception
+                          </span>
+                        )}
                         <span className="text-[11px] text-gray-400">Coef. {cours.coefficient}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cours.nombreCreneaux > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-50 text-gray-400 border-gray-200"}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cours.nombreCreneaux > 0 ? "bg-blue-50 text-[#0b57cd] border-blue-200" : "bg-gray-50 text-gray-400 border-gray-200"}`}>
                           {cours.nombreCreneaux} cr.
                         </span>
                       </div>
@@ -817,7 +890,7 @@ function EmploiDuTempsView({ classes, creneaux, classeId, onClasseChange, loadin
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+      <div className="rounded-lg border border-gray-200 p-4 flex items-center gap-3">
         <label className="text-[13px] font-semibold text-gray-600 shrink-0">Classe :</label>
         <select value={classeId} onChange={(e) => onClasseChange(e.target.value)}
           className="flex-1 max-w-xs h-9 px-3 rounded-lg border border-gray-200 bg-gray-50 text-[13px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0b57cd]/20">
@@ -827,20 +900,20 @@ function EmploiDuTempsView({ classes, creneaux, classeId, onClasseChange, loadin
         {loading && <Loader2 className="w-4 h-4 animate-spin text-[#0b57cd]" />}
       </div>
       {!classeId && (
-        <div className="bg-white rounded-lg border border-gray-100 shadow-sm py-16 flex flex-col items-center gap-2">
+        <div className="rounded-lg border border-dashed border-gray-200 py-16 flex flex-col items-center gap-2">
           <CalendarDays className="w-10 h-10 text-gray-200" />
           <p className="text-[14px] font-semibold text-gray-400">Sélectionnez une classe</p>
           <p className="text-[12px] text-gray-400">pour afficher son emploi du temps</p>
         </div>
       )}
       {classeId && !loading && creneaux.length === 0 && (
-        <div className="bg-white rounded-lg border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+        <div className="rounded-lg border border-dashed border-gray-200 py-14 flex flex-col items-center gap-2">
           <Calendar className="w-8 h-8 text-gray-200" />
           <p className="text-[13px] font-semibold text-gray-400">Aucun créneau défini pour cette classe</p>
         </div>
       )}
       {classeId && creneaux.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-auto">
+        <div className="rounded-lg border border-gray-200 overflow-auto">
           <div className="min-w-[700px]">
             <div className="grid grid-cols-[60px_repeat(6,1fr)] border-b border-gray-100">
               <div className="p-3" />
@@ -868,8 +941,8 @@ function EmploiDuTempsView({ classes, creneaux, classeId, onClasseChange, loadin
                     const height = ((endMin - startMin) / 60) * HOUR_PX;
                     return (
                       <div key={cr.id} className="absolute left-1 right-1 rounded-lg px-2 py-1 overflow-hidden"
-                        style={{ top: `${top}px`, height: `${height}px`, backgroundColor: `${cr.matiereCouleur}22`, borderLeft: `3px solid ${cr.matiereCouleur}` }}>
-                        <p className="text-[10px] font-black truncate leading-tight" style={{ color: cr.matiereCouleur }}>{cr.matiereCode}</p>
+                        style={{ top: `${top}px`, height: `${height}px`, backgroundColor: BLUE_SOFT, borderLeft: `3px solid ${BLUE}` }}>
+                        <p className="text-[10px] font-black truncate leading-tight" style={{ color: BLUE }}>{cr.matiereCode}</p>
                         {height > 36 && <p className="text-[9px] text-gray-500 truncate">{cr.heureDebut}–{cr.heureFin}</p>}
                         {height > 52 && cr.salleNom && <p className="text-[9px] text-gray-400 truncate">{cr.salleNom}</p>}
                       </div>
@@ -923,11 +996,13 @@ function ConfirmDeleteModal({ cours, onConfirm, onCancel, submitting }) {
 
 export default function CoursPage() {
   const {
-    state, dispatch, filteredCours, coursesByClasse, stats,
+    state, dispatch, filteredCours, coursesByClasse, cycleCounts, stats,
     fetchCours, fetchCreneaux, fetchEmploiDuTemps,
     createCoursBulk, updateCours, deleteCours,
     createCreneau, deleteCreneau,
   } = useCours();
+
+  const mono = isMonoTitulaire(state.cycleTab);
 
   const [view, setView] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
@@ -938,6 +1013,14 @@ export default function CoursPage() {
   const [refLoaded, setRefLoaded] = useState(false);
 
   useEffect(() => { fetchCours(); }, [fetchCours]);
+
+  // Bascule sur le premier onglet de cycle qui contient des cours.
+  useEffect(() => {
+    if (state.loading || state.cours.length === 0) return;
+    if (cycleCounts[state.cycleTab] > 0) return;
+    const premier = CYCLE_TABS.find((t) => cycleCounts[t.key] > 0);
+    if (premier) dispatch({ type: "SET_CYCLE_TAB", payload: premier.key });
+  }, [cycleCounts, state.cycleTab, state.cours.length, state.loading, dispatch]);
 
   useEffect(() => {
     if (state.modalMode && !refLoaded) {
@@ -979,17 +1062,18 @@ export default function CoursPage() {
 
   const deleteCandidate = state.cours.find((c) => c.id === state.deleteConfirmId);
 
-  // Unique classes + matieres from loaded cours (for filter dropdowns)
-  const classeOptions = [...new Map(state.cours.map((c) => [c.classeId, { id: c.classeId, nom: c.classeNom }])).values()].sort((a, b) => a.nom.localeCompare(b.nom));
-  const matiereOptions = [...new Map(state.cours.map((c) => [c.matiereId, { id: c.matiereId, nom: c.matiereNom }])).values()].sort((a, b) => a.nom.localeCompare(b.nom));
+  // Classes + matières du cycle affiché (pour les filtres et l'emploi du temps)
+  const coursDuCycle = state.cours.filter((c) => cycleTabOf(c) === state.cycleTab);
+  const classeOptions = [...new Map(coursDuCycle.map((c) => [c.classeId, { id: c.classeId, nom: c.classeNom }])).values()].sort((a, b) => a.nom.localeCompare(b.nom));
+  const matiereOptions = [...new Map(coursDuCycle.map((c) => [c.matiereId, { id: c.matiereId, nom: c.matiereNom }])).values()].sort((a, b) => a.nom.localeCompare(b.nom));
 
-  const emploiClasses = [...new Map(state.cours.map((c) => [c.classeId, { id: c.classeId, nom: c.classeNom }])).values()].sort((a, b) => a.nom.localeCompare(b.nom));
+  const emploiClasses = classeOptions;
 
   const fade = (delay = 0) => ({ initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.24, ease: "easeOut", delay } });
 
   const VIEW_TABS = [
-    { key: "grid", icon: LayoutGrid, title: "Cartes" },
-    { key: "par-classe", icon: List, title: "Par classe" },
+    { key: "grid", icon: LayoutGrid, title: "Cartes par classe" },
+    { key: "par-classe", icon: List, title: "Liste compacte" },
     { key: "emploi-temps", icon: CalendarDays, title: "Emploi du temps" },
   ];
 
@@ -1035,9 +1119,9 @@ export default function CoursPage() {
           <StatCard icon={User}      label="Enseignants"      value={stats.enseignants}   color="#0b57cd" bg="#eff4ff" loading={state.loading} />
         </motion.div>
 
-        {/* ── Toolbar ── */}
-        <motion.div {...fade(0.1)}>
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+        {/* ── Toolbar + contenu (bloc unique) ── */}
+        <motion.div {...fade(0.1)} className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-100">
             <div className="flex gap-2 items-center">
               {/* Search */}
               <div className="relative flex-1">
@@ -1103,53 +1187,93 @@ export default function CoursPage() {
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
 
-        {/* ── Contenu ── */}
-        <motion.div {...fade(0.14)}>
-          {/* Vue cartes */}
-          {view === "grid" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {state.loading ? (
-                Array.from({ length: 8 }).map((_, i) => <CoursCardSkeleton key={i} />)
-              ) : filteredCours.length === 0 ? (
-                <div className="col-span-full bg-white rounded-lg border border-gray-100 shadow-sm py-14 flex flex-col items-center gap-2">
+          {/* ── Onglets par cycle ── */}
+          <div className="flex border-b border-gray-100 px-2 pt-1 overflow-x-auto">
+            {CYCLE_TABS.map(({ key, label }) => {
+              const actif = state.cycleTab === key;
+              const count = cycleCounts[key] ?? 0;
+              return (
+                <button key={key}
+                  onClick={() => dispatch({ type: "SET_CYCLE_TAB", payload: key })}
+                  className={`flex items-center gap-2 px-4 py-3 text-[13px] font-semibold border-b-2 transition-all -mb-px whitespace-nowrap ${
+                    actif
+                      ? "border-[#0b57cd] text-[#0b57cd]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}>
+                  {label}
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    actif ? "bg-blue-50 text-[#0b57cd]" : "bg-gray-100 text-gray-400"
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── Contenu ── */}
+          <div className="p-4">
+            {/* Rappel : en maternelle/primaire le titulaire assure tout */}
+            {mono && filteredCours.length > 0 && (
+              <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-2.5">
+                <BookOpen className="w-4 h-4 text-[#0b57cd] mt-0.5 shrink-0" />
+                <p className="text-[12px] text-gray-600 leading-relaxed">
+                  En {state.cycleTab === "MATERNELLE" ? "maternelle" : "primaire"}, le{" "}
+                  <span className="font-semibold text-gray-700">titulaire de la classe</span>{" "}
+                  enseigne toutes les matières. Les cours confiés à un autre professeur
+                  sont signalés comme{" "}
+                  <span className="font-semibold text-amber-700">exception</span>.
+                </p>
+              </div>
+            )}
+            {/* Vue cartes — une section par classe */}
+            {view === "grid" && (
+              state.loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }).map((_, i) => <CoursCardSkeleton key={i} />)}
+                </div>
+              ) : coursesByClasse.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-gray-200 py-14 flex flex-col items-center gap-2">
                   <BookOpen className="w-10 h-10 text-gray-200" />
                   <p className="text-[14px] font-semibold text-gray-400">
-                    {state.cours.length === 0 ? "Aucun cours pour cette année" : "Aucun cours trouvé"}
+                    {state.cours.length === 0
+                      ? "Aucun cours pour cette année"
+                      : `Aucun cours en ${(CYCLE_TABS.find((t) => t.key === state.cycleTab)?.label ?? "").toLowerCase()}`}
                   </p>
-                  {state.cours.length === 0 && (
-                    <button onClick={() => { setRefLoaded(false); dispatch({ type: "OPEN_MODAL", payload: { mode: "create" } }); }}
-                      className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors">
-                      <Plus className="w-4 h-4" /> Ajouter un cours
-                    </button>
-                  )}
+                  <button onClick={() => { setRefLoaded(false); dispatch({ type: "OPEN_MODAL", payload: { mode: "create" } }); }}
+                    className="mt-2 flex items-center gap-2 px-4 py-2 bg-[#0b57cd] text-white text-[13px] font-semibold rounded-lg hover:bg-[#0947ab] transition-colors">
+                    <Plus className="w-4 h-4" /> Ajouter un cours
+                  </button>
                 </div>
               ) : (
-                <AnimatePresence>
-                  {filteredCours.map((cours, i) => (
-                    <motion.div key={cours.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: i * 0.03 }}>
-                      <CoursCard cours={cours} selected={state.detailCours?.id === cours.id} onClick={() => handleCoursClick(cours)} />
-                    </motion.div>
+                <div className="space-y-3">
+                  {coursesByClasse.map((groupe) => (
+                    <ClasseSection
+                      key={groupe.classeId}
+                      groupe={groupe}
+                      mono={mono}
+                      defaultOpen={coursesByClasse.length <= 6}
+                      selectedId={state.detailCours?.id}
+                      onCoursClick={handleCoursClick}
+                      onAddCours={(classeId) => { setRefLoaded(false); dispatch({ type: "OPEN_MODAL", payload: { mode: "create", classeId } }); }}
+                    />
                   ))}
-                </AnimatePresence>
-              )}
-              {!state.loading && (
-                <NewCoursCard onClick={() => { setRefLoaded(false); dispatch({ type: "OPEN_MODAL", payload: { mode: "create" } }); }} />
-              )}
-            </div>
-          )}
+                </div>
+              )
+            )}
 
-          {/* Vue tableau (par classe) */}
-          {view === "par-classe" && (
-            <ParClasseView coursesByClasse={coursesByClasse} selectedId={state.detailCours?.id} onCoursClick={handleCoursClick} />
-          )}
+            {/* Vue tableau (par classe) */}
+            {view === "par-classe" && (
+              <ParClasseView coursesByClasse={coursesByClasse} mono={mono} selectedId={state.detailCours?.id} onCoursClick={handleCoursClick} />
+            )}
 
-          {/* Emploi du temps */}
-          {view === "emploi-temps" && (
-            <EmploiDuTempsView classes={emploiClasses} creneaux={state.emploiCreneaux}
-              classeId={state.emploiClasseId} onClasseChange={handleClasseEmploi} loading={state.emploiLoading} />
-          )}
+            {/* Emploi du temps */}
+            {view === "emploi-temps" && (
+              <EmploiDuTempsView classes={emploiClasses} creneaux={state.emploiCreneaux}
+                classeId={state.emploiClasseId} onClasseChange={handleClasseEmploi} loading={state.emploiLoading} />
+            )}
+          </div>
         </motion.div>
 
         {/* ── Erreur ── */}
@@ -1174,6 +1298,7 @@ export default function CoursPage() {
 
       <CoursFormDrawer
         isOpen={state.modalMode !== null} mode={state.modalMode} cours={state.selectedCours}
+        presetClasseId={state.presetClasseId}
         classes={classes} matieres={matieres} enseignants={enseignants}
         onClose={() => dispatch({ type: "CLOSE_MODAL" })}
         onSubmit={state.modalMode === "edit" ? handleEditSubmit : handleCreateSubmit}
